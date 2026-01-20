@@ -15,7 +15,7 @@
  * @requirements 12.3 - Try/catch placement patterns
  */
 
-import type { Language } from '@drift/core';
+import type { Language } from 'driftdetect-core';
 import { RegexDetector, type DetectionContext, type DetectionResult } from '../base/index.js';
 
 // ============================================================================
@@ -70,25 +70,44 @@ export interface TryCatchAnalysis {
 // ============================================================================
 
 export const TRY_CATCH_PATTERNS = [
+  // JavaScript/TypeScript
   /try\s*\{/gi,
+  // Python
+  /try\s*:/gi,
 ] as const;
 
 export const TRY_CATCH_FINALLY_PATTERNS = [
+  // JavaScript/TypeScript
   /try\s*\{[\s\S]*?\}\s*catch[\s\S]*?\}\s*finally\s*\{/gi,
+  // Python
+  /try\s*:[\s\S]*?except[\s\S]*?finally\s*:/gi,
 ] as const;
 
 export const TYPED_CATCH_PATTERNS = [
+  // JavaScript/TypeScript
   /catch\s*\(\s*\w+\s*\)\s*\{[\s\S]*?instanceof\s+\w+Error/gi,
   /catch\s*\(\s*\w+:\s*\w+Error\s*\)/gi,
+  // Python - typed except
+  /except\s+\w+Error\s+as\s+\w+\s*:/gi,
+  /except\s+\(\s*\w+(?:,\s*\w+)*\s*\)\s+as\s+\w+\s*:/gi,
+  /except\s+\w+Exception\s+as\s+\w+\s*:/gi,
 ] as const;
 
 export const EMPTY_CATCH_PATTERNS = [
+  // JavaScript/TypeScript
   /catch\s*\([^)]*\)\s*\{\s*\}/gi,
   /catch\s*\{\s*\}/gi,
+  // Python - except with pass
+  /except[^:]*:\s*\n\s*pass\b/gi,
+  /except\s*:\s*\n\s*pass\b/gi,
 ] as const;
 
 export const CATCH_ALL_PATTERNS = [
+  // JavaScript/TypeScript
   /catch\s*\(\s*\w+\s*\)\s*\{[^}]*(?!throw)[^}]*\}/gi,
+  // Python - bare except
+  /except\s*:/gi,
+  /except\s+Exception\s*:/gi,
 ] as const;
 
 export const EXCLUDED_FILE_PATTERNS = [
@@ -249,14 +268,24 @@ export class TryCatchPlacementDetector extends RegexDetector {
   readonly description = 'Detects try/catch placement patterns';
   readonly category = 'errors';
   readonly subcategory = 'try-catch';
-  readonly supportedLanguages: Language[] = ['typescript', 'javascript'];
+  readonly supportedLanguages: Language[] = ['typescript', 'javascript', 'python'];
   
   async detect(context: DetectionContext): Promise<DetectionResult> {
     const { content, file } = context;
     if (shouldExcludeFile(file)) return this.createEmptyResult();
     
     const analysis = analyzeTryCatchPlacement(content, file);
-    return this.createResult([], [], analysis.confidence);
+    
+    // Convert internal violations to standard Violation format
+    const violations = this.convertViolationInfos(analysis.violations);
+    
+    return this.createResult([], violations, analysis.confidence, {
+      custom: {
+        patterns: analysis.patterns,
+        hasTryCatch: analysis.hasTryCatch,
+        hasFinally: analysis.hasFinally,
+      },
+    });
   }
   
   generateQuickFix(): null {

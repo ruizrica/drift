@@ -10,7 +10,7 @@
  * @requirements 15.3 - Context field patterns
  */
 
-import type { Violation, QuickFix, PatternCategory, Language } from '@drift/core';
+import type { Violation, QuickFix, PatternCategory, Language } from 'driftdetect-core';
 import { RegexDetector } from '../base/regex-detector.js';
 import type { DetectionContext, DetectionResult } from '../base/base-detector.js';
 
@@ -42,10 +42,11 @@ export interface ContextFieldAnalysis {
 }
 
 // ============================================================================
-// Patterns
+// Patterns (JavaScript/TypeScript + Python)
 // ============================================================================
 
 export const REQUEST_ID_PATTERNS = [
+  // Both languages
   /requestId\s*[=:]/gi,
   /request_id\s*[=:]/gi,
   /traceId\s*[=:]/gi,
@@ -54,27 +55,45 @@ export const REQUEST_ID_PATTERNS = [
 ];
 
 export const USER_ID_PATTERNS = [
+  // Both languages
   /userId\s*[=:]/gi,
   /user_id\s*[=:]/gi,
   /userID\s*[=:]/gi,
+  // Python - common in FastAPI
+  /current_user/gi,
+  /get_current_user/gi,
 ];
 
 export const TIMESTAMP_PATTERNS = [
+  // JavaScript/TypeScript
   /timestamp\s*[=:]/gi,
   /time\s*[=:]\s*(?:new\s+)?Date/gi,
   /createdAt\s*[=:]/gi,
+  // Python
+  /created_at\s*[=:]/gi,
+  /datetime\.now\s*\(/gi,
+  /datetime\.utcnow\s*\(/gi,
+  /time\.time\s*\(/gi,
 ];
 
 export const SERVICE_NAME_PATTERNS = [
+  // Both languages
   /serviceName\s*[=:]/gi,
   /service_name\s*[=:]/gi,
   /service\s*[=:]\s*['"`]/gi,
+  // Python
+  /__name__/gi,
 ];
 
 export const CUSTOM_CONTEXT_PATTERNS = [
+  // JavaScript/TypeScript
   /context\s*[=:]\s*\{/gi,
   /metadata\s*[=:]\s*\{/gi,
   /\.child\s*\(\s*\{/gi,
+  // Python - extra dict in logging
+  /extra\s*=\s*\{/gi,
+  /exc_info\s*=/gi,
+  /stack_info\s*=/gi,
 ];
 
 // ============================================================================
@@ -163,7 +182,7 @@ export class ContextFieldsDetector extends RegexDetector {
   readonly description = 'Detects logging context field patterns';
   readonly category: PatternCategory = 'logging';
   readonly subcategory = 'context-fields';
-  readonly supportedLanguages: Language[] = ['typescript', 'javascript'];
+  readonly supportedLanguages: Language[] = ['typescript', 'javascript', 'python'];
 
   async detect(context: DetectionContext): Promise<DetectionResult> {
     if (!this.supportsLanguage(context.language)) {

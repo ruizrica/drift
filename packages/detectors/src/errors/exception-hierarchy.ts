@@ -15,7 +15,7 @@
  * @requirements 12.1 - Exception hierarchy patterns
  */
 
-import type { Language } from '@drift/core';
+import type { Language } from 'driftdetect-core';
 import { RegexDetector, type DetectionContext, type DetectionResult } from '../base/index.js';
 
 // ============================================================================
@@ -71,30 +71,53 @@ export interface ExceptionAnalysis {
 // ============================================================================
 
 export const APP_ERROR_PATTERNS = [
+  // JavaScript/TypeScript
   /class\s+AppError\s+extends\s+Error/gi,
   /class\s+BaseError\s+extends\s+Error/gi,
   /class\s+ApplicationError\s+extends\s+Error/gi,
+  // Python
+  /class\s+AppError\s*\(\s*Exception\s*\)/gi,
+  /class\s+BaseError\s*\(\s*Exception\s*\)/gi,
+  /class\s+ApplicationError\s*\(\s*Exception\s*\)/gi,
 ] as const;
 
 export const CUSTOM_ERROR_PATTERNS = [
+  // JavaScript/TypeScript
   /class\s+(\w+Error)\s+extends\s+(?:App|Base|Application)?Error/gi,
   /class\s+(\w+Exception)\s+extends\s+(?:App|Base|Application)?Error/gi,
+  // Python
+  /class\s+(\w+Error)\s*\(\s*(?:App|Base|Application)?Error\s*\)/gi,
+  /class\s+(\w+Exception)\s*\(\s*(?:App|Base|Application)?Exception\s*\)/gi,
+  /class\s+(\w+Error)\s*\(\s*Exception\s*\)/gi,
 ] as const;
 
 export const ERROR_INHERITANCE_PATTERNS = [
+  // JavaScript/TypeScript
   /class\s+(\w+)\s+extends\s+(\w+Error)/gi,
   /class\s+(\w+)\s+extends\s+(\w+Exception)/gi,
+  // Python
+  /class\s+(\w+)\s*\(\s*(\w+Error)\s*\)/gi,
+  /class\s+(\w+)\s*\(\s*(\w+Exception)\s*\)/gi,
 ] as const;
 
 export const ERROR_FACTORY_PATTERNS = [
+  // JavaScript/TypeScript
   /function\s+create\w*Error\s*\(/gi,
   /const\s+create\w*Error\s*=/gi,
   /export\s+(?:function|const)\s+\w*Error(?:Factory)?\s*[=(]/gi,
+  // Python
+  /def\s+create_\w*error\s*\(/gi,
+  /def\s+make_\w*error\s*\(/gi,
 ] as const;
 
 export const RAW_ERROR_PATTERNS = [
+  // JavaScript/TypeScript
   /throw\s+new\s+Error\s*\(/gi,
   /throw\s+Error\s*\(/gi,
+  // Python
+  /raise\s+Exception\s*\(/gi,
+  /raise\s+RuntimeError\s*\(/gi,
+  /raise\s+ValueError\s*\(/gi,
 ] as const;
 
 export const EXCLUDED_FILE_PATTERNS = [
@@ -297,14 +320,25 @@ export class ExceptionHierarchyDetector extends RegexDetector {
   readonly description = 'Detects exception hierarchy and custom error patterns';
   readonly category = 'errors';
   readonly subcategory = 'hierarchy';
-  readonly supportedLanguages: Language[] = ['typescript', 'javascript'];
+  readonly supportedLanguages: Language[] = ['typescript', 'javascript', 'python'];
   
   async detect(context: DetectionContext): Promise<DetectionResult> {
     const { content, file } = context;
     if (shouldExcludeFile(file)) return this.createEmptyResult();
     
     const analysis = analyzeExceptionHierarchy(content, file);
-    return this.createResult([], [], analysis.confidence);
+    
+    // Convert internal violations to standard Violation format
+    const violations = this.convertViolationInfos(analysis.violations);
+    
+    return this.createResult([], violations, analysis.confidence, {
+      custom: {
+        patterns: analysis.patterns,
+        hasCustomErrors: analysis.hasCustomErrors,
+        hasAppError: analysis.hasAppError,
+        errorClasses: analysis.errorClasses,
+      },
+    });
   }
   
   generateQuickFix(): null {

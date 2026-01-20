@@ -5,7 +5,7 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import type { PatternCategory, Language, PatternMatch, Violation, QuickFix } from '@drift/core';
+import type { PatternCategory, Language, PatternMatch, Violation, QuickFix } from 'driftdetect-core';
 import {
   DetectorRegistry,
   DetectorRegistrationError,

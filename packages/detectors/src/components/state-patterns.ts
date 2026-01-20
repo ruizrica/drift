@@ -7,7 +7,7 @@
  * @requirements 8.5 - THE Component_Detector SHALL detect state management patterns (local vs global)
  */
 
-import type { PatternMatch, Violation, QuickFix, Language, Range, ASTNode } from '@drift/core';
+import type { PatternMatch, Violation, QuickFix, Language, Range, ASTNode } from 'driftdetect-core';
 import { ASTDetector, type DetectionContext, type DetectionResult } from '../base/index.js';
 
 // ============================================================================
@@ -1358,5 +1358,3 @@ export function createStatePatternDetector(
 ): StatePatternDetector {
   return new StatePatternDetector(config);
 }
-
-export default StatePatternDetector;

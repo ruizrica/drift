@@ -19,7 +19,7 @@
  * @requirements 9.8 - THE Styling_Detector SHALL detect responsive breakpoint usage patterns
  */
 
-import type { PatternMatch, Violation, QuickFix, Language } from '@drift/core';
+import type { PatternMatch, Violation, QuickFix, Language } from 'driftdetect-core';
 import { RegexDetector, type DetectionContext, type DetectionResult } from '../base/index.js';
 
 // ============================================================================

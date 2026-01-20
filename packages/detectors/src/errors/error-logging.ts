@@ -15,7 +15,7 @@
  * @requirements 12.7 - Error logging patterns
  */
 
-import type { Language } from '@drift/core';
+import type { Language } from 'driftdetect-core';
 import { RegexDetector, type DetectionContext, type DetectionResult } from '../base/index.js';
 
 // ============================================================================
@@ -69,38 +69,61 @@ export interface ErrorLoggingAnalysis {
 // ============================================================================
 
 export const LOGGER_ERROR_PATTERNS = [
+  // JavaScript/TypeScript
   /logger\.error\s*\(/gi,
   /log\.error\s*\(/gi,
   /logging\.error\s*\(/gi,
   /winston\.error\s*\(/gi,
   /pino\.error\s*\(/gi,
+  // Python
+  /logger\.exception\s*\(/gi,
+  /self\.logger\.error\s*\(/gi,
+  /self\._logger\.error\s*\(/gi,
 ] as const;
 
 export const STRUCTURED_LOG_PATTERNS = [
+  // JavaScript/TypeScript
   /logger\.error\s*\(\s*\{/gi,
   /log\.error\s*\(\s*\{/gi,
   /error\s*:\s*\{[^}]*message/gi,
   /logError\s*\(\s*\{/gi,
+  // Python - extra dict
+  /logger\.error\s*\([^)]+,\s*extra\s*=/gi,
+  /logger\.exception\s*\([^)]+,\s*extra\s*=/gi,
 ] as const;
 
 export const CONTEXT_LOG_PATTERNS = [
+  // JavaScript/TypeScript
   /logger\.error\s*\([^)]*,\s*\{/gi,
   /log\.error\s*\([^)]*,\s*\{/gi,
   /error\s*,\s*\{\s*context/gi,
   /error\s*,\s*\{\s*metadata/gi,
+  // Python
+  /exc_info\s*=\s*True/gi,
+  /stack_info\s*=\s*True/gi,
 ] as const;
 
 export const STACK_TRACE_PATTERNS = [
+  // JavaScript/TypeScript
   /\.stack\b/gi,
   /stackTrace/gi,
   /Error\.captureStackTrace/gi,
   /error\.stack/gi,
+  // Python
+  /traceback\.format_exc/gi,
+  /traceback\.print_exc/gi,
+  /sys\.exc_info/gi,
+  /__traceback__/gi,
 ] as const;
 
 export const CONSOLE_ERROR_PATTERNS = [
+  // JavaScript/TypeScript
   /console\.error\s*\(/gi,
   /console\.log\s*\([^)]*error/gi,
   /console\.warn\s*\([^)]*error/gi,
+  // Python - print for errors (anti-pattern)
+  /print\s*\([^)]*[Ee]rror/gi,
+  /print\s*\([^)]*[Ee]xception/gi,
 ] as const;
 
 export const EXCLUDED_FILE_PATTERNS = [
@@ -291,14 +314,24 @@ export class ErrorLoggingDetector extends RegexDetector {
   readonly description = 'Detects error logging patterns';
   readonly category = 'errors';
   readonly subcategory = 'logging';
-  readonly supportedLanguages: Language[] = ['typescript', 'javascript'];
+  readonly supportedLanguages: Language[] = ['typescript', 'javascript', 'python'];
   
   async detect(context: DetectionContext): Promise<DetectionResult> {
     const { content, file } = context;
     if (shouldExcludeFile(file)) return this.createEmptyResult();
     
     const analysis = analyzeErrorLogging(content, file);
-    return this.createResult([], [], analysis.confidence);
+    
+    // Convert internal violations to standard Violation format
+    const violations = this.convertViolationInfos(analysis.violations);
+    
+    return this.createResult([], violations, analysis.confidence, {
+      custom: {
+        patterns: analysis.patterns,
+        hasStructuredLogging: analysis.hasStructuredLogging,
+        usesLogger: analysis.usesLogger,
+      },
+    });
   }
   
   generateQuickFix(): null {

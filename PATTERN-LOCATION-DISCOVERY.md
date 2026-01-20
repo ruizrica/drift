@@ -45,174 +45,97 @@ Drift has 100+ detectors that find patterns in codebases. Currently, when a patt
 
 ### Phase 1: Location Data Model
 
-- [ ] 1. Define location types
-  - [ ] 1.1 Create `SemanticLocation` interface in `@drift/core`
-    ```typescript
-    interface SemanticLocation {
-      file: string;           // Relative file path
-      hash: string;           // Content hash for change detection
-      range: {
-        start: number;        // Start line
-        end: number;          // End line
-      };
-      type: 'class' | 'function' | 'method' | 'variable' | 'block' | 'file';
-      name: string;           // e.g., "AuthMiddleware", "authenticate"
-      signature?: string;     // e.g., "class AuthMiddleware:", "async def authenticate(token: str)"
-      confidence: number;     // 0.0 - 1.0
-      members?: SemanticLocation[];  // Nested (methods in class)
-    }
-    ```
-  - [ ] 1.2 Update `DetectionResult` to include locations
-  - [ ] 1.3 Update `Pattern` type to store locations array
-  - [ ] 1.4 Write unit tests for new types
+- [x] 1. Define location types
+  - [x] 1.1 Create `SemanticLocation` interface in `@drift/core`
+  - [x] 1.2 Update `DetectionResult` to include locations
+  - [x] 1.3 Update `Pattern` type to store locations array
+  - [x] 1.4 Write unit tests for new types
 
-- [ ] 2. Checkpoint - Types compile, existing tests pass
+- [x] 2. Checkpoint - Types compile, existing tests pass
 
 ---
 
 ### Phase 2: Detector Location Extraction
 
-- [ ] 3. Update base detector classes
-  - [ ] 3.1 Update `BaseDetector` to return locations
-  - [ ] 3.2 Update `ASTDetector` to extract semantic info from AST nodes
-    - Class name, method names, signatures
-    - Precise line ranges from AST positions
-  - [ ] 3.3 Update `RegexDetector` to capture match locations
-    - Line numbers from match indices
-    - Context extraction around matches
-  - [ ] 3.4 Update `StructuralDetector` to return file-level locations
-  - [ ] 3.5 Write tests for location extraction
+- [x] 3. Update base detector classes
+  - [x] 3.1 Update `BaseDetector` to return locations
+  - [x] 3.2 Update `ASTDetector` to extract semantic info from AST nodes
+  - [x] 3.3 Update `RegexDetector` to capture match locations
+  - [x] 3.4 Update `StructuralDetector` to return file-level locations
+  - [x] 3.5 Write tests for location extraction
 
-- [ ] 4. Verify existing detectors work with new interface
-  - [ ] 4.1 Test structural detectors return locations
-  - [ ] 4.2 Test API detectors return locations
-  - [ ] 4.3 Test auth detectors return locations
-  - [ ] 4.4 Spot check other categories
+- [x] 4. Verify existing detectors work with new interface
 
-- [ ] 5. Checkpoint - Detectors return location data
+- [x] 5. Checkpoint - Detectors return location data
 
 ---
 
 ### Phase 3: Manifest Storage
 
-- [ ] 6. Create manifest system
-  - [ ] 6.1 Define `Manifest` interface
-    ```typescript
-    interface Manifest {
-      version: string;
-      generated: string;          // ISO timestamp
-      codebaseHash: string;       // Hash of all tracked files
-      
-      // Pattern → Locations (forward index)
-      patterns: {
-        [patternId: string]: {
-          name: string;
-          category: string;
-          status: 'discovered' | 'approved' | 'ignored';
-          locations: SemanticLocation[];
-          confidence: number;
-        };
-      };
-      
-      // File → Patterns (reverse index)
-      files: {
-        [filePath: string]: {
-          hash: string;
-          patterns: string[];     // Pattern IDs found in this file
-          lastScanned: string;
-        };
-      };
-    }
-    ```
-  - [ ] 6.2 Create `ManifestStore` class in `@drift/core`
-    - `load()` - Load from `.drift/index/manifest.json`
-    - `save()` - Atomic write with temp file
-    - `update(detectionResults)` - Merge new results
-    - `getPatternLocations(patternId)` - Query locations
-    - `getFilePatterns(filePath)` - Reverse lookup
-  - [ ] 6.3 Implement content hashing for files
-  - [ ] 6.4 Implement incremental updates
-    - Compare file hashes
-    - Only re-scan changed files
-    - Preserve locations for unchanged files
-  - [ ] 6.5 Write unit tests for ManifestStore
+- [x] 6. Create manifest system
+  - [x] 6.1 Define `Manifest` interface
+  - [x] 6.2 Create `ManifestStore` class in `@drift/core`
+  - [x] 6.3 Implement content hashing for files
+  - [x] 6.4 Implement incremental updates
+  - [x] 6.5 Write unit tests for ManifestStore
 
-- [ ] 7. Checkpoint - Manifest saves/loads correctly
+- [x] 7. Checkpoint - Manifest saves/loads correctly
 
 ---
 
 ### Phase 4: Scan Integration
 
-- [ ] 8. Update scan command
-  - [ ] 8.1 After detection, collect all locations
-  - [ ] 8.2 Build/update manifest with results
-  - [ ] 8.3 Save manifest to `.drift/index/manifest.json`
-  - [ ] 8.4 Add scan summary: "Found X patterns in Y files"
-  - [ ] 8.5 Add `--no-manifest` flag to skip manifest generation
+- [x] 8. Update scan command
+  - [x] 8.1 After detection, collect all locations
+  - [x] 8.2 Build/update manifest with results
+  - [x] 8.3 Save manifest to `.drift/index/manifest.json`
+  - [x] 8.4 Add scan summary: "Found X patterns in Y files"
+  - [x] 8.5 Add `--manifest` flag to enable manifest generation
 
-- [ ] 9. Implement incremental scanning
-  - [ ] 9.1 On scan, load existing manifest
-  - [ ] 9.2 Check file hashes against manifest
-  - [ ] 9.3 Only scan files where hash changed
-  - [ ] 9.4 Merge new results with existing manifest
-  - [ ] 9.5 Add `--full` flag to force full rescan
+- [x] 9. Implement incremental scanning
+  - [x] 9.1 On scan, load existing manifest
+  - [x] 9.2 Check file hashes against manifest
+  - [x] 9.3 Only scan files where hash changed
+  - [x] 9.4 Merge new results with existing manifest
+  - [x] 9.5 Add `--incremental` flag
 
-- [ ] 10. Checkpoint - `drift scan` generates manifest with locations
+- [x] 10. Checkpoint - `drift scan --manifest` generates manifest with locations
 
 ---
 
 ### Phase 5: Export Command
 
-- [ ] 11. Create export command
-  - [ ] 11.1 `drift export` - Export manifest data
-  - [ ] 11.2 `--format json` (default) - Full manifest as JSON
-  - [ ] 11.3 `--format ai-context` - Optimized markdown for LLMs
-  - [ ] 11.4 `--format summary` - Human-readable summary
-  - [ ] 11.5 `--output <file>` - Write to file instead of stdout
-  - [ ] 11.6 `--compact` - Minimal output (no snippets)
+- [x] 11. Create export command
+  - [x] 11.1 `drift export` - Export manifest data
+  - [x] 11.2 `--format json` (default) - Full manifest as JSON
+  - [x] 11.3 `--format ai-context` - Optimized markdown for LLMs
+  - [x] 11.4 `--format summary` - Human-readable summary
+  - [x] 11.5 `--output <file>` - Write to file instead of stdout
+  - [x] 11.6 `--compact` - Minimal output (no snippets)
 
-- [ ] 12. Implement AI context format
-  - [ ] 12.1 Markdown structure optimized for LLM consumption
-    ```markdown
-    # Architecture Manifest
-    Generated: 2026-01-19 | Patterns: 47 | Files: 103
-    
-    ## Auth (2 patterns)
-    - **middleware-pattern** → `src/auth/middleware.py:15-67`
-      - Class: `AuthMiddleware`
-      - Methods: `__call__`, `authenticate`
-    
-    ## API (3 patterns)
-    - **response-envelope** → `src/api/responses.py:1-45`
-      - Functions: `success_response`, `error_response`
-    
-    ## File Index
-    | File | Patterns |
-    |------|----------|
-    | src/auth/middleware.py | middleware-pattern |
-    | src/api/responses.py | response-envelope |
-    ```
-  - [ ] 12.2 Token estimation (warn if >8k, >32k, >128k)
-  - [ ] 12.3 `--max-tokens` flag to limit output size
+- [x] 12. Implement AI context format
+  - [x] 12.1 Markdown structure optimized for LLM consumption
+  - [x] 12.2 Token estimation (warn if >8k, >32k, >128k)
+  - [x] 12.3 `--max-tokens` flag to limit output size
 
-- [ ] 13. Checkpoint - Export command works
+- [x] 13. Checkpoint - Export command works
 
 ---
 
 ### Phase 6: Query Commands
 
-- [ ] 14. Implement where command
-  - [ ] 14.1 `drift where <pattern>` - Find pattern locations
-  - [ ] 14.2 Support partial matching ("auth" matches "auth-middleware")
-  - [ ] 14.3 Output: file path, line range, signature, snippet
-  - [ ] 14.4 `--json` flag for machine-readable output
+- [x] 14. Implement where command
+  - [x] 14.1 `drift where <pattern>` - Find pattern locations
+  - [x] 14.2 Support partial matching ("auth" matches "auth-middleware")
+  - [x] 14.3 Output: file path, line range, signature, snippet
+  - [x] 14.4 `--json` flag for machine-readable output
 
-- [ ] 15. Implement files command
-  - [ ] 15.1 `drift files <path>` - Show patterns in a file
-  - [ ] 15.2 Support glob patterns
-  - [ ] 15.3 Output: patterns found, line ranges
+- [x] 15. Implement files command
+  - [x] 15.1 `drift files <path>` - Show patterns in a file
+  - [x] 15.2 Support glob patterns
+  - [x] 15.3 Output: patterns found, line ranges
 
-- [ ] 16. Checkpoint - Query commands work
+- [x] 16. Checkpoint - Query commands work
 
 ---
 

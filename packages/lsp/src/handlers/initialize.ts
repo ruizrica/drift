@@ -59,7 +59,7 @@ export function createInitializeHandler(
       if (state.workspaceFolders.length > 0) {
         logger.debug(`Monitoring ${state.workspaceFolders.length} workspace folder(s)`);
 
-        // TODO: Initialize @drift/core scanner for each workspace
+        // TODO: Initialize driftdetect-core scanner for each workspace
         // TODO: Load patterns from .drift/ directories
         // TODO: Perform initial scan if needed
       }

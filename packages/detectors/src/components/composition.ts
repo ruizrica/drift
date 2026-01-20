@@ -8,7 +8,7 @@
  * @requirements 8.6 - THE Component_Detector SHALL detect component composition patterns
  */
 
-import type { PatternMatch, Violation, QuickFix, Language, Range, ASTNode } from '@drift/core';
+import type { PatternMatch, Violation, QuickFix, Language, Range, ASTNode } from 'driftdetect-core';
 import { ASTDetector, type DetectionContext, type DetectionResult } from '../base/index.js';
 
 // ============================================================================
@@ -1508,5 +1508,3 @@ export function createCompositionDetector(
 ): CompositionDetector {
   return new CompositionDetector(config);
 }
-
-export default CompositionDetector;

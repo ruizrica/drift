@@ -1,7 +1,6 @@
 {
-  "name": "@drift/lsp",
-  "version": "0.0.1",
-  "private": true,
+  "name": "driftdetect-lsp",
+  "version": "0.1.0",
   "description": "Language Server Protocol implementation for Drift",
   "type": "module",
   "main": "./dist/index.js",
@@ -30,8 +29,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@drift/core": "workspace:*",
-    "@drift/detectors": "workspace:*",
+    "driftdetect-core": "workspace:*",
+    "driftdetect-detectors": "workspace:*",
     "vscode-languageserver": "^9.0.1",
     "vscode-languageserver-textdocument": "^1.0.11",
     "vscode-uri": "^3.0.8"

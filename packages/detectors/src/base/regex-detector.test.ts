@@ -5,7 +5,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import type { PatternCategory, Language, Violation, QuickFix } from '@drift/core';
+import type { PatternCategory, Language, Violation, QuickFix } from 'driftdetect-core';
 import {
   RegexDetector,
   isRegexDetector,

@@ -8,7 +8,7 @@
  * @requirements 7.4 - THE Structural_Detector SHALL detect barrel/index file usage patterns
  */
 
-import type { PatternMatch, Violation, QuickFix, Language, Range } from '@drift/core';
+import type { PatternMatch, Violation, QuickFix, Language, Range } from 'driftdetect-core';
 import { StructuralDetector, type DetectionContext, type DetectionResult } from '../base/index.js';
 
 // ============================================================================
@@ -747,5 +747,3 @@ export class BarrelExportsDetector extends StructuralDetector {
 export function createBarrelExportsDetector(): BarrelExportsDetector {
   return new BarrelExportsDetector();
 }
-
-export default BarrelExportsDetector;

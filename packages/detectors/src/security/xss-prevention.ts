@@ -11,7 +11,7 @@
  * @requirements 16.3 - XSS prevention patterns
  */
 
-import type { Violation, QuickFix, PatternCategory, Language } from '@drift/core';
+import type { Violation, QuickFix, PatternCategory, Language } from 'driftdetect-core';
 import { RegexDetector } from '../base/regex-detector.js';
 import type { DetectionContext, DetectionResult } from '../base/base-detector.js';
 
@@ -70,6 +70,7 @@ export interface XSSPreventionAnalysis {
 // ============================================================================
 
 export const HTML_ESCAPE_PATTERNS = [
+  // TypeScript/JavaScript patterns
   /escapeHtml\s*\(/gi,
   /htmlEscape\s*\(/gi,
   /encodeHTML\s*\(/gi,
@@ -78,6 +79,12 @@ export const HTML_ESCAPE_PATTERNS = [
   /he\.encode\s*\(/gi,
   /entities\.encode\s*\(/gi,
   /\.replace\s*\(\s*\/[<>&'"]/gi,
+  // Python patterns - html.escape, markupsafe
+  /html\.escape\s*\(/gi,
+  /markupsafe\.escape\s*\(/gi,
+  /Markup\s*\(/gi,
+  /escape_html\s*\(/gi,
+  /cgi\.escape\s*\(/gi,
 ] as const;
 
 export const DOMPURIFY_PATTERNS = [
@@ -135,10 +142,15 @@ export const DOCUMENT_WRITE_PATTERNS = [
 ] as const;
 
 export const EVAL_USAGE_PATTERNS = [
+  // TypeScript/JavaScript patterns
   /\beval\s*\(/gi,
   /new\s+Function\s*\(/gi,
   /setTimeout\s*\(\s*['"`]/gi,
   /setInterval\s*\(\s*['"`]/gi,
+  // Python patterns - exec, eval
+  /\bexec\s*\(/gi,
+  /\beval\s*\(/gi,
+  /compile\s*\([^)]*,\s*['"`]\w+['"`]\s*,\s*['"`]exec['"`]/gi,
 ] as const;
 
 export const INNER_HTML_ASSIGNMENT_PATTERNS = [
@@ -517,7 +529,7 @@ export class XSSPreventionDetector extends RegexDetector {
     'Detects XSS prevention patterns and identifies potential vulnerabilities';
   readonly category: PatternCategory = 'security';
   readonly subcategory = 'xss-prevention';
-  readonly supportedLanguages: Language[] = ['typescript', 'javascript'];
+  readonly supportedLanguages: Language[] = ['typescript', 'javascript', 'python'];
 
   async detect(context: DetectionContext): Promise<DetectionResult> {
     if (!this.supportsLanguage(context.language)) {
@@ -530,10 +542,22 @@ export class XSSPreventionDetector extends RegexDetector {
       return this.createEmptyResult();
     }
 
-    return this.createResult([], [], analysis.confidence, {
+    // Convert internal violations to standard Violation format
+    // Map severity: high -> error, medium -> warning, low -> info
+    const violations = analysis.violations.map(v => this.convertViolationInfo({
+      file: v.file,
+      line: v.line,
+      column: v.column,
+      type: v.type,
+      value: v.matchedText,
+      issue: v.issue,
+      suggestedFix: v.suggestedFix,
+      severity: v.severity === 'high' ? 'error' : v.severity === 'medium' ? 'warning' : 'info',
+    }));
+
+    return this.createResult([], violations, analysis.confidence, {
       custom: {
         patterns: analysis.patterns,
-        violations: analysis.violations,
         hasXSSPrevention: analysis.hasXSSPrevention,
         hasViolations: analysis.hasViolations,
       },

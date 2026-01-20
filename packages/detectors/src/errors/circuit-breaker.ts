@@ -10,7 +10,7 @@
  * @requirements 12.6 - Circuit breaker patterns
  */
 
-import type { Language } from '@drift/core';
+import type { Language } from 'driftdetect-core';
 import { RegexDetector, type DetectionContext, type DetectionResult } from '../base/index.js';
 
 // ============================================================================
@@ -45,38 +45,61 @@ export interface CircuitBreakerAnalysis {
 // ============================================================================
 
 export const CIRCUIT_BREAKER_CLASS_PATTERNS = [
+  // JavaScript/TypeScript
   /class\s+CircuitBreaker/gi,
   /class\s+\w*Breaker\s+/gi,
   /new\s+CircuitBreaker\s*\(/gi,
+  // Python
+  /class\s+CircuitBreaker\s*\(/gi,
+  /CircuitBreaker\s*\(\s*\)/gi,
 ] as const;
 
 export const CIRCUIT_BREAKER_LIB_PATTERNS = [
+  // JavaScript/TypeScript
   /cockatiel/gi,
   /opossum/gi,
   /brakes/gi,
   /circuit-breaker/gi,
   /circuitBreaker/gi,
+  // Python
+  /pybreaker/gi,
+  /circuitbreaker/gi,
+  /from\s+circuitbreaker\s+import/gi,
 ] as const;
 
 export const STATE_MANAGEMENT_PATTERNS = [
+  // Both languages
   /(?:state|status)\s*[=:]\s*['"`](?:open|closed|half[_-]?open)['"`]/gi,
   /isOpen|isClosed|isHalfOpen/gi,
   /CircuitState\./gi,
   /BreakerState\./gi,
+  // Python
+  /is_open|is_closed|is_half_open/gi,
+  /circuit_state/gi,
 ] as const;
 
 export const FAILURE_THRESHOLD_PATTERNS = [
+  // Both languages
   /failureThreshold\s*[=:]/gi,
   /threshold\s*[=:]\s*\d+/gi,
   /maxFailures\s*[=:]/gi,
   /failureCount/gi,
+  // Python
+  /failure_threshold\s*[=:]/gi,
+  /max_failures\s*[=:]/gi,
+  /failure_count/gi,
 ] as const;
 
 export const RESET_TIMEOUT_PATTERNS = [
+  // Both languages
   /resetTimeout\s*[=:]/gi,
   /cooldownPeriod\s*[=:]/gi,
   /recoveryTime\s*[=:]/gi,
   /halfOpenAfter\s*[=:]/gi,
+  // Python
+  /reset_timeout\s*[=:]/gi,
+  /cooldown_period\s*[=:]/gi,
+  /recovery_time\s*[=:]/gi,
 ] as const;
 
 export const EXCLUDED_FILE_PATTERNS = [
@@ -253,14 +276,21 @@ export class CircuitBreakerDetector extends RegexDetector {
   readonly description = 'Detects circuit breaker patterns';
   readonly category = 'errors';
   readonly subcategory = 'resilience';
-  readonly supportedLanguages: Language[] = ['typescript', 'javascript'];
+  readonly supportedLanguages: Language[] = ['typescript', 'javascript', 'python'];
   
   async detect(context: DetectionContext): Promise<DetectionResult> {
     const { content, file } = context;
     if (shouldExcludeFile(file)) return this.createEmptyResult();
     
     const analysis = analyzeCircuitBreaker(content, file);
-    return this.createResult([], [], analysis.confidence);
+    
+    return this.createResult([], [], analysis.confidence, {
+      custom: {
+        patterns: analysis.patterns,
+        hasCircuitBreaker: analysis.hasCircuitBreaker,
+        hasStateManagement: analysis.hasStateManagement,
+      },
+    });
   }
   
   generateQuickFix(): null {

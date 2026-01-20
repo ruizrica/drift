@@ -13,7 +13,7 @@
  * @requirements 9.2 - THE Styling_Detector SHALL detect spacing scale adherence (p-4 vs arbitrary values)
  */
 
-import type { PatternMatch, Violation, QuickFix, Language } from '@drift/core';
+import type { PatternMatch, Violation, QuickFix, Language } from 'driftdetect-core';
 import { RegexDetector, type DetectionContext, type DetectionResult } from '../base/index.js';
 
 // ============================================================================
@@ -849,10 +849,15 @@ export class SpacingScaleDetector extends RegexDetector {
 
   /**
    * Detect spacing scale patterns and violations
+   * 
+   * NOTE: This detector focuses on PATTERN detection only.
+   * Hardcoded spacing violations are handled by the Design Tokens Detector
+   * to avoid duplicate violations.
    */
   async detect(context: DetectionContext): Promise<DetectionResult> {
     const patterns: PatternMatch[] = [];
-    const violations: Violation[] = [];
+    // NOTE: We don't create violations here - Design Tokens Detector handles hardcoded values
+    // This prevents duplicate violations for the same hardcoded spacing
 
     // Analyze the file
     const analysis = analyzeSpacingScale(context.content, context.file);
@@ -870,12 +875,10 @@ export class SpacingScaleDetector extends RegexDetector {
       patterns.push(this.createThemeSpacingPattern(context.file, analysis));
     }
 
-    // Create violations for arbitrary values
-    for (const arbitrary of analysis.arbitraryValues) {
-      violations.push(this.createArbitraryValueViolation(arbitrary));
-    }
+    // NOTE: Arbitrary spacing violations are NOT created here to avoid duplication
+    // with the Design Tokens Detector which handles all hardcoded values
 
-    return this.createResult(patterns, violations, analysis.scaleAdherenceConfidence);
+    return this.createResult(patterns, [], analysis.scaleAdherenceConfidence);
   }
 
   /**
@@ -947,97 +950,6 @@ export class SpacingScaleDetector extends RegexDetector {
       },
       confidence: 1.0,
       isOutlier: false,
-    };
-  }
-
-
-  /**
-   * Create a violation for an arbitrary spacing value
-   */
-  private createArbitraryValueViolation(arbitrary: ArbitrarySpacingInfo): Violation {
-    const typeDescriptions: Record<ArbitrarySpacingType, string> = {
-      'arbitrary-px': 'arbitrary pixel spacing',
-      'arbitrary-rem': 'arbitrary rem spacing',
-      'arbitrary-em': 'arbitrary em spacing',
-      'tailwind-arbitrary': 'Tailwind arbitrary spacing',
-      'mixed-units': 'mixed spacing units',
-    };
-
-    const typeDescription = typeDescriptions[arbitrary.type] || 'arbitrary spacing';
-    const propertyInfo = arbitrary.property ? ` in '${arbitrary.property}'` : '';
-
-    const violation: Violation = {
-      id: `${this.id}-${arbitrary.file}-${arbitrary.line}-${arbitrary.column}`,
-      patternId: this.id,
-      severity: 'warning',
-      file: arbitrary.file,
-      range: {
-        start: { line: arbitrary.line - 1, character: arbitrary.column - 1 },
-        end: { line: arbitrary.endLine - 1, character: arbitrary.endColumn - 1 },
-      },
-      message: `${typeDescription.charAt(0).toUpperCase() + typeDescription.slice(1)} '${arbitrary.value}'${propertyInfo} doesn't follow the spacing scale`,
-      explanation: `Using arbitrary spacing values instead of scale-based values makes it difficult to maintain consistent spacing across the application. Use values from your spacing scale (4px increments, Tailwind classes, or CSS custom properties).`,
-      expected: arbitrary.suggestedValue || 'A spacing scale value',
-      actual: arbitrary.value,
-      aiExplainAvailable: true,
-      aiFixAvailable: true,
-      firstSeen: new Date(),
-      occurrences: 1,
-    };
-
-    const quickFix = this.createQuickFixForArbitraryValue(arbitrary);
-    if (quickFix !== undefined) {
-      violation.quickFix = quickFix;
-    }
-
-    return violation;
-  }
-
-  /**
-   * Create a quick fix for replacing an arbitrary value with a scale value
-   */
-  private createQuickFixForArbitraryValue(arbitrary: ArbitrarySpacingInfo): QuickFix | undefined {
-    // Only provide quick fix if we have a suggested value
-    if (!arbitrary.suggestedValue) {
-      return undefined;
-    }
-
-    // Extract the first suggested value (before "or")
-    const suggestedValue = arbitrary.suggestedValue.split(' or ')[0] || arbitrary.suggestedValue;
-
-    // Determine the replacement based on type
-    let replacement: string;
-    if (arbitrary.type === 'tailwind-arbitrary') {
-      // For Tailwind arbitrary values, suggest the class without brackets
-      const classMatch = arbitrary.value.match(/^([a-z-]+)-\[/);
-      const prefix = classMatch ? classMatch[1] : 'p';
-      const valueMatch = suggestedValue.match(/value (\d+)/);
-      const scaleValue = valueMatch ? valueMatch[1] : '4';
-      replacement = `${prefix}-${scaleValue}`;
-    } else {
-      // For CSS values, use the suggested pixel/rem value
-      replacement = suggestedValue.match(/^[\d.]+(?:px|rem|em)/)?.[0] || suggestedValue;
-    }
-
-    return {
-      title: `Replace with scale value: ${replacement}`,
-      kind: 'quickfix',
-      edit: {
-        changes: {
-          [arbitrary.file]: [
-            {
-              range: {
-                start: { line: arbitrary.line - 1, character: arbitrary.column - 1 },
-                end: { line: arbitrary.endLine - 1, character: arbitrary.endColumn - 1 },
-              },
-              newText: replacement,
-            },
-          ],
-        },
-      },
-      isPreferred: true,
-      confidence: 0.7,
-      preview: `Replace '${arbitrary.value}' with '${replacement}'`,
     };
   }
 

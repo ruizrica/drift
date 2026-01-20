@@ -1,8 +1,8 @@
 /**
  * Core Scanner Integration
  *
- * Connects the LSP diagnostics handler to @drift/core scanner
- * and @drift/detectors for pattern detection and violation generation.
+ * Connects the LSP diagnostics handler to driftdetect-core scanner
+ * and driftdetect-detectors for pattern detection and violation generation.
  *
  * @requirements 27.3 - THE LSP_Server SHALL publish diagnostics for violations
  * @requirements 27.7 - THE LSP_Server SHALL respond to diagnostics within 200ms of file change
@@ -21,7 +21,7 @@ import {
   type Pattern,
   type PatternStoreConfig,
   type EvaluatorConfig,
-} from '@drift/core';
+} from 'driftdetect-core';
 
 import type { ViolationInfo, PatternInfo } from '../types/lsp-types.js';
 import type {
@@ -43,7 +43,7 @@ interface Logger {
 }
 
 /**
- * Core Scanner - Integrates @drift/core with LSP diagnostics
+ * Core Scanner - Integrates driftdetect-core with LSP diagnostics
  *
  * This class bridges the LSP server with the core drift detection engine.
  * It manages the pattern store, parser manager, evaluator, and detector registry
@@ -273,10 +273,10 @@ export class CoreScanner {
   }
 
   /**
-   * Convert a @drift/core Violation to ViolationInfo
+   * Convert a driftdetect-core Violation to ViolationInfo
    */
   private violationToInfo(
-    violation: import('@drift/core').Violation,
+    violation: import('driftdetect-core').Violation,
     uri: string
   ): ViolationInfo {
     return {

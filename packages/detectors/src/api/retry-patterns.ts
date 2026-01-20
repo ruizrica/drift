@@ -22,7 +22,7 @@
  * @requirements 10.8 - THE API_Detector SHALL detect timeout handling
  */
 
-import type { Language } from '@drift/core';
+import type { Language } from 'driftdetect-core';
 import { RegexDetector, type DetectionContext, type DetectionResult } from '../base/index.js';
 
 // ============================================================================
@@ -118,6 +118,7 @@ export const CIRCUIT_BREAKER_PATTERNS = [
 
 /** Retry library patterns */
 export const RETRY_LIBRARY_PATTERNS = [
+  // TypeScript/JavaScript patterns
   /axios[_-]?retry/gi,
   /p[_-]?retry/gi,
   /retry[_-]?axios/gi,
@@ -125,16 +126,29 @@ export const RETRY_LIBRARY_PATTERNS = [
   /exponential[_-]?backoff/gi,
   /cockatiel/gi,
   /polly/gi,
+  // Python patterns - tenacity, backoff, retrying
+  /tenacity/gi,
+  /@retry\s*\(/gi,
+  /@backoff\./gi,
+  /from\s+tenacity\s+import/gi,
+  /from\s+backoff\s+import/gi,
+  /Retrying\s*\(/gi,
 ] as const;
 
 /** Timeout configuration patterns */
 export const TIMEOUT_PATTERNS = [
+  // TypeScript/JavaScript patterns
   /timeout\s*:\s*\d+/gi,
   /setTimeout\s*\(/gi,
   /AbortController/gi,
   /signal\s*:\s*(?:abort|controller)/gi,
   /timeoutMs\s*[=:]/gi,
   /requestTimeout/gi,
+  // Python patterns - httpx, requests, aiohttp
+  /timeout\s*=\s*\d+/gi,
+  /timeout\s*=\s*(?:httpx\.)?Timeout\s*\(/gi,
+  /asyncio\.wait_for\s*\(/gi,
+  /asyncio\.timeout\s*\(/gi,
 ] as const;
 
 /** Max retry patterns */
@@ -576,7 +590,7 @@ export class RetryPatternsDetector extends RegexDetector {
   readonly description = 'Detects retry patterns and timeout handling';
   readonly category = 'api';
   readonly subcategory = 'retry';
-  readonly supportedLanguages: Language[] = ['typescript', 'javascript'];
+  readonly supportedLanguages: Language[] = ['typescript', 'javascript', 'python'];
   
   async detect(context: DetectionContext): Promise<DetectionResult> {
     const { content, file } = context;
@@ -586,7 +600,18 @@ export class RetryPatternsDetector extends RegexDetector {
     }
     
     const analysis = analyzeRetryPatterns(content, file);
-    return this.createResult([], [], analysis.patternAdherenceConfidence);
+    
+    // Convert internal violations to standard Violation format
+    const violations = this.convertViolationInfos(analysis.violations);
+    
+    return this.createResult([], violations, analysis.patternAdherenceConfidence, {
+      custom: {
+        retryPatterns: analysis.retryPatterns,
+        hasRetryLogic: analysis.hasRetryLogic,
+        hasTimeoutConfig: analysis.hasTimeoutConfig,
+        dominantPattern: analysis.dominantPattern,
+      },
+    });
   }
   
   generateQuickFix(): null {

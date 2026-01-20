@@ -10,7 +10,7 @@
  * @requirements 14.5 - Fixture patterns
  */
 
-import type { Violation, QuickFix, PatternCategory, Language } from '@drift/core';
+import type { Violation, QuickFix, PatternCategory, Language } from 'driftdetect-core';
 import { RegexDetector } from '../base/regex-detector.js';
 import type { DetectionContext, DetectionResult } from '../base/base-detector.js';
 
@@ -45,9 +45,14 @@ export interface FixtureAnalysis {
 // ============================================================================
 
 export const FACTORY_FUNCTION_PATTERNS = [
+  // JavaScript/TypeScript
   /(?:create|make|build|generate)\w*Factory\s*[=:]/gi,
   /function\s+(?:create|make|build|generate)\w+\s*\(/gi,
   /const\s+(?:create|make|build)\w+\s*=\s*(?:\([^)]*\)|[^=])\s*=>/gi,
+  // Python
+  /def\s+(?:create|make|build|generate)_\w+\s*\(/gi,
+  /def\s+\w+_factory\s*\(/gi,
+  /class\s+\w+Factory\s*:/gi,
 ];
 
 export const BUILDER_PATTERN_PATTERNS = [
@@ -58,22 +63,40 @@ export const BUILDER_PATTERN_PATTERNS = [
 ];
 
 export const FIXTURE_FILE_PATTERNS = [
+  // JavaScript/TypeScript
   /fixtures?\.[jt]sx?$/gi,
   /\/fixtures?\//gi,
   /\.fixture\.[jt]sx?$/gi,
+  // Python pytest
+  /conftest\.py$/gi,
+  /fixtures?\.py$/gi,
 ];
 
 export const TEST_DATA_PATTERNS = [
+  // JavaScript/TypeScript
   /const\s+(?:mock|fake|stub|test)\w*Data\s*=/gi,
   /const\s+\w+(?:Mock|Fake|Stub|Fixture)\s*=/gi,
   /export\s+const\s+\w+Fixture\s*=/gi,
+  // Python
+  /\w+_data\s*=/gi,
+  /mock_\w+\s*=/gi,
+  /fake_\w+\s*=/gi,
+  /test_\w+_data\s*=/gi,
+  /@pytest\.fixture/gi,
 ];
 
 export const FAKER_USAGE_PATTERNS = [
+  // JavaScript/TypeScript
   /faker\.\w+\.\w+\s*\(/gi,
   /@faker-js\/faker/gi,
   /import.*faker/gi,
   /chance\.\w+\s*\(/gi,
+  // Python
+  /from\s+faker\s+import/gi,
+  /Faker\s*\(\s*\)/gi,
+  /fake\.\w+\s*\(/gi,
+  /factory_boy/gi,
+  /factory\.Faker/gi,
 ];
 
 // ============================================================================
@@ -234,7 +257,7 @@ export class FixturePatternsDetector extends RegexDetector {
   readonly description = 'Detects test fixture patterns like factories and builders';
   readonly category: PatternCategory = 'testing';
   readonly subcategory = 'fixture-patterns';
-  readonly supportedLanguages: Language[] = ['typescript', 'javascript'];
+  readonly supportedLanguages: Language[] = ['typescript', 'javascript', 'python'];
 
   async detect(context: DetectionContext): Promise<DetectionResult> {
     if (!this.supportsLanguage(context.language)) {

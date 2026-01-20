@@ -64,4 +64,14 @@ export default defineWorkspace([
       include: ['src/**/*.{test,spec}.ts', 'tests/**/*.{test,spec}.ts'],
     },
   },
+
+  // Dashboard package
+  {
+    extends: './vitest.config.ts',
+    test: {
+      name: '@drift/dashboard',
+      root: './packages/dashboard',
+      include: ['src/**/*.{test,spec}.ts', 'src/**/*.{test,spec}.tsx', 'tests/**/*.{test,spec}.ts'],
+    },
+  },
 ]);

@@ -12,7 +12,7 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import * as fc from 'fast-check';
-import type { PatternCategory, Language, Violation, QuickFix } from '@drift/core';
+import type { PatternCategory, Language, Violation, QuickFix } from 'driftdetect-core';
 import {
   DetectorRegistry,
   DetectorRegistrationError,

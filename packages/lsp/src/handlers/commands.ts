@@ -3,7 +3,7 @@
  *
  * Handles execution of Drift LSP commands.
  * Routes commands to appropriate handlers and returns results.
- * Integrates with @drift/core pattern store for persistence.
+ * Integrates with driftdetect-core pattern store for persistence.
  *
  * @requirements 28.1 - drift.approvePattern
  * @requirements 28.2 - drift.ignorePattern

@@ -7,7 +7,7 @@
  * @requirements 7.3 - THE Structural_Detector SHALL detect co-location patterns (tests next to source vs separate)
  */
 
-import type { PatternMatch, Violation, QuickFix, Language, Range } from '@drift/core';
+import type { PatternMatch, Violation, QuickFix, Language, Range } from 'driftdetect-core';
 import { StructuralDetector, type DetectionContext, type DetectionResult } from '../base/index.js';
 
 // ============================================================================
@@ -831,5 +831,3 @@ export class CoLocationDetector extends StructuralDetector {
 export function createCoLocationDetector(): CoLocationDetector {
   return new CoLocationDetector();
 }
-
-export default CoLocationDetector;

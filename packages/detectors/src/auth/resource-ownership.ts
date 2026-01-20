@@ -16,7 +16,7 @@
  * @requirements 11.5 - Resource ownership patterns
  */
 
-import type { Language } from '@drift/core';
+import type { Language } from 'driftdetect-core';
 import { RegexDetector, type DetectionContext, type DetectionResult } from '../base/index.js';
 
 // ============================================================================
@@ -72,28 +72,50 @@ export interface OwnershipAnalysis {
 // ============================================================================
 
 export const USER_ID_CHECK_PATTERNS = [
+  // TypeScript/JavaScript patterns
   /userId\s*===?\s*(?:resource|item|record|data)\.\s*userId/gi,
   /(?:resource|item|record|data)\.userId\s*===?\s*userId/gi,
   /user\.id\s*===?\s*(?:resource|item)\.(?:userId|ownerId|createdBy)/gi,
   /req\.user\.id\s*===?\s*\w+\.(?:userId|ownerId)/gi,
   /session\.userId\s*===?\s*\w+\.(?:userId|ownerId)/gi,
+  // Python patterns - snake_case, equality checks
+  /user_id\s*==\s*(?:resource|item|record|data)\.user_id/gi,
+  /(?:resource|item|record|data)\.user_id\s*==\s*user_id/gi,
+  /current_user\.id\s*==\s*\w+\.(?:user_id|owner_id|created_by)/gi,
+  /request\.user\.id\s*==\s*\w+\.(?:user_id|owner_id)/gi,
 ] as const;
 
 export const OWNER_FIELD_PATTERNS = [
+  // TypeScript/JavaScript patterns
   /\.ownerId\b/gi,
   /\.owner\s*[=:]/gi,
   /ownerId\s*[=:]/gi,
   /ownerUserId/gi,
   /resourceOwner/gi,
+  // Python patterns - snake_case
+  /\.owner_id\b/gi,
+  /owner_id\s*=/gi,
+  /owner_user_id/gi,
+  /resource_owner/gi,
+  /owned_by/gi,
 ] as const;
 
 export const TENANT_SCOPE_PATTERNS = [
+  // TypeScript/JavaScript patterns
   /tenantId\s*[=:]/gi,
   /organizationId\s*[=:]/gi,
   /orgId\s*[=:]/gi,
   /\.tenantId\b/gi,
   /\.organizationId\b/gi,
   /workspaceId\s*[=:]/gi,
+  // Python patterns - snake_case
+  /tenant_id\s*=/gi,
+  /organization_id\s*=/gi,
+  /org_id\s*=/gi,
+  /\.tenant_id\b/gi,
+  /\.organization_id\b/gi,
+  /workspace_id\s*=/gi,
+  /account_id\s*=/gi,
 ] as const;
 
 export const CREATED_BY_PATTERNS = [
@@ -104,10 +126,19 @@ export const CREATED_BY_PATTERNS = [
 ] as const;
 
 export const OWNERSHIP_QUERY_PATTERNS = [
+  // TypeScript/JavaScript patterns
   /WHERE\s+(?:user_?id|owner_?id|tenant_?id)\s*=/gi,
   /\.where\s*\(\s*['"`]?(?:userId|ownerId|tenantId)['"`]?\s*,/gi,
   /\.eq\s*\(\s*['"`](?:user_id|owner_id|tenant_id)['"`]/gi,
   /findBy(?:User|Owner|Tenant)Id/gi,
+  // Python patterns - SQLAlchemy, Django ORM, Supabase
+  /\.filter\s*\(\s*\w+\.user_id\s*==/gi,
+  /\.filter\s*\(\s*\w+\.owner_id\s*==/gi,
+  /\.filter_by\s*\(\s*user_id\s*=/gi,
+  /\.filter_by\s*\(\s*owner_id\s*=/gi,
+  /objects\.filter\s*\(\s*user_id\s*=/gi,
+  /objects\.filter\s*\(\s*owner\s*=/gi,
+  /\.select\s*\(\s*\)\s*\.eq\s*\(\s*['"`]user_id['"`]/gi,
 ] as const;
 
 export const OWNERSHIP_TRANSFER_PATTERNS = [
@@ -131,6 +162,9 @@ export const EXCLUDED_FILE_PATTERNS = [
   /\.spec\.[jt]sx?$/,
   /node_modules\//,
   /\.d\.ts$/,
+  /_test\.py$/,
+  /test_.*\.py$/,
+  /conftest\.py$/,
 ];
 
 // ============================================================================
@@ -356,14 +390,24 @@ export class ResourceOwnershipDetector extends RegexDetector {
   readonly description = 'Detects resource ownership patterns and missing ownership checks';
   readonly category = 'auth';
   readonly subcategory = 'ownership';
-  readonly supportedLanguages: Language[] = ['typescript', 'javascript'];
+  readonly supportedLanguages: Language[] = ['typescript', 'javascript', 'python'];
   
   async detect(context: DetectionContext): Promise<DetectionResult> {
     const { content, file } = context;
     if (shouldExcludeFile(file)) return this.createEmptyResult();
     
     const analysis = analyzeOwnership(content, file);
-    return this.createResult([], [], analysis.confidence);
+    
+    // Convert internal violations to standard Violation format
+    const violations = this.convertViolationInfos(analysis.violations);
+    
+    return this.createResult([], violations, analysis.confidence, {
+      custom: {
+        patterns: analysis.patterns,
+        hasOwnershipChecks: analysis.hasOwnershipChecks,
+        dominantPattern: analysis.dominantPattern,
+      },
+    });
   }
   
   generateQuickFix(): null {

@@ -7,7 +7,7 @@
  * @requirements 6.1 - THE Detector_System SHALL define a BaseDetector interface that all detectors implement
  */
 
-import type { PatternCategory, Language } from '@drift/core';
+import type { PatternCategory, Language } from 'driftdetect-core';
 
 // ============================================================================
 // Detection Method Types
@@ -55,7 +55,7 @@ export interface DetectorInfo {
   /** Unique detector identifier (e.g., 'structural/file-naming') */
   id: string;
 
-  /** Detector category matching PatternCategory from @drift/core */
+  /** Detector category matching PatternCategory from driftdetect-core */
   category: PatternCategory;
 
   /** Detector subcategory for more specific classification (e.g., 'naming-conventions') */
@@ -152,7 +152,7 @@ export interface DetectorQueryResult {
 // ============================================================================
 
 /**
- * Re-export PatternCategory and Language from @drift/core for convenience
+ * Re-export PatternCategory and Language from driftdetect-core for convenience
  * so consumers don't need to import from multiple packages
  */
-export type { PatternCategory, Language } from '@drift/core';
+export type { PatternCategory, Language } from 'driftdetect-core';

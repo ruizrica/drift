@@ -9,7 +9,7 @@
  * @requirements 14.6 - Describe naming patterns
  */
 
-import type { Violation, QuickFix, PatternCategory, Language } from '@drift/core';
+import type { Violation, QuickFix, PatternCategory, Language } from 'driftdetect-core';
 import { RegexDetector } from '../base/regex-detector.js';
 import type { DetectionContext, DetectionResult } from '../base/base-detector.js';
 
@@ -45,8 +45,12 @@ export interface DescribeNamingAnalysis {
 // ============================================================================
 
 export const COMPONENT_NAME_PATTERNS = [
+  // JavaScript/TypeScript
   /describe\s*\(\s*['"`]<?\w+>?\s*(?:component)?['"`]/gi,
   /describe\s*\(\s*['"`]\w+Component['"`]/gi,
+  // Python pytest classes
+  /class\s+Test\w+\s*:/gi,
+  /class\s+\w+Test\s*:/gi,
 ];
 
 export const FUNCTION_NAME_PATTERNS = [
@@ -69,7 +73,15 @@ export const FEATURE_GROUP_PATTERNS = [
 // ============================================================================
 
 export function shouldExcludeFile(filePath: string): boolean {
-  return !/\.(test|spec)\.[jt]sx?$/.test(filePath) && !/__tests__\//.test(filePath);
+  // JavaScript/TypeScript test files
+  if (/\.(test|spec)\.[jt]sx?$/.test(filePath) || /__tests__\//.test(filePath)) {
+    return false;
+  }
+  // Python test files
+  if (/test_\w+\.py$/.test(filePath) || /\w+_test\.py$/.test(filePath)) {
+    return false;
+  }
+  return true;
 }
 
 export function extractDescribeBlocks(content: string): DescribeNamingPatternInfo[] {
@@ -160,7 +172,7 @@ export class DescribeNamingDetector extends RegexDetector {
   readonly description = 'Detects describe block naming patterns and consistency';
   readonly category: PatternCategory = 'testing';
   readonly subcategory = 'describe-naming';
-  readonly supportedLanguages: Language[] = ['typescript', 'javascript'];
+  readonly supportedLanguages: Language[] = ['typescript', 'javascript', 'python'];
 
   async detect(context: DetectionContext): Promise<DetectionResult> {
     if (!this.supportsLanguage(context.language)) {

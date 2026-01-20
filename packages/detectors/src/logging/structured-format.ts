@@ -9,7 +9,7 @@
  * @requirements 15.1 - Structured logging format patterns
  */
 
-import type { Violation, QuickFix, PatternCategory, Language } from '@drift/core';
+import type { Violation, QuickFix, PatternCategory, Language } from 'driftdetect-core';
 import { RegexDetector } from '../base/regex-detector.js';
 import type { DetectionContext, DetectionResult } from '../base/base-detector.js';
 
@@ -41,18 +41,26 @@ export interface StructuredFormatAnalysis {
 }
 
 // ============================================================================
-// Patterns
+// Patterns (JavaScript/TypeScript + Python)
 // ============================================================================
 
 export const JSON_LOGGING_PATTERNS = [
+  // JavaScript/TypeScript
   /logger\.\w+\s*\(\s*\{/gi,
   /log\.\w+\s*\(\s*\{/gi,
   /JSON\.stringify\s*\([^)]*log/gi,
+  // Python - dict/extra logging
+  /logger\.\w+\s*\([^)]+,\s*extra\s*=/gi,
+  /logging\.\w+\s*\([^)]+,\s*extra\s*=/gi,
 ];
 
 export const KEY_VALUE_LOGGING_PATTERNS = [
+  // JavaScript/TypeScript
   /logger\.\w+\s*\([^)]*,\s*\{/gi,
   /log\.\w+\s*\([^)]*,\s*\{/gi,
+  // Python - f-string structured logging
+  /logger\.\w+\s*\(\s*f['"]/gi,
+  /logging\.\w+\s*\(\s*f['"]/gi,
 ];
 
 export const WINSTON_PATTERNS = [
@@ -72,12 +80,28 @@ export const BUNYAN_PATTERNS = [
   /import.*bunyan/gi,
 ];
 
+// Python logging libraries
+export const PYTHON_STRUCTLOG_PATTERNS = [
+  /structlog\.get_logger/gi,
+  /structlog\.configure/gi,
+  /import\s+structlog/gi,
+  /from\s+structlog/gi,
+];
+
+export const PYTHON_LOGURU_PATTERNS = [
+  /from\s+loguru\s+import/gi,
+  /loguru\.logger/gi,
+];
+
 export const CONSOLE_LOG_PATTERNS = [
+  // JavaScript/TypeScript
   /console\.log\s*\(/gi,
   /console\.info\s*\(/gi,
   /console\.warn\s*\(/gi,
   /console\.error\s*\(/gi,
   /console\.debug\s*\(/gi,
+  // Python print (anti-pattern in production)
+  /print\s*\(/gi,
 ];
 
 // ============================================================================
@@ -245,7 +269,7 @@ export class StructuredFormatDetector extends RegexDetector {
   readonly description = 'Detects structured logging format patterns';
   readonly category: PatternCategory = 'logging';
   readonly subcategory = 'structured-format';
-  readonly supportedLanguages: Language[] = ['typescript', 'javascript'];
+  readonly supportedLanguages: Language[] = ['typescript', 'javascript', 'python'];
 
   async detect(context: DetectionContext): Promise<DetectionResult> {
     if (!this.supportsLanguage(context.language)) {

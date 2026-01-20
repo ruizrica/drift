@@ -20,7 +20,7 @@
  * @requirements 10.6 - THE API_Detector SHALL detect API client patterns (fetch wrapper usage)
  */
 
-import type { Language } from '@drift/core';
+import type { Language } from 'driftdetect-core';
 import { RegexDetector, type DetectionContext, type DetectionResult } from '../base/index.js';
 
 // ============================================================================
@@ -92,10 +92,17 @@ export interface ClientPatternAnalysis {
 
 /** Fetch wrapper patterns */
 export const FETCH_WRAPPER_PATTERNS = [
+  // TypeScript/JavaScript patterns
   /(?:export\s+)?(?:const|function)\s+(\w*(?:fetch|api|client|http)\w*)\s*[=:]/gi,
   /class\s+(\w*(?:Api|Client|Http|Fetch)\w*)\s*(?:extends|implements|\{)/gi,
   /createClient\s*\(/gi,
   /createApiClient\s*\(/gi,
+  // Python patterns - httpx, requests, aiohttp
+  /(?:def|async\s+def)\s+(\w*(?:fetch|api|client|http)\w*)\s*\(/gi,
+  /class\s+(\w*(?:Api|Client|Http)\w*)\s*(?:\(|:)/gi,
+  /httpx\.(?:Client|AsyncClient)\s*\(/gi,
+  /requests\.Session\s*\(/gi,
+  /aiohttp\.ClientSession\s*\(/gi,
 ] as const;
 
 /** Axios instance patterns */
@@ -587,7 +594,7 @@ export class ClientPatternsDetector extends RegexDetector {
   readonly description = 'Detects API client patterns (fetch wrapper usage)';
   readonly category = 'api';
   readonly subcategory = 'client';
-  readonly supportedLanguages: Language[] = ['typescript', 'javascript'];
+  readonly supportedLanguages: Language[] = ['typescript', 'javascript', 'python'];
   
   async detect(context: DetectionContext): Promise<DetectionResult> {
     const { content, file } = context;
@@ -597,7 +604,18 @@ export class ClientPatternsDetector extends RegexDetector {
     }
     
     const analysis = analyzeClientPatterns(content, file);
-    return this.createResult([], [], analysis.patternAdherenceConfidence);
+    
+    // Convert internal violations to standard Violation format
+    const violations = this.convertViolationInfos(analysis.violations);
+    
+    return this.createResult([], violations, analysis.patternAdherenceConfidence, {
+      custom: {
+        clientPatterns: analysis.clientPatterns,
+        dominantClient: analysis.dominantClient,
+        usesConsistentClient: analysis.usesConsistentClient,
+        hasWrapper: analysis.hasWrapper,
+      },
+    });
   }
   
   generateQuickFix(): null {

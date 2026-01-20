@@ -24,7 +24,7 @@ export async function executeIgnorePattern(
 
   logger.info(`Ignoring pattern: ${patternId}`);
 
-  // TODO: Integrate with @drift/core pattern store to persist ignore
+  // TODO: Integrate with driftdetect-core pattern store to persist ignore
   // For now, we'll update the in-memory state
 
   // Remove violations for this pattern from all documents

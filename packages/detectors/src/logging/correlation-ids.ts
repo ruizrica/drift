@@ -9,7 +9,7 @@
  * @requirements 15.4 - Correlation ID patterns
  */
 
-import type { Violation, QuickFix, PatternCategory, Language } from '@drift/core';
+import type { Violation, QuickFix, PatternCategory, Language } from 'driftdetect-core';
 import { RegexDetector } from '../base/regex-detector.js';
 import type { DetectionContext, DetectionResult } from '../base/base-detector.js';
 
@@ -38,39 +38,51 @@ export interface CorrelationIdAnalysis {
 }
 
 // ============================================================================
-// Patterns
+// Patterns (JavaScript/TypeScript + Python)
 // ============================================================================
 
 export const CORRELATION_ID_PATTERNS = [
+  // Both languages
   /correlationId/gi,
   /correlation_id/gi,
   /x-correlation-id/gi,
 ];
 
 export const TRACE_ID_PATTERNS = [
+  // Both languages
   /traceId/gi,
   /trace_id/gi,
   /x-trace-id/gi,
   /traceparent/gi,
+  // Python OpenTelemetry
+  /get_current_span/gi,
+  /trace\.get_current_span/gi,
 ];
 
 export const SPAN_ID_PATTERNS = [
+  // Both languages
   /spanId/gi,
   /span_id/gi,
   /x-span-id/gi,
 ];
 
 export const REQUEST_ID_PATTERNS = [
+  // Both languages
   /requestId/gi,
   /request_id/gi,
   /x-request-id/gi,
 ];
 
 export const PROPAGATION_PATTERNS = [
+  // JavaScript/TypeScript
   /propagate\s*\(/gi,
   /inject\s*\([^)]*context/gi,
   /extract\s*\([^)]*context/gi,
   /AsyncLocalStorage/gi,
+  // Python
+  /contextvars/gi,
+  /ContextVar/gi,
+  /copy_context/gi,
 ];
 
 // ============================================================================
@@ -156,7 +168,7 @@ export class CorrelationIdsDetector extends RegexDetector {
   readonly description = 'Detects request correlation ID patterns';
   readonly category: PatternCategory = 'logging';
   readonly subcategory = 'correlation-ids';
-  readonly supportedLanguages: Language[] = ['typescript', 'javascript'];
+  readonly supportedLanguages: Language[] = ['typescript', 'javascript', 'python'];
 
   async detect(context: DetectionContext): Promise<DetectionResult> {
     if (!this.supportsLanguage(context.language)) {

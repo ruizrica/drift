@@ -1,0 +1,1740 @@
+{
+  "version": "1.0.0",
+  "category": "structural",
+  "patterns": [
+    {
+      "id": "f7c73ab91bd4ea14",
+      "subcategory": "naming-conventions",
+      "name": "File Naming Convention Detector",
+      "description": "Detects file naming patterns including PascalCase, kebab-case, snake_case conventions",
+      "detector": {
+        "type": "regex",
+        "config": {
+          "detectorId": "structural/file-naming",
+          "patternId": "file-naming-kebab-case"
+        }
+      },
+      "confidence": {
+        "frequency": 0.16,
+        "consistency": 0.9,
+        "age": 0,
+        "spread": 16,
+        "score": 0.5333333333333333,
+        "level": "low"
+      },
+      "locations": [
+        {
+          "file": "demo/backend/src/index.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/middleware/auth.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/middleware/logger.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/admin.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/legacy.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/orders.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/products.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/users.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/utils/errors.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/utils/response.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/api/admin.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/api/client.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/api/orders.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/api/products.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/api/users.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/types/api.ts",
+          "line": 1,
+          "column": 1
+        }
+      ],
+      "outliers": [
+        {
+          "file": "demo/backend/src/middleware/errorHandler.ts",
+          "line": 2,
+          "column": 2,
+          "reason": "File 'errorHandler.ts' uses camelCase but project uses kebab-case. It should be renamed to 'error-handler.ts'",
+          "deviationScore": 0.7
+        },
+        {
+          "file": "demo/backend/src/services/adminService.ts",
+          "line": 2,
+          "column": 2,
+          "reason": "File 'adminService.ts' uses camelCase but project uses kebab-case. It should be renamed to 'admin-service.ts'",
+          "deviationScore": 0.7
+        },
+        {
+          "file": "demo/backend/src/services/orderService.ts",
+          "line": 2,
+          "column": 2,
+          "reason": "File 'orderService.ts' uses camelCase but project uses kebab-case. It should be renamed to 'order-service.ts'",
+          "deviationScore": 0.7
+        },
+        {
+          "file": "demo/backend/src/services/productService.ts",
+          "line": 2,
+          "column": 2,
+          "reason": "File 'productService.ts' uses camelCase but project uses kebab-case. It should be renamed to 'product-service.ts'",
+          "deviationScore": 0.7
+        },
+        {
+          "file": "demo/backend/src/services/userService.ts",
+          "line": 2,
+          "column": 2,
+          "reason": "File 'userService.ts' uses camelCase but project uses kebab-case. It should be renamed to 'user-service.ts'",
+          "deviationScore": 0.7
+        },
+        {
+          "file": "demo/frontend/src/components/Button.tsx",
+          "line": 2,
+          "column": 2,
+          "reason": "File 'Button.tsx' uses PascalCase but project uses kebab-case. It should be renamed to 'button.tsx'",
+          "deviationScore": 0.7
+        },
+        {
+          "file": "demo/frontend/src/components/Card.tsx",
+          "line": 2,
+          "column": 2,
+          "reason": "File 'Card.tsx' uses PascalCase but project uses kebab-case. It should be renamed to 'card.tsx'",
+          "deviationScore": 0.7
+        },
+        {
+          "file": "demo/frontend/src/components/Input.tsx",
+          "line": 2,
+          "column": 2,
+          "reason": "File 'Input.tsx' uses PascalCase but project uses kebab-case. It should be renamed to 'input.tsx'",
+          "deviationScore": 0.7
+        },
+        {
+          "file": "demo/frontend/src/components/Table.tsx",
+          "line": 2,
+          "column": 2,
+          "reason": "File 'Table.tsx' uses PascalCase but project uses kebab-case. It should be renamed to 'table.tsx'",
+          "deviationScore": 0.7
+        },
+        {
+          "file": "demo/frontend/src/components/legacy/DataFetcher.tsx",
+          "line": 2,
+          "column": 2,
+          "reason": "File 'DataFetcher.tsx' uses PascalCase but project uses kebab-case. It should be renamed to 'data-fetcher.tsx'",
+          "deviationScore": 0.7
+        },
+        {
+          "file": "demo/frontend/src/components/legacy/OldButton.tsx",
+          "line": 2,
+          "column": 2,
+          "reason": "File 'OldButton.tsx' uses PascalCase but project uses kebab-case. It should be renamed to 'old-button.tsx'",
+          "deviationScore": 0.7
+        },
+        {
+          "file": "demo/frontend/src/components/legacy/UserCard.tsx",
+          "line": 2,
+          "column": 2,
+          "reason": "File 'UserCard.tsx' uses PascalCase but project uses kebab-case. It should be renamed to 'user-card.tsx'",
+          "deviationScore": 0.7
+        },
+        {
+          "file": "demo/frontend/src/hooks/useApi.ts",
+          "line": 2,
+          "column": 2,
+          "reason": "File 'useApi.ts' uses camelCase but project uses kebab-case. It should be renamed to 'use-api.ts'",
+          "deviationScore": 0.7
+        },
+        {
+          "file": "demo/frontend/src/hooks/useAuth.ts",
+          "line": 2,
+          "column": 2,
+          "reason": "File 'useAuth.ts' uses camelCase but project uses kebab-case. It should be renamed to 'use-auth.ts'",
+          "deviationScore": 0.7
+        }
+      ],
+      "metadata": {
+        "firstSeen": "2026-01-20T00:55:46.150Z",
+        "lastSeen": "2026-01-20T00:55:46.150Z",
+        "source": "auto-detected",
+        "tags": [
+          "structural",
+          "naming-conventions"
+        ]
+      },
+      "severity": "warning",
+      "autoFixable": false
+    },
+    {
+      "id": "fd061c024c77c1cd",
+      "subcategory": "directory-organization",
+      "name": "Directory Structure Detector",
+      "description": "Detects directory organization patterns (feature-based vs layer-based) and identifies inconsistencies",
+      "detector": {
+        "type": "regex",
+        "config": {
+          "detectorId": "structural/directory-structure",
+          "patternId": "directory-structure-feature-based"
+        }
+      },
+      "confidence": {
+        "frequency": 0.3,
+        "consistency": 0.9,
+        "age": 0,
+        "spread": 30,
+        "score": 0.7,
+        "level": "medium"
+      },
+      "locations": [
+        {
+          "file": "demo/backend/src/index.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/middleware/auth.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/middleware/errorHandler.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/middleware/logger.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/admin.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/legacy.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/orders.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/products.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/users.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/services/adminService.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/services/orderService.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/services/productService.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/services/userService.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/utils/errors.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/utils/response.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/api/admin.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/api/client.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/api/orders.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/api/products.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/api/users.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/components/Button.tsx",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/components/Card.tsx",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/components/Input.tsx",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/components/Table.tsx",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/components/legacy/DataFetcher.tsx",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/components/legacy/OldButton.tsx",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/components/legacy/UserCard.tsx",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/hooks/useApi.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/hooks/useAuth.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/types/api.ts",
+          "line": 1,
+          "column": 1
+        }
+      ],
+      "outliers": [],
+      "metadata": {
+        "firstSeen": "2026-01-20T00:55:46.150Z",
+        "lastSeen": "2026-01-20T00:55:46.150Z",
+        "source": "auto-detected",
+        "tags": [
+          "structural",
+          "directory-organization"
+        ]
+      },
+      "severity": "info",
+      "autoFixable": false
+    },
+    {
+      "id": "1ed6b24f80a41085",
+      "subcategory": "directory-organization",
+      "name": "Directory Structure Detector",
+      "description": "Detects directory organization patterns (feature-based vs layer-based) and identifies inconsistencies",
+      "detector": {
+        "type": "regex",
+        "config": {
+          "detectorId": "structural/directory-structure",
+          "patternId": "directory-pattern-src"
+        }
+      },
+      "confidence": {
+        "frequency": 0.3,
+        "consistency": 0.9,
+        "age": 0,
+        "spread": 30,
+        "score": 0.44285714285714284,
+        "level": "uncertain"
+      },
+      "locations": [
+        {
+          "file": "demo/backend/src/index.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/middleware/auth.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/middleware/errorHandler.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/middleware/logger.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/admin.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/legacy.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/orders.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/products.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/users.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/services/adminService.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/services/orderService.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/services/productService.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/services/userService.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/utils/errors.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/utils/response.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/api/admin.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/api/client.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/api/orders.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/api/products.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/api/users.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/components/Button.tsx",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/components/Card.tsx",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/components/Input.tsx",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/components/Table.tsx",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/components/legacy/DataFetcher.tsx",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/components/legacy/OldButton.tsx",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/components/legacy/UserCard.tsx",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/hooks/useApi.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/hooks/useAuth.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/types/api.ts",
+          "line": 1,
+          "column": 1
+        }
+      ],
+      "outliers": [],
+      "metadata": {
+        "firstSeen": "2026-01-20T00:55:46.150Z",
+        "lastSeen": "2026-01-20T00:55:46.150Z",
+        "source": "auto-detected",
+        "tags": [
+          "structural",
+          "directory-organization"
+        ]
+      },
+      "severity": "info",
+      "autoFixable": false
+    },
+    {
+      "id": "fd9cbceb5a775760",
+      "subcategory": "barrel-exports",
+      "name": "Barrel Exports Detector",
+      "description": "Detects barrel/index file usage patterns and export consistency",
+      "detector": {
+        "type": "regex",
+        "config": {
+          "detectorId": "structural/barrel-exports",
+          "patternId": "barrel-exports-style-default-export"
+        }
+      },
+      "confidence": {
+        "frequency": 0.01,
+        "consistency": 0.9,
+        "age": 0,
+        "spread": 1,
+        "score": 0.24,
+        "level": "uncertain"
+      },
+      "locations": [
+        {
+          "file": "demo/backend/src/index.ts",
+          "line": 1,
+          "column": 1
+        }
+      ],
+      "outliers": [],
+      "metadata": {
+        "firstSeen": "2026-01-20T00:55:46.150Z",
+        "lastSeen": "2026-01-20T00:55:46.150Z",
+        "source": "auto-detected",
+        "tags": [
+          "structural",
+          "barrel-exports"
+        ]
+      },
+      "severity": "info",
+      "autoFixable": false
+    },
+    {
+      "id": "18f79884ec201e36",
+      "subcategory": "import-ordering",
+      "name": "Import Ordering Detector",
+      "description": "Detects import grouping and sorting patterns",
+      "detector": {
+        "type": "regex",
+        "config": {
+          "detectorId": "structural/import-ordering",
+          "patternId": "import-ordering-grouping-ungrouped"
+        }
+      },
+      "confidence": {
+        "frequency": 0.12,
+        "consistency": 0.9,
+        "age": 0,
+        "spread": 12,
+        "score": 0.3333333333333333,
+        "level": "uncertain"
+      },
+      "locations": [
+        {
+          "file": "demo/backend/src/index.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/middleware/auth.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/middleware/errorHandler.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/admin.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/orders.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/products.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/users.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/api/admin.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/api/orders.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/api/products.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/api/users.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/hooks/useAuth.ts",
+          "line": 1,
+          "column": 1
+        }
+      ],
+      "outliers": [],
+      "metadata": {
+        "firstSeen": "2026-01-20T00:55:46.150Z",
+        "lastSeen": "2026-01-20T00:55:46.150Z",
+        "source": "auto-detected",
+        "tags": [
+          "structural",
+          "import-ordering"
+        ]
+      },
+      "severity": "info",
+      "autoFixable": false
+    },
+    {
+      "id": "755481184158ced1",
+      "subcategory": "import-ordering",
+      "name": "Import Ordering Detector",
+      "description": "Detects import grouping and sorting patterns",
+      "detector": {
+        "type": "regex",
+        "config": {
+          "detectorId": "structural/import-ordering",
+          "patternId": "import-ordering-sorting-unsorted"
+        }
+      },
+      "confidence": {
+        "frequency": 0.12,
+        "consistency": 0.9,
+        "age": 0,
+        "spread": 12,
+        "score": 0.3333333333333333,
+        "level": "uncertain"
+      },
+      "locations": [
+        {
+          "file": "demo/backend/src/index.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/middleware/auth.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/middleware/errorHandler.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/admin.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/orders.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/products.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/users.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/api/admin.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/api/orders.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/api/products.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/api/users.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/hooks/useAuth.ts",
+          "line": 1,
+          "column": 1
+        }
+      ],
+      "outliers": [],
+      "metadata": {
+        "firstSeen": "2026-01-20T00:55:46.150Z",
+        "lastSeen": "2026-01-20T00:55:46.150Z",
+        "source": "auto-detected",
+        "tags": [
+          "structural",
+          "import-ordering"
+        ]
+      },
+      "severity": "info",
+      "autoFixable": false
+    },
+    {
+      "id": "d63de7993c2e420e",
+      "subcategory": "import-ordering",
+      "name": "Import Ordering Detector",
+      "description": "Detects import grouping and sorting patterns",
+      "detector": {
+        "type": "regex",
+        "config": {
+          "detectorId": "structural/import-ordering",
+          "patternId": "import-ordering-order-external-sibling"
+        }
+      },
+      "confidence": {
+        "frequency": 0.01,
+        "consistency": 0.9,
+        "age": 0,
+        "spread": 1,
+        "score": 0.95,
+        "level": "high"
+      },
+      "locations": [
+        {
+          "file": "demo/backend/src/index.ts",
+          "line": 1,
+          "column": 1
+        }
+      ],
+      "outliers": [],
+      "metadata": {
+        "firstSeen": "2026-01-20T00:55:46.150Z",
+        "lastSeen": "2026-01-20T00:55:46.150Z",
+        "source": "auto-detected",
+        "tags": [
+          "structural",
+          "import-ordering"
+        ]
+      },
+      "severity": "info",
+      "autoFixable": false
+    },
+    {
+      "id": "6b9f6f345fdb7a23",
+      "subcategory": "module-boundaries",
+      "name": "Module Boundaries Detector",
+      "description": "Detects layer violations and unauthorized imports in architectural patterns",
+      "detector": {
+        "type": "regex",
+        "config": {
+          "detectorId": "structural/module-boundaries",
+          "patternId": "module-boundaries-architecture-layered"
+        }
+      },
+      "confidence": {
+        "frequency": 0.23,
+        "consistency": 0.9,
+        "age": 0,
+        "spread": 23,
+        "score": 0.5,
+        "level": "low"
+      },
+      "locations": [
+        {
+          "file": "demo/backend/src/index.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/middleware/auth.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/middleware/errorHandler.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/middleware/logger.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/admin.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/legacy.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/orders.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/products.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/users.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/utils/response.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/api/admin.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/api/orders.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/api/products.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/api/users.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/components/Button.tsx",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/components/Card.tsx",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/components/Input.tsx",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/components/Table.tsx",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/components/legacy/DataFetcher.tsx",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/components/legacy/OldButton.tsx",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/components/legacy/UserCard.tsx",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/hooks/useApi.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/hooks/useAuth.ts",
+          "line": 1,
+          "column": 1
+        }
+      ],
+      "outliers": [],
+      "metadata": {
+        "firstSeen": "2026-01-20T00:55:46.150Z",
+        "lastSeen": "2026-01-20T00:55:46.150Z",
+        "source": "auto-detected",
+        "tags": [
+          "structural",
+          "module-boundaries"
+        ]
+      },
+      "severity": "info",
+      "autoFixable": false
+    },
+    {
+      "id": "57dd6a1674ab29dd",
+      "subcategory": "circular-dependencies",
+      "name": "Circular Dependencies Detector",
+      "description": "Detects circular dependency patterns including direct, indirect, and self-imports",
+      "detector": {
+        "type": "regex",
+        "config": {
+          "detectorId": "structural/circular-deps",
+          "patternId": "circular-deps-clean"
+        }
+      },
+      "confidence": {
+        "frequency": 0.23,
+        "consistency": 0.9,
+        "age": 0,
+        "spread": 23,
+        "score": 0.95,
+        "level": "high"
+      },
+      "locations": [
+        {
+          "file": "demo/backend/src/index.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/middleware/auth.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/middleware/errorHandler.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/middleware/logger.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/admin.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/legacy.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/orders.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/products.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/users.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/utils/response.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/api/admin.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/api/orders.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/api/products.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/api/users.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/components/Button.tsx",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/components/Card.tsx",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/components/Input.tsx",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/components/Table.tsx",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/components/legacy/DataFetcher.tsx",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/components/legacy/OldButton.tsx",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/components/legacy/UserCard.tsx",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/hooks/useApi.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/hooks/useAuth.ts",
+          "line": 1,
+          "column": 1
+        }
+      ],
+      "outliers": [],
+      "metadata": {
+        "firstSeen": "2026-01-20T00:55:46.150Z",
+        "lastSeen": "2026-01-20T00:55:46.150Z",
+        "source": "auto-detected",
+        "tags": [
+          "structural",
+          "circular-dependencies"
+        ]
+      },
+      "severity": "info",
+      "autoFixable": false
+    },
+    {
+      "id": "106cd37f7e80c693",
+      "subcategory": "import-ordering",
+      "name": "Import Ordering Detector",
+      "description": "Detects import grouping and sorting patterns",
+      "detector": {
+        "type": "regex",
+        "config": {
+          "detectorId": "structural/import-ordering",
+          "patternId": "import-ordering-order-external-parent"
+        }
+      },
+      "confidence": {
+        "frequency": 0.07,
+        "consistency": 0.9,
+        "age": 0,
+        "spread": 7,
+        "score": 0.95,
+        "level": "high"
+      },
+      "locations": [
+        {
+          "file": "demo/backend/src/middleware/auth.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/middleware/errorHandler.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/admin.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/orders.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/products.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/users.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/hooks/useAuth.ts",
+          "line": 1,
+          "column": 1
+        }
+      ],
+      "outliers": [],
+      "metadata": {
+        "firstSeen": "2026-01-20T00:55:46.150Z",
+        "lastSeen": "2026-01-20T00:55:46.150Z",
+        "source": "auto-detected",
+        "tags": [
+          "structural",
+          "import-ordering"
+        ]
+      },
+      "severity": "info",
+      "autoFixable": false
+    },
+    {
+      "id": "f14aef2a460917ac",
+      "subcategory": "naming-conventions",
+      "name": "File Naming Convention Detector",
+      "description": "Detects file naming patterns including PascalCase, kebab-case, snake_case conventions",
+      "detector": {
+        "type": "regex",
+        "config": {
+          "detectorId": "structural/file-naming",
+          "patternId": "file-naming-camelCase"
+        }
+      },
+      "confidence": {
+        "frequency": 0.07,
+        "consistency": 0.9,
+        "age": 0,
+        "spread": 7,
+        "score": 0.23333333333333334,
+        "level": "uncertain"
+      },
+      "locations": [
+        {
+          "file": "demo/backend/src/middleware/errorHandler.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/services/adminService.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/services/orderService.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/services/productService.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/services/userService.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/hooks/useApi.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/hooks/useAuth.ts",
+          "line": 1,
+          "column": 1
+        }
+      ],
+      "outliers": [
+        {
+          "file": "demo/backend/src/middleware/errorHandler.ts",
+          "line": 2,
+          "column": 2,
+          "reason": "File 'errorHandler.ts' uses camelCase but project uses kebab-case. It should be renamed to 'error-handler.ts'",
+          "deviationScore": 0.7
+        },
+        {
+          "file": "demo/backend/src/services/adminService.ts",
+          "line": 2,
+          "column": 2,
+          "reason": "File 'adminService.ts' uses camelCase but project uses kebab-case. It should be renamed to 'admin-service.ts'",
+          "deviationScore": 0.7
+        },
+        {
+          "file": "demo/backend/src/services/orderService.ts",
+          "line": 2,
+          "column": 2,
+          "reason": "File 'orderService.ts' uses camelCase but project uses kebab-case. It should be renamed to 'order-service.ts'",
+          "deviationScore": 0.7
+        },
+        {
+          "file": "demo/backend/src/services/productService.ts",
+          "line": 2,
+          "column": 2,
+          "reason": "File 'productService.ts' uses camelCase but project uses kebab-case. It should be renamed to 'product-service.ts'",
+          "deviationScore": 0.7
+        },
+        {
+          "file": "demo/backend/src/services/userService.ts",
+          "line": 2,
+          "column": 2,
+          "reason": "File 'userService.ts' uses camelCase but project uses kebab-case. It should be renamed to 'user-service.ts'",
+          "deviationScore": 0.7
+        },
+        {
+          "file": "demo/frontend/src/components/Button.tsx",
+          "line": 2,
+          "column": 2,
+          "reason": "File 'Button.tsx' uses PascalCase but project uses kebab-case. It should be renamed to 'button.tsx'",
+          "deviationScore": 0.7
+        },
+        {
+          "file": "demo/frontend/src/components/Card.tsx",
+          "line": 2,
+          "column": 2,
+          "reason": "File 'Card.tsx' uses PascalCase but project uses kebab-case. It should be renamed to 'card.tsx'",
+          "deviationScore": 0.7
+        },
+        {
+          "file": "demo/frontend/src/components/Input.tsx",
+          "line": 2,
+          "column": 2,
+          "reason": "File 'Input.tsx' uses PascalCase but project uses kebab-case. It should be renamed to 'input.tsx'",
+          "deviationScore": 0.7
+        },
+        {
+          "file": "demo/frontend/src/components/Table.tsx",
+          "line": 2,
+          "column": 2,
+          "reason": "File 'Table.tsx' uses PascalCase but project uses kebab-case. It should be renamed to 'table.tsx'",
+          "deviationScore": 0.7
+        },
+        {
+          "file": "demo/frontend/src/components/legacy/DataFetcher.tsx",
+          "line": 2,
+          "column": 2,
+          "reason": "File 'DataFetcher.tsx' uses PascalCase but project uses kebab-case. It should be renamed to 'data-fetcher.tsx'",
+          "deviationScore": 0.7
+        },
+        {
+          "file": "demo/frontend/src/components/legacy/OldButton.tsx",
+          "line": 2,
+          "column": 2,
+          "reason": "File 'OldButton.tsx' uses PascalCase but project uses kebab-case. It should be renamed to 'old-button.tsx'",
+          "deviationScore": 0.7
+        },
+        {
+          "file": "demo/frontend/src/components/legacy/UserCard.tsx",
+          "line": 2,
+          "column": 2,
+          "reason": "File 'UserCard.tsx' uses PascalCase but project uses kebab-case. It should be renamed to 'user-card.tsx'",
+          "deviationScore": 0.7
+        },
+        {
+          "file": "demo/frontend/src/hooks/useApi.ts",
+          "line": 2,
+          "column": 2,
+          "reason": "File 'useApi.ts' uses camelCase but project uses kebab-case. It should be renamed to 'use-api.ts'",
+          "deviationScore": 0.7
+        },
+        {
+          "file": "demo/frontend/src/hooks/useAuth.ts",
+          "line": 2,
+          "column": 2,
+          "reason": "File 'useAuth.ts' uses camelCase but project uses kebab-case. It should be renamed to 'use-auth.ts'",
+          "deviationScore": 0.7
+        }
+      ],
+      "metadata": {
+        "firstSeen": "2026-01-20T00:55:46.150Z",
+        "lastSeen": "2026-01-20T00:55:46.150Z",
+        "source": "auto-detected",
+        "tags": [
+          "structural",
+          "naming-conventions"
+        ]
+      },
+      "severity": "warning",
+      "autoFixable": false
+    },
+    {
+      "id": "5b0e9d5a101d05a1",
+      "subcategory": "module-boundaries",
+      "name": "Module Boundaries Detector",
+      "description": "Detects layer violations and unauthorized imports in architectural patterns",
+      "detector": {
+        "type": "regex",
+        "config": {
+          "detectorId": "structural/module-boundaries",
+          "patternId": "module-boundaries-layer-presentation"
+        }
+      },
+      "confidence": {
+        "frequency": 0.16,
+        "consistency": 0.9,
+        "age": 0,
+        "spread": 16,
+        "score": 0.5,
+        "level": "low"
+      },
+      "locations": [
+        {
+          "file": "demo/backend/src/routes/admin.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/legacy.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/orders.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/products.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/users.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/api/admin.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/api/orders.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/api/products.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/api/users.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/components/Button.tsx",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/components/Card.tsx",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/components/Input.tsx",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/components/Table.tsx",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/components/legacy/DataFetcher.tsx",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/components/legacy/OldButton.tsx",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/components/legacy/UserCard.tsx",
+          "line": 1,
+          "column": 1
+        }
+      ],
+      "outliers": [],
+      "metadata": {
+        "firstSeen": "2026-01-20T00:55:46.150Z",
+        "lastSeen": "2026-01-20T00:55:46.150Z",
+        "source": "auto-detected",
+        "tags": [
+          "structural",
+          "module-boundaries"
+        ]
+      },
+      "severity": "info",
+      "autoFixable": false
+    },
+    {
+      "id": "2e825983edcae649",
+      "subcategory": "import-ordering",
+      "name": "Import Ordering Detector",
+      "description": "Detects import grouping and sorting patterns",
+      "detector": {
+        "type": "regex",
+        "config": {
+          "detectorId": "structural/import-ordering",
+          "patternId": "import-ordering-order-sibling-parent"
+        }
+      },
+      "confidence": {
+        "frequency": 0.04,
+        "consistency": 0.9,
+        "age": 0,
+        "spread": 4,
+        "score": 0.95,
+        "level": "high"
+      },
+      "locations": [
+        {
+          "file": "demo/frontend/src/api/admin.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/api/orders.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/api/products.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/api/users.ts",
+          "line": 1,
+          "column": 1
+        }
+      ],
+      "outliers": [],
+      "metadata": {
+        "firstSeen": "2026-01-20T00:55:46.150Z",
+        "lastSeen": "2026-01-20T00:55:46.150Z",
+        "source": "auto-detected",
+        "tags": [
+          "structural",
+          "import-ordering"
+        ]
+      },
+      "severity": "info",
+      "autoFixable": false
+    },
+    {
+      "id": "4cd6d31dbc199a7c",
+      "subcategory": "naming-conventions",
+      "name": "File Naming Convention Detector",
+      "description": "Detects file naming patterns including PascalCase, kebab-case, snake_case conventions",
+      "detector": {
+        "type": "regex",
+        "config": {
+          "detectorId": "structural/file-naming",
+          "patternId": "file-naming-PascalCase"
+        }
+      },
+      "confidence": {
+        "frequency": 0.07,
+        "consistency": 0.9,
+        "age": 0,
+        "spread": 7,
+        "score": 0.23333333333333334,
+        "level": "uncertain"
+      },
+      "locations": [
+        {
+          "file": "demo/frontend/src/components/Button.tsx",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/components/Card.tsx",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/components/Input.tsx",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/components/Table.tsx",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/components/legacy/DataFetcher.tsx",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/components/legacy/OldButton.tsx",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/components/legacy/UserCard.tsx",
+          "line": 1,
+          "column": 1
+        }
+      ],
+      "outliers": [
+        {
+          "file": "demo/backend/src/middleware/errorHandler.ts",
+          "line": 2,
+          "column": 2,
+          "reason": "File 'errorHandler.ts' uses camelCase but project uses kebab-case. It should be renamed to 'error-handler.ts'",
+          "deviationScore": 0.7
+        },
+        {
+          "file": "demo/backend/src/services/adminService.ts",
+          "line": 2,
+          "column": 2,
+          "reason": "File 'adminService.ts' uses camelCase but project uses kebab-case. It should be renamed to 'admin-service.ts'",
+          "deviationScore": 0.7
+        },
+        {
+          "file": "demo/backend/src/services/orderService.ts",
+          "line": 2,
+          "column": 2,
+          "reason": "File 'orderService.ts' uses camelCase but project uses kebab-case. It should be renamed to 'order-service.ts'",
+          "deviationScore": 0.7
+        },
+        {
+          "file": "demo/backend/src/services/productService.ts",
+          "line": 2,
+          "column": 2,
+          "reason": "File 'productService.ts' uses camelCase but project uses kebab-case. It should be renamed to 'product-service.ts'",
+          "deviationScore": 0.7
+        },
+        {
+          "file": "demo/backend/src/services/userService.ts",
+          "line": 2,
+          "column": 2,
+          "reason": "File 'userService.ts' uses camelCase but project uses kebab-case. It should be renamed to 'user-service.ts'",
+          "deviationScore": 0.7
+        },
+        {
+          "file": "demo/frontend/src/components/Button.tsx",
+          "line": 2,
+          "column": 2,
+          "reason": "File 'Button.tsx' uses PascalCase but project uses kebab-case. It should be renamed to 'button.tsx'",
+          "deviationScore": 0.7
+        },
+        {
+          "file": "demo/frontend/src/components/Card.tsx",
+          "line": 2,
+          "column": 2,
+          "reason": "File 'Card.tsx' uses PascalCase but project uses kebab-case. It should be renamed to 'card.tsx'",
+          "deviationScore": 0.7
+        },
+        {
+          "file": "demo/frontend/src/components/Input.tsx",
+          "line": 2,
+          "column": 2,
+          "reason": "File 'Input.tsx' uses PascalCase but project uses kebab-case. It should be renamed to 'input.tsx'",
+          "deviationScore": 0.7
+        },
+        {
+          "file": "demo/frontend/src/components/Table.tsx",
+          "line": 2,
+          "column": 2,
+          "reason": "File 'Table.tsx' uses PascalCase but project uses kebab-case. It should be renamed to 'table.tsx'",
+          "deviationScore": 0.7
+        },
+        {
+          "file": "demo/frontend/src/components/legacy/DataFetcher.tsx",
+          "line": 2,
+          "column": 2,
+          "reason": "File 'DataFetcher.tsx' uses PascalCase but project uses kebab-case. It should be renamed to 'data-fetcher.tsx'",
+          "deviationScore": 0.7
+        },
+        {
+          "file": "demo/frontend/src/components/legacy/OldButton.tsx",
+          "line": 2,
+          "column": 2,
+          "reason": "File 'OldButton.tsx' uses PascalCase but project uses kebab-case. It should be renamed to 'old-button.tsx'",
+          "deviationScore": 0.7
+        },
+        {
+          "file": "demo/frontend/src/components/legacy/UserCard.tsx",
+          "line": 2,
+          "column": 2,
+          "reason": "File 'UserCard.tsx' uses PascalCase but project uses kebab-case. It should be renamed to 'user-card.tsx'",
+          "deviationScore": 0.7
+        },
+        {
+          "file": "demo/frontend/src/hooks/useApi.ts",
+          "line": 2,
+          "column": 2,
+          "reason": "File 'useApi.ts' uses camelCase but project uses kebab-case. It should be renamed to 'use-api.ts'",
+          "deviationScore": 0.7
+        },
+        {
+          "file": "demo/frontend/src/hooks/useAuth.ts",
+          "line": 2,
+          "column": 2,
+          "reason": "File 'useAuth.ts' uses camelCase but project uses kebab-case. It should be renamed to 'use-auth.ts'",
+          "deviationScore": 0.7
+        }
+      ],
+      "metadata": {
+        "firstSeen": "2026-01-20T00:55:46.150Z",
+        "lastSeen": "2026-01-20T00:55:46.150Z",
+        "source": "auto-detected",
+        "tags": [
+          "structural",
+          "naming-conventions"
+        ]
+      },
+      "severity": "warning",
+      "autoFixable": false
+    }
+  ],
+  "lastUpdated": "2026-01-20T00:55:46.150Z",
+  "checksum": "a6b0f63587942083"
+}

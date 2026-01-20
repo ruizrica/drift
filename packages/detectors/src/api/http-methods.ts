@@ -19,7 +19,7 @@
  * @requirements 10.2 - THE API_Detector SHALL detect HTTP method usage patterns (POST vs PUT vs PATCH)
  */
 
-import type { PatternMatch, Violation, QuickFix, Language } from '@drift/core';
+import type { PatternMatch, Violation, QuickFix, Language } from 'driftdetect-core';
 import { RegexDetector, type DetectionContext, type DetectionResult } from '../base/index.js';
 
 // ============================================================================
@@ -213,10 +213,13 @@ export const FULL_REPLACEMENT_KEYWORDS = new Set([
  * Express/Fastify route handler patterns
  */
 export const EXPRESS_METHOD_PATTERNS = [
-  // router.get('/path', handler) or app.get('/path', handler)
+  // TypeScript/JavaScript patterns - Express/Fastify route handler (router.get, app.post)
   /(?:router|app|server|fastify)\.(get|post|put|patch|delete|head|options)\s*\(\s*['"`]([^'"`]+)['"`]/gi,
   // router.route('/path').get(handler).post(handler)
   /\.route\s*\(\s*['"`]([^'"`]+)['"`]\s*\)\s*\.(get|post|put|patch|delete|head|options)\s*\(/gi,
+  // Python patterns - FastAPI, Flask
+  /@(?:app|router)\.(get|post|put|patch|delete|head|options)\s*\(\s*['"`]([^'"`]+)['"`]/gi,
+  /@api_view\s*\(\s*\[\s*['"`](GET|POST|PUT|PATCH|DELETE)['"`]/gi,
 ] as const;
 
 /**
@@ -964,7 +967,7 @@ export class HttpMethodsDetector extends RegexDetector {
   readonly subcategory = 'http-methods';
   readonly name = 'HTTP Methods Detector';
   readonly description = 'Detects HTTP method usage patterns and flags RESTful convention violations';
-  readonly supportedLanguages: Language[] = ['typescript', 'javascript'];
+  readonly supportedLanguages: Language[] = ['typescript', 'javascript', 'python'];
 
   /**
    * Detect HTTP method patterns and violations

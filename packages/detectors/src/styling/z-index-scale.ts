@@ -17,7 +17,7 @@
  * @requirements 9.7 - THE Styling_Detector SHALL detect z-index scale adherence
  */
 
-import type { PatternMatch, Violation, QuickFix, Language } from '@drift/core';
+import type { PatternMatch, Violation, QuickFix, Language } from 'driftdetect-core';
 import { RegexDetector, type DetectionContext, type DetectionResult } from '../base/index.js';
 
 // ============================================================================

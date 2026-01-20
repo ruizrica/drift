@@ -11,7 +11,7 @@
  * @requirements 16.1 - Input sanitization patterns
  */
 
-import type { Violation, QuickFix, PatternCategory, Language } from '@drift/core';
+import type { Violation, QuickFix, PatternCategory, Language } from 'driftdetect-core';
 import { RegexDetector } from '../base/regex-detector.js';
 import type { DetectionContext, DetectionResult } from '../base/base-detector.js';
 
@@ -83,6 +83,7 @@ export const SANITIZE_HTML_PATTERNS = [
 ] as const;
 
 export const VALIDATOR_JS_PATTERNS = [
+  // TypeScript/JavaScript patterns
   /validator\.escape\s*\(/gi,
   /validator\.trim\s*\(/gi,
   /validator\.stripLow\s*\(/gi,
@@ -92,6 +93,14 @@ export const VALIDATOR_JS_PATTERNS = [
   /validator\.isEmail\s*\(/gi,
   /validator\.isURL\s*\(/gi,
   /validator\.isAlphanumeric\s*\(/gi,
+  // Python patterns - pydantic, cerberus, marshmallow
+  /EmailStr\b/gi,
+  /HttpUrl\b/gi,
+  /validator\s*\(/gi,
+  /@validator\s*\(/gi,
+  /field_validator\s*\(/gi,
+  /Schema\s*\(\s*\{/gi,
+  /fields\.\w+\s*\(/gi,
 ] as const;
 
 export const ESCAPE_HTML_PATTERNS = [
@@ -119,12 +128,21 @@ export const ESCAPE_REGEX_PATTERNS = [
 ] as const;
 
 export const CUSTOM_SANITIZE_PATTERNS = [
+  // TypeScript/JavaScript patterns
   /sanitize\w*\s*\(/gi,
   /clean\w*Input\s*\(/gi,
   /filterInput\s*\(/gi,
   /validateAndSanitize\s*\(/gi,
   /scrub\s*\(/gi,
   /purge\s*\(/gi,
+  // Python patterns - snake_case
+  /sanitize_\w*\s*\(/gi,
+  /clean_\w*input\s*\(/gi,
+  /filter_input\s*\(/gi,
+  /validate_and_sanitize\s*\(/gi,
+  /bleach\.clean\s*\(/gi,
+  /markupsafe\.escape\s*\(/gi,
+  /html\.escape\s*\(/gi,
 ] as const;
 
 export const TRIM_NORMALIZE_PATTERNS = [
@@ -450,7 +468,7 @@ export class InputSanitizationDetector extends RegexDetector {
     'Detects input sanitization patterns and identifies potential unsanitized input vulnerabilities';
   readonly category: PatternCategory = 'security';
   readonly subcategory = 'input-sanitization';
-  readonly supportedLanguages: Language[] = ['typescript', 'javascript'];
+  readonly supportedLanguages: Language[] = ['typescript', 'javascript', 'python'];
 
   async detect(context: DetectionContext): Promise<DetectionResult> {
     if (!this.supportsLanguage(context.language)) {
@@ -463,10 +481,20 @@ export class InputSanitizationDetector extends RegexDetector {
       return this.createEmptyResult();
     }
 
-    return this.createResult([], [], analysis.confidence, {
+    // Convert internal violations to standard Violation format
+    const violations = analysis.violations.map(v => this.convertViolationInfo({
+      file: v.file,
+      line: v.line,
+      column: v.column,
+      value: v.matchedText,
+      issue: v.issue,
+      suggestedFix: v.suggestedFix,
+      severity: 'warning',
+    }));
+
+    return this.createResult([], violations, analysis.confidence, {
       custom: {
         patterns: analysis.patterns,
-        violations: analysis.violations,
         hasSanitization: analysis.hasSanitization,
         sanitizationLibraries: analysis.sanitizationLibraries,
       },

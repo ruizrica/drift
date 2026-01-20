@@ -11,7 +11,7 @@
  * @requirements 16.6 - Secret management patterns
  */
 
-import type { Violation, QuickFix, PatternCategory, Language } from '@drift/core';
+import type { Violation, QuickFix, PatternCategory, Language } from 'driftdetect-core';
 import { RegexDetector } from '../base/regex-detector.js';
 import type { DetectionContext, DetectionResult } from '../base/base-detector.js';
 
@@ -671,10 +671,22 @@ export class SecretManagementDetector extends RegexDetector {
       return this.createEmptyResult();
     }
 
-    return this.createResult([], [], analysis.confidence, {
+    // Convert internal violations to standard Violation format
+    // Map severity: critical/high -> error, medium -> warning, low -> info
+    const violations = analysis.violations.map(v => this.convertViolationInfo({
+      file: v.file,
+      line: v.line,
+      column: v.column,
+      type: v.type,
+      value: v.matchedText,
+      issue: v.issue,
+      suggestedFix: v.suggestedFix,
+      severity: (v.severity === 'critical' || v.severity === 'high') ? 'error' : v.severity === 'medium' ? 'warning' : 'info',
+    }));
+
+    return this.createResult([], violations, analysis.confidence, {
       custom: {
         patterns: analysis.patterns,
-        violations: analysis.violations,
         usesEnvVariables: analysis.usesEnvVariables,
         usesSecretManager: analysis.usesSecretManager,
         usesVault: analysis.usesVault,

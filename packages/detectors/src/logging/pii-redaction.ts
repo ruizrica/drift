@@ -9,7 +9,7 @@
  * @requirements 15.5 - PII redaction patterns
  */
 
-import type { Violation, QuickFix, PatternCategory, Language } from '@drift/core';
+import type { Violation, QuickFix, PatternCategory, Language } from 'driftdetect-core';
 import { RegexDetector } from '../base/regex-detector.js';
 import type { DetectionContext, DetectionResult } from '../base/base-detector.js';
 
@@ -38,42 +38,71 @@ export interface PIIRedactionAnalysis {
 }
 
 // ============================================================================
-// Patterns
+// Patterns (JavaScript/TypeScript + Python)
 // ============================================================================
 
 export const REDACT_FUNCTION_PATTERNS = [
+  // JavaScript/TypeScript
   /redact\s*\(/gi,
   /redactPII\s*\(/gi,
   /redactSensitive\s*\(/gi,
+  // Python
+  /redact_pii\s*\(/gi,
+  /redact_sensitive\s*\(/gi,
 ];
 
 export const MASK_FUNCTION_PATTERNS = [
+  // JavaScript/TypeScript
   /mask\s*\(/gi,
   /maskEmail\s*\(/gi,
   /maskPhone\s*\(/gi,
   /maskSSN\s*\(/gi,
   /maskCreditCard\s*\(/gi,
+  // Python (snake_case)
+  /mask_email\s*\(/gi,
+  /mask_phone\s*\(/gi,
+  /mask_ssn\s*\(/gi,
+  /mask_credit_card\s*\(/gi,
 ];
 
 export const SANITIZE_FUNCTION_PATTERNS = [
+  // JavaScript/TypeScript
   /sanitize\s*\(/gi,
   /sanitizeLog\s*\(/gi,
   /sanitizeData\s*\(/gi,
+  // Python (snake_case)
+  /sanitize_log\s*\(/gi,
+  /sanitize_data\s*\(/gi,
+  /sanitize_error\s*\(/gi,
+  /ErrorSanitizer/gi,
 ];
 
 export const SENSITIVE_FIELD_PATTERNS = [
+  // JavaScript/TypeScript (camelCase)
   /password\s*[=:]/gi,
   /ssn\s*[=:]/gi,
   /creditCard\s*[=:]/gi,
   /socialSecurity\s*[=:]/gi,
   /secret\s*[=:]/gi,
   /apiKey\s*[=:]/gi,
+  // Python (snake_case)
+  /credit_card\s*[=:]/gi,
+  /social_security\s*[=:]/gi,
+  /api_key\s*[=:]/gi,
+  /secret_key\s*[=:]/gi,
+  /private_key\s*[=:]/gi,
 ];
 
 export const REDACTION_CONFIG_PATTERNS = [
+  // JavaScript/TypeScript
   /redactPaths\s*[=:]/gi,
   /sensitiveFields\s*[=:]/gi,
   /redactionRules\s*[=:]/gi,
+  // Python
+  /redact_paths\s*[=:]/gi,
+  /sensitive_fields\s*[=:]/gi,
+  /redaction_rules\s*[=:]/gi,
+  /SENSITIVE_PATTERNS\s*[=:]/gi,
 ];
 
 // ============================================================================
@@ -160,7 +189,7 @@ export class PIIRedactionDetector extends RegexDetector {
   readonly description = 'Detects PII redaction patterns';
   readonly category: PatternCategory = 'logging';
   readonly subcategory = 'pii-redaction';
-  readonly supportedLanguages: Language[] = ['typescript', 'javascript'];
+  readonly supportedLanguages: Language[] = ['typescript', 'javascript', 'python'];
 
   async detect(context: DetectionContext): Promise<DetectionResult> {
     if (!this.supportsLanguage(context.language)) {

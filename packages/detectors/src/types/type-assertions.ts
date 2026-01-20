@@ -13,7 +13,7 @@
  * @requirements 18.6 - Type assertion patterns
  */
 
-import type { Violation, QuickFix, PatternCategory, Language } from '@drift/core';
+import type { Violation, QuickFix, PatternCategory, Language } from 'driftdetect-core';
 import { RegexDetector } from '../base/regex-detector.js';
 import type { DetectionContext, DetectionResult } from '../base/base-detector.js';
 
@@ -824,10 +824,20 @@ export class TypeAssertionsDetector extends RegexDetector {
       return this.createEmptyResult();
     }
 
-    return this.createResult([], [], analysis.confidence, {
+    // Convert internal violations to standard Violation format
+    const violations = this.convertViolationInfos(analysis.violations.map(v => ({
+      file: v.file,
+      line: v.line,
+      column: v.column,
+      value: v.matchedText,
+      issue: v.issue,
+      suggestedFix: v.suggestedFix,
+      severity: v.severity === 'high' ? 'error' as const : v.severity === 'medium' ? 'warning' as const : 'info' as const,
+    })));
+
+    return this.createResult([], violations, analysis.confidence, {
       custom: {
         patterns: analysis.patterns,
-        violations: analysis.violations,
         asAssertionCount: analysis.asAssertionCount,
         nonNullAssertionCount: analysis.nonNullAssertionCount,
         typeGuardCount: analysis.typeGuardCount,

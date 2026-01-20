@@ -16,7 +16,7 @@
  * @requirements 9.4 - THE Styling_Detector SHALL detect typography scale adherence
  */
 
-import type { PatternMatch, Violation, QuickFix, Language } from '@drift/core';
+import type { PatternMatch, Violation, QuickFix, Language } from 'driftdetect-core';
 import { RegexDetector, type DetectionContext, type DetectionResult } from '../base/index.js';
 
 // ============================================================================
@@ -38,6 +38,7 @@ export type HardcodedTypographyType =
   | 'arbitrary-font-size'       // Arbitrary font size (13px, 17px, etc.)
   | 'arbitrary-line-height'     // Arbitrary line height (1.3, 1.7, etc.)
   | 'arbitrary-font-weight'     // Arbitrary font weight (450, 550, etc.)
+  | 'arbitrary-letter-spacing'  // Arbitrary letter spacing (tracking-[0.4em])
   | 'hardcoded-font-family';    // Hardcoded font family
 
 /**
@@ -517,6 +518,14 @@ export function detectTailwindArbitraryTypography(content: string, file: string)
     if (isAllowedTypographyValue(value)) {
       continue;
     }
+    
+    // Skip color values - text-[#color] is a text color, not font size
+    // Colors: #hex, rgb(), rgba(), hsl(), hsla(), or named colors
+    if (/^#[0-9a-fA-F]{3,8}$/.test(value) ||
+        /^rgba?\s*\(/.test(value) ||
+        /^hsla?\s*\(/.test(value)) {
+      continue;
+    }
 
     const beforeMatch = content.slice(0, match.index);
     const lineNumber = beforeMatch.split('\n').length;
@@ -531,6 +540,8 @@ export function detectTailwindArbitraryTypography(content: string, file: string)
       type = 'arbitrary-font-weight';
     } else if (prefix === 'leading') {
       type = 'arbitrary-line-height';
+    } else if (prefix === 'tracking') {
+      type = 'arbitrary-letter-spacing';
     }
 
     results.push({
@@ -547,6 +558,84 @@ export function detectTailwindArbitraryTypography(content: string, file: string)
   }
 
   return results;
+}
+
+/**
+ * Non-typography Tailwind prefixes that use px values but aren't font sizes
+ * These are width, height, spacing, positioning, etc.
+ */
+const NON_TYPOGRAPHY_TAILWIND_PREFIXES = [
+  'w-', 'h-', 'min-w-', 'min-h-', 'max-w-', 'max-h-',  // dimensions
+  'p-', 'px-', 'py-', 'pt-', 'pr-', 'pb-', 'pl-',      // padding
+  'm-', 'mx-', 'my-', 'mt-', 'mr-', 'mb-', 'ml-',      // margin
+  'gap-', 'gap-x-', 'gap-y-',                          // gap
+  'space-x-', 'space-y-',                              // space
+  'top-', 'right-', 'bottom-', 'left-',                // positioning
+  'inset-', 'inset-x-', 'inset-y-',                    // inset
+  'rounded-', 'border-', 'outline-',                   // borders
+  'translate-x-', 'translate-y-',                      // transforms
+  'blur-', 'backdrop-blur-',                           // filters
+  'scroll-m-', 'scroll-p-',                            // scroll
+  'size-',                                             // size (w + h)
+  'text-',                                             // text-[*] arbitrary font sizes (intentional)
+  'leading-',                                          // leading-[*] arbitrary line heights (intentional)
+  'tracking-',                                         // tracking-[*] arbitrary letter spacing (intentional)
+];
+
+/**
+ * Check if a match is inside a Tailwind arbitrary value for non-typography properties
+ */
+function isNonTypographyTailwindValue(lineContent: string, _matchIndex: number, value: string): boolean {
+  // Find the position of the value in the line
+  const valueInLine = lineContent.indexOf(value);
+  if (valueInLine === -1) return false;
+  
+  // Look backwards from the value to find if it's inside a Tailwind class
+  const beforeValue = lineContent.slice(0, valueInLine);
+  
+  // Check for Tailwind arbitrary value syntax: prefix-[value]
+  for (const prefix of NON_TYPOGRAPHY_TAILWIND_PREFIXES) {
+    // Check if there's a pattern like "w-[" before our value
+    const arbitraryPattern = new RegExp(`${prefix.replace('-', '-')}\\[$`);
+    if (arbitraryPattern.test(beforeValue)) {
+      return true;
+    }
+    // Also check for the pattern without the final bracket (in case value includes it)
+    if (beforeValue.endsWith(`${prefix}[`)) {
+      return true;
+    }
+  }
+  
+  // Check if the value is inside any Tailwind arbitrary value bracket
+  // This catches cases like shadow-[0_0_0_1px_...] where 1px is inside a complex value
+  const lastOpenBracket = beforeValue.lastIndexOf('[');
+  const lastCloseBracket = beforeValue.lastIndexOf(']');
+  if (lastOpenBracket > lastCloseBracket) {
+    // We're inside a bracket - check if it's a Tailwind class
+    const beforeBracket = beforeValue.slice(0, lastOpenBracket);
+    // If there's a Tailwind-like prefix before the bracket, skip it
+    if (/[a-z]+-$/.test(beforeBracket) || /[a-z]+:$/.test(beforeBracket)) {
+      return true;
+    }
+  }
+  
+  // Also check for common non-typography CSS properties in the same line
+  const nonTypographyProperties = [
+    'width', 'height', 'min-width', 'min-height', 'max-width', 'max-height',
+    'padding', 'margin', 'gap', 'top', 'right', 'bottom', 'left',
+    'border-radius', 'border-width', 'outline-width',
+    'transform', 'translate', 'inset',
+    'border', 'border-top', 'border-right', 'border-bottom', 'border-left',
+    'box-shadow', 'shadow',
+  ];
+  
+  for (const prop of nonTypographyProperties) {
+    if (lineContent.includes(`${prop}:`) || lineContent.includes(`${prop} :`)) {
+      return true;
+    }
+  }
+  
+  return false;
 }
 
 /**
@@ -580,7 +669,13 @@ export function detectArbitraryFontSizes(content: string, file: string): Hardcod
       const lineNumber = beforeMatch.split('\n').length;
       const lineContent = lines[lineNumber - 1] || '';
 
-      // Only flag if this is a font-size property
+      // Skip if this is a Tailwind arbitrary value for non-typography properties
+      // (e.g., w-[280px], h-[400px], p-[20px], etc.)
+      if (isNonTypographyTailwindValue(lineContent, match.index, value)) {
+        continue;
+      }
+
+      // Only flag if this is a font-size property (for CSS)
       const property = extractCSSProperty(lineContent);
       if (property && !['font-size', 'font'].includes(property)) {
         continue;
@@ -823,6 +918,8 @@ export function suggestTypographyToken(value: string, type: HardcodedTypographyT
       }
       return 'Use a font weight token (e.g., font-medium, --font-weight-medium)';
     }
+    case 'arbitrary-letter-spacing':
+      return 'Use a letter spacing token (e.g., tracking-tight, tracking-wide, --letter-spacing-wide)';
     case 'hardcoded-font-family':
       return 'Use a font family token (e.g., font-sans, --font-family-sans)';
     default:
@@ -918,15 +1015,21 @@ export function analyzeTypography(content: string, file: string): TypographyAnal
   ];
 
   // Detect hardcoded values (unless file is excluded)
+  // NOTE: We intentionally skip Tailwind arbitrary values (text-[10px], leading-[1.2], etc.)
+  // because these are deliberate choices, not violations. Tailwind's arbitrary value syntax
+  // is a feature, not a bug. The detector should focus on inline styles and CSS that
+  // bypass the design system entirely, not Tailwind classes which are still part of
+  // a utility-first approach.
   let hardcodedValues: HardcodedTypographyInfo[] = [];
   if (!skipHardcodedDetection) {
-    const tailwindArbitrary = detectTailwindArbitraryTypography(content, file);
+    // Skip tailwindArbitrary - these are intentional choices
+    // const tailwindArbitrary = detectTailwindArbitraryTypography(content, file);
     const arbitraryFontSizes = detectArbitraryFontSizes(content, file);
     const arbitraryLineHeights = detectArbitraryLineHeights(content, file);
     const arbitraryFontWeights = detectArbitraryFontWeights(content, file);
     const hardcodedFontFamilies = detectHardcodedFontFamilies(content, file);
     hardcodedValues = [
-      ...tailwindArbitrary,
+      // ...tailwindArbitrary, // Disabled - Tailwind arbitrary values are intentional
       ...arbitraryFontSizes,
       ...arbitraryLineHeights,
       ...arbitraryFontWeights,
@@ -1091,6 +1194,7 @@ export class TypographyDetector extends RegexDetector {
       'arbitrary-font-size': 'arbitrary font size',
       'arbitrary-line-height': 'arbitrary line height',
       'arbitrary-font-weight': 'arbitrary font weight',
+      'arbitrary-letter-spacing': 'arbitrary letter spacing',
       'hardcoded-font-family': 'hardcoded font family',
     };
 

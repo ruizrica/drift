@@ -7,7 +7,7 @@
  * @requirements 11.4 - RBAC patterns
  */
 
-import type { Language } from '@drift/core';
+import type { Language } from 'driftdetect-core';
 import { RegexDetector, type DetectionContext, type DetectionResult } from '../base/index.js';
 
 export type RbacPatternType = 'role-definition' | 'role-assignment' | 'role-check' | 'role-hierarchy';
@@ -44,26 +44,49 @@ export interface RbacAnalysis {
 }
 
 export const ROLE_DEFINITION_PATTERNS = [
+  // TypeScript/JavaScript patterns
   /(?:enum|const)\s+(?:Role|Roles|UserRole)\s*[={]/gi,
   /roles?\s*:\s*\[\s*['"`](?:admin|user|moderator|editor|viewer)/gi,
   /(?:ADMIN|USER|MODERATOR|EDITOR|VIEWER)\s*[=:]/gi,
   /type\s+Role\s*=/gi,
+  // Python patterns - Enum classes, role constants
+  /class\s+(?:Role|Roles|UserRole)\s*\(\s*(?:str\s*,\s*)?Enum\s*\)/gi,
+  /(?:ADMIN|USER|MODERATOR|EDITOR|VIEWER)\s*=\s*['"`]/gi,
+  /ROLES?\s*=\s*\[/gi,
+  /role_choices\s*=/gi,
 ] as const;
 
 export const ROLE_ASSIGNMENT_PATTERNS = [
+  // TypeScript/JavaScript patterns
   /user\.role\s*=\s*['"`]?\w+/gi,
   /setRole\s*\(/gi,
   /assignRole\s*\(/gi,
   /grantRole\s*\(/gi,
   /role\s*:\s*['"`](?:admin|user|moderator)/gi,
+  // Python patterns - snake_case methods
+  /user\.role\s*=\s*['"`]?\w+/gi,
+  /set_role\s*\(/gi,
+  /assign_role\s*\(/gi,
+  /grant_role\s*\(/gi,
+  /role\s*=\s*['"`](?:admin|user|moderator)/gi,
+  /update_user_role\s*\(/gi,
 ] as const;
 
 export const ROLE_CHECK_PATTERNS = [
+  // TypeScript/JavaScript patterns
   /user\.role\s*===?\s*['"`]?\w+/gi,
   /hasRole\s*\(\s*['"`]\w+['"`]/gi,
   /isAdmin|isModerator|isEditor/gi,
   /role\s*===?\s*(?:Role\.)?\w+/gi,
   /roles?\.includes\s*\(/gi,
+  // Python patterns - snake_case, equality checks
+  /user\.role\s*==\s*['"`]?\w+/gi,
+  /has_role\s*\(/gi,
+  /is_admin|is_moderator|is_editor/gi,
+  /role\s*==\s*(?:Role\.)?\w+/gi,
+  /role\s+in\s+\[/gi,
+  /check_role\s*\(/gi,
+  /require_role\s*\(/gi,
 ] as const;
 
 export const ROLE_HIERARCHY_PATTERNS = [
@@ -73,7 +96,7 @@ export const ROLE_HIERARCHY_PATTERNS = [
   /roleInherits/gi,
 ] as const;
 
-export const EXCLUDED_FILE_PATTERNS = [/\.test\.[jt]sx?$/, /\.spec\.[jt]sx?$/, /node_modules\//, /\.d\.ts$/];
+export const EXCLUDED_FILE_PATTERNS = [/\.test\.[jt]sx?$/, /\.spec\.[jt]sx?$/, /node_modules\//, /\.d\.ts$/, /_test\.py$/, /test_.*\.py$/, /conftest\.py$/];
 
 export function shouldExcludeFile(filePath: string): boolean {
   return EXCLUDED_FILE_PATTERNS.some(p => p.test(filePath));
@@ -155,14 +178,24 @@ export class RbacPatternsDetector extends RegexDetector {
   readonly description = 'Detects Role-Based Access Control patterns';
   readonly category = 'auth';
   readonly subcategory = 'rbac';
-  readonly supportedLanguages: Language[] = ['typescript', 'javascript'];
+  readonly supportedLanguages: Language[] = ['typescript', 'javascript', 'python'];
   
   async detect(context: DetectionContext): Promise<DetectionResult> {
     const { content, file } = context;
     if (shouldExcludeFile(file)) return this.createEmptyResult();
     
     const analysis = analyzeRbac(content, file);
-    return this.createResult([], [], analysis.patterns.length > 0 ? 0.85 : 1.0);
+    
+    // Convert internal violations to standard Violation format
+    const violations = this.convertViolationInfos(analysis.violations);
+    
+    return this.createResult([], violations, analysis.patterns.length > 0 ? 0.85 : 1.0, {
+      custom: {
+        patterns: analysis.patterns,
+        roles: analysis.roles,
+        hasRoleHierarchy: analysis.hasRoleHierarchy,
+      },
+    });
   }
   
   generateQuickFix(): null {

@@ -10,7 +10,7 @@
  * @requirements 17.4 - Feature flag patterns
  */
 
-import type { Violation, QuickFix, PatternCategory, Language } from '@drift/core';
+import type { Violation, QuickFix, PatternCategory, Language } from 'driftdetect-core';
 import { RegexDetector } from '../base/regex-detector.js';
 import type { DetectionContext, DetectionResult } from '../base/base-detector.js';
 
@@ -67,6 +67,7 @@ export interface FeatureFlagAnalysis {
 // ============================================================================
 
 export const BOOLEAN_FLAG_PATTERNS = [
+  // JavaScript/TypeScript
   /isFeatureEnabled\s*\(/gi,
   /featureEnabled\s*\(/gi,
   /isEnabled\s*\(/gi,
@@ -75,18 +76,32 @@ export const BOOLEAN_FLAG_PATTERNS = [
   /getFeatureFlag\s*\(/gi,
   /useFeatureFlag\s*\(/gi,
   /useFeature\s*\(/gi,
+  // Python
+  /is_feature_enabled\s*\(/gi,
+  /feature_enabled\s*\(/gi,
+  /is_enabled\s*\(/gi,
+  /has_feature\s*\(/gi,
+  /check_feature\s*\(/gi,
+  /get_feature_flag\s*\(/gi,
 ] as const;
 
 export const ENV_FLAG_PATTERNS = [
+  // JavaScript/TypeScript
   /process\.env\.FEATURE_[A-Z0-9_]+/gi,
   /process\.env\.FF_[A-Z0-9_]+/gi,
   /process\.env\.ENABLE_[A-Z0-9_]+/gi,
   /process\.env\.DISABLE_[A-Z0-9_]+/gi,
   /import\.meta\.env\.VITE_FEATURE_[A-Z0-9_]+/gi,
   /import\.meta\.env\.VITE_FF_[A-Z0-9_]+/gi,
+  // Python
+  /os\.environ\[['"]FEATURE_[A-Z0-9_]+['"]\]/gi,
+  /os\.environ\[['"]ENABLE_[A-Z0-9_]+['"]\]/gi,
+  /os\.getenv\s*\(\s*['"]FEATURE_[A-Z0-9_]+['"]/gi,
+  /os\.getenv\s*\(\s*['"]ENABLE_[A-Z0-9_]+['"]/gi,
 ] as const;
 
 export const FLAG_SERVICE_PATTERNS = [
+  // JavaScript/TypeScript
   /LaunchDarkly/gi,
   /launchDarkly/gi,
   /ldClient/gi,
@@ -105,6 +120,11 @@ export const FLAG_SERVICE_PATTERNS = [
   /posthog/gi,
   /Statsig/gi,
   /statsig/gi,
+  // Python
+  /ldclient/gi,
+  /launch_darkly/gi,
+  /feature_flags/gi,
+  /FeatureFlags/gi,
 ] as const;
 
 export const CONDITIONAL_RENDER_PATTERNS = [
@@ -138,10 +158,15 @@ export const ROLLOUT_PERCENTAGE_PATTERNS = [
 ] as const;
 
 export const HARDCODED_FLAG_PATTERNS = [
+  // JavaScript/TypeScript
   /const\s+\w*[Ff]eature\w*\s*=\s*(?:true|false)/gi,
   /let\s+\w*[Ff]eature\w*\s*=\s*(?:true|false)/gi,
   /const\s+\w*[Ff]lag\w*\s*=\s*(?:true|false)/gi,
   /const\s+ENABLE_\w+\s*=\s*(?:true|false)/gi,
+  // Python
+  /\w*[Ff]eature\w*\s*=\s*(?:True|False)/gi,
+  /\w*[Ff]lag\w*\s*=\s*(?:True|False)/gi,
+  /ENABLE_\w+\s*=\s*(?:True|False)/gi,
 ] as const;
 
 // ============================================================================
@@ -435,7 +460,7 @@ export class FeatureFlagsDetector extends RegexDetector {
     'Detects feature flag patterns and identifies hardcoded flags';
   readonly category: PatternCategory = 'config';
   readonly subcategory = 'feature-flags';
-  readonly supportedLanguages: Language[] = ['typescript', 'javascript'];
+  readonly supportedLanguages: Language[] = ['typescript', 'javascript', 'python'];
 
   async detect(context: DetectionContext): Promise<DetectionResult> {
     if (!this.supportsLanguage(context.language)) {
@@ -448,10 +473,20 @@ export class FeatureFlagsDetector extends RegexDetector {
       return this.createEmptyResult();
     }
 
-    return this.createResult([], [], analysis.confidence, {
+    // Convert internal violations to standard Violation format
+    const violations = this.convertViolationInfos(analysis.violations.map(v => ({
+      file: v.file,
+      line: v.line,
+      column: v.column,
+      value: v.matchedText,
+      issue: v.issue,
+      suggestedFix: v.suggestedFix,
+      severity: v.severity === 'high' ? 'error' as const : v.severity === 'medium' ? 'warning' as const : 'info' as const,
+    })));
+
+    return this.createResult([], violations, analysis.confidence, {
       custom: {
         patterns: analysis.patterns,
-        violations: analysis.violations,
         hasFeatureFlags: analysis.hasFeatureFlags,
         usesService: analysis.usesService,
         flagNames: analysis.flagNames,

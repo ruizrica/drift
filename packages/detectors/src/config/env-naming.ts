@@ -10,7 +10,7 @@
  * @requirements 17.1 - Environment variable naming patterns
  */
 
-import type { Violation, QuickFix, PatternCategory, Language } from '@drift/core';
+import type { Violation, QuickFix, PatternCategory, Language } from 'driftdetect-core';
 import { RegexDetector } from '../base/regex-detector.js';
 import type { DetectionContext, DetectionResult } from '../base/base-detector.js';
 
@@ -68,54 +68,92 @@ export interface EnvNamingAnalysis {
 // ============================================================================
 
 export const SCREAMING_SNAKE_CASE_PATTERNS = [
+  // JavaScript/TypeScript
   /process\.env\.([A-Z][A-Z0-9_]*)/g,
   /process\.env\[['"`]([A-Z][A-Z0-9_]*)['"`]\]/g,
   /import\.meta\.env\.([A-Z][A-Z0-9_]*)/g,
   /Deno\.env\.get\s*\(\s*['"`]([A-Z][A-Z0-9_]*)['"`]\s*\)/g,
+  // Python
+  /os\.environ\[['"]([A-Z][A-Z0-9_]*)['"]\]/g,
+  /os\.environ\.get\s*\(\s*['"]([A-Z][A-Z0-9_]*)['"]/g,
+  /os\.getenv\s*\(\s*['"]([A-Z][A-Z0-9_]*)['"]/g,
 ] as const;
 
 export const APP_PREFIX_PATTERNS = [
+  // JavaScript/TypeScript
   /process\.env\.(APP_[A-Z0-9_]*)/g,
   /process\.env\[['"`](APP_[A-Z0-9_]*)['"`]\]/g,
   /import\.meta\.env\.(VITE_[A-Z0-9_]*)/g,
   /import\.meta\.env\.(NEXT_PUBLIC_[A-Z0-9_]*)/g,
+  // Python
+  /os\.environ\[['"](APP_[A-Z0-9_]*)['"]\]/g,
+  /os\.environ\.get\s*\(\s*['"](APP_[A-Z0-9_]*)['"]/g,
+  /os\.getenv\s*\(\s*['"](APP_[A-Z0-9_]*)['"]/g,
 ] as const;
 
 export const DB_PREFIX_PATTERNS = [
+  // JavaScript/TypeScript
   /process\.env\.(DB_[A-Z0-9_]*)/g,
   /process\.env\.(DATABASE_[A-Z0-9_]*)/g,
   /process\.env\.(POSTGRES_[A-Z0-9_]*)/g,
   /process\.env\.(MYSQL_[A-Z0-9_]*)/g,
   /process\.env\.(MONGO_[A-Z0-9_]*)/g,
   /process\.env\.(REDIS_[A-Z0-9_]*)/g,
+  // Python
+  /os\.environ\[['"](DB_[A-Z0-9_]*)['"]\]/g,
+  /os\.environ\[['"](DATABASE_[A-Z0-9_]*)['"]\]/g,
+  /os\.environ\[['"](SUPABASE_[A-Z0-9_]*)['"]\]/g,
+  /os\.getenv\s*\(\s*['"](DB_[A-Z0-9_]*)['"]/g,
+  /os\.getenv\s*\(\s*['"](DATABASE_[A-Z0-9_]*)['"]/g,
 ] as const;
 
 export const API_PREFIX_PATTERNS = [
+  // JavaScript/TypeScript
   /process\.env\.(API_[A-Z0-9_]*)/g,
   /process\.env\.(API_KEY[A-Z0-9_]*)/g,
   /process\.env\.(API_URL[A-Z0-9_]*)/g,
   /process\.env\.(API_SECRET[A-Z0-9_]*)/g,
+  // Python
+  /os\.environ\[['"](API_[A-Z0-9_]*)['"]\]/g,
+  /os\.getenv\s*\(\s*['"](API_[A-Z0-9_]*)['"]/g,
+  /os\.getenv\s*\(\s*['"](OPENAI_[A-Z0-9_]*)['"]/g,
+  /os\.getenv\s*\(\s*['"](ANTHROPIC_[A-Z0-9_]*)['"]/g,
 ] as const;
 
 export const FEATURE_PREFIX_PATTERNS = [
+  // JavaScript/TypeScript
   /process\.env\.(FEATURE_[A-Z0-9_]*)/g,
   /process\.env\.(FF_[A-Z0-9_]*)/g,
   /process\.env\.(ENABLE_[A-Z0-9_]*)/g,
   /process\.env\.(DISABLE_[A-Z0-9_]*)/g,
+  // Python
+  /os\.environ\[['"](FEATURE_[A-Z0-9_]*)['"]\]/g,
+  /os\.getenv\s*\(\s*['"](FEATURE_[A-Z0-9_]*)['"]/g,
+  /os\.getenv\s*\(\s*['"](ENABLE_[A-Z0-9_]*)['"]/g,
 ] as const;
 
 export const SECRET_PREFIX_PATTERNS = [
+  // JavaScript/TypeScript
   /process\.env\.(SECRET_[A-Z0-9_]*)/g,
   /process\.env\.([A-Z0-9_]*_SECRET)/g,
   /process\.env\.([A-Z0-9_]*_KEY)/g,
   /process\.env\.([A-Z0-9_]*_TOKEN)/g,
   /process\.env\.([A-Z0-9_]*_PASSWORD)/g,
+  // Python
+  /os\.environ\[['"](SECRET_[A-Z0-9_]*)['"]\]/g,
+  /os\.getenv\s*\(\s*['"]([A-Z0-9_]*_SECRET)['"]/g,
+  /os\.getenv\s*\(\s*['"]([A-Z0-9_]*_KEY)['"]/g,
+  /os\.getenv\s*\(\s*['"]([A-Z0-9_]*_TOKEN)['"]/g,
 ] as const;
 
 export const INVALID_CASE_PATTERNS = [
+  // JavaScript/TypeScript
   /process\.env\.([a-z][a-zA-Z0-9_]*)/g, // camelCase
   /process\.env\.([a-z][a-z0-9-]*)/g, // kebab-case
   /process\.env\[['"`]([a-z][a-zA-Z0-9_]*)['"`]\]/g,
+  // Python
+  /os\.environ\[['"]([a-z][a-zA-Z0-9_]*)['"]\]/g,
+  /os\.getenv\s*\(\s*['"]([a-z][a-zA-Z0-9_]*)['"]/g,
 ] as const;
 
 export const RESERVED_ENV_NAMES = [
@@ -476,7 +514,7 @@ export class EnvNamingDetector extends RegexDetector {
     'Detects environment variable naming patterns and identifies violations';
   readonly category: PatternCategory = 'config';
   readonly subcategory = 'env-naming';
-  readonly supportedLanguages: Language[] = ['typescript', 'javascript'];
+  readonly supportedLanguages: Language[] = ['typescript', 'javascript', 'python'];
 
   async detect(context: DetectionContext): Promise<DetectionResult> {
     if (!this.supportsLanguage(context.language)) {
@@ -489,10 +527,20 @@ export class EnvNamingDetector extends RegexDetector {
       return this.createEmptyResult();
     }
 
-    return this.createResult([], [], analysis.confidence, {
+    // Convert internal violations to standard Violation format
+    const violations = this.convertViolationInfos(analysis.violations.map(v => ({
+      file: v.file,
+      line: v.line,
+      column: v.column,
+      value: v.matchedText,
+      issue: v.issue,
+      suggestedFix: v.suggestedFix,
+      severity: v.severity === 'high' ? 'error' as const : v.severity === 'medium' ? 'warning' as const : 'info' as const,
+    })));
+
+    return this.createResult([], violations, analysis.confidence, {
       custom: {
         patterns: analysis.patterns,
-        violations: analysis.violations,
         usesScreamingSnakeCase: analysis.usesScreamingSnakeCase,
         prefixes: analysis.prefixes,
       },

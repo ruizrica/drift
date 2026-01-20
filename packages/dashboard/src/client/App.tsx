@@ -1,0 +1,102 @@
+/**
+ * App Component
+ *
+ * Main application shell with header, tab navigation, and content area.
+ */
+
+import React from 'react';
+import { useDashboardStore } from './store';
+import { useWebSocket } from './hooks';
+import { OverviewTab, PatternsTab, ViolationsTab, FilesTab, SettingsTab, ContractsTab } from './components';
+import type { TabId, ConnectionStatus } from './types';
+
+const TABS: { id: TabId; label: string }[] = [
+  { id: 'overview', label: 'Overview' },
+  { id: 'patterns', label: 'Patterns' },
+  { id: 'contracts', label: 'Contracts' },
+  { id: 'violations', label: 'Violations' },
+  { id: 'files', label: 'Files' },
+  { id: 'settings', label: 'Settings' },
+];
+
+function ConnectionIndicator({ status }: { status: ConnectionStatus }) {
+  const config = {
+    connected: { color: 'bg-status-approved', label: 'Connected' },
+    connecting: { color: 'bg-severity-warning', label: 'Connecting...' },
+    disconnected: { color: 'bg-dark-muted', label: 'Disconnected' },
+  }[status];
+
+  return (
+    <div className="flex items-center gap-2">
+      <span className={`h-2 w-2 rounded-full ${config.color}`} />
+      <span className="text-sm text-dark-muted">{config.label}</span>
+    </div>
+  );
+}
+
+function TabContent({ tab }: { tab: TabId }) {
+  switch (tab) {
+    case 'overview':
+      return <OverviewTab />;
+    case 'patterns':
+      return <PatternsTab />;
+    case 'contracts':
+      return <ContractsTab />;
+    case 'violations':
+      return <ViolationsTab />;
+    case 'files':
+      return <FilesTab />;
+    case 'settings':
+      return <SettingsTab />;
+    default:
+      return null;
+  }
+}
+
+/**
+ * Main application component
+ */
+export function App(): React.ReactElement {
+  const { connectionStatus, activeTab, setActiveTab } = useDashboardStore();
+  
+  // Initialize WebSocket connection
+  useWebSocket();
+
+  return (
+    <div className="min-h-screen bg-dark-bg text-dark-text">
+      {/* Header */}
+      <header className="border-b border-dark-border bg-dark-surface px-6 py-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <h1 className="text-xl font-semibold">Drift Dashboard</h1>
+          </div>
+          <ConnectionIndicator status={connectionStatus} />
+        </div>
+      </header>
+
+      {/* Tab Bar */}
+      <nav className="border-b border-dark-border bg-dark-surface">
+        <div className="flex gap-1 px-6">
+          {TABS.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`px-4 py-3 text-sm font-medium transition-colors border-b-2 ${
+                activeTab === tab.id
+                  ? 'text-dark-text border-blue-500'
+                  : 'text-dark-muted hover:text-dark-text border-transparent hover:border-dark-border'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      </nav>
+
+      {/* Content */}
+      <main className="p-6">
+        <TabContent tab={activeTab} />
+      </main>
+    </div>
+  );
+}

@@ -19,7 +19,7 @@
  * @requirements 9.6 - THE Styling_Detector SHALL detect Tailwind pattern consistency
  */
 
-import type { PatternMatch, Violation, QuickFix, Language } from '@drift/core';
+import type { PatternMatch, Violation, QuickFix, Language } from 'driftdetect-core';
 import { RegexDetector, type DetectionContext, type DetectionResult } from '../base/index.js';
 
 // ============================================================================
@@ -704,43 +704,33 @@ function extractClassNamesFromLine(line: string): string[] {
  */
 export function detectArbitraryValueViolations(
   arbitraryPatterns: TailwindPatternInfo[],
-  utilityPatterns: TailwindPatternInfo[],
+  _utilityPatterns: TailwindPatternInfo[],
   file: string
 ): TailwindViolationInfo[] {
   const results: TailwindViolationInfo[] = [];
 
   for (const arbitrary of arbitraryPatterns) {
-    const baseProperty = arbitrary.matchedText.split('-[')[0];
-    
-    // Check if there's a standard utility for this property
-    const hasStandardAlternative = utilityPatterns.some(utility => {
-      const utilityBase = utility.matchedText.split('-')[0];
-      return utilityBase === baseProperty;
-    });
-
-    // Suggest using standard classes when possible
+    // Only flag arbitrary values when there's a clear standard alternative
+    // Don't flag things like h-[90vh], bg-[#B08968], w-[calc(...)] - these are legitimate escape hatches
     const suggestedFix = suggestStandardClass(arbitrary.matchedText);
-    const finalSuggestedFix = suggestedFix || (hasStandardAlternative 
-      ? `Consider using a standard Tailwind class for '${baseProperty}'`
-      : undefined);
-
-    const violation: TailwindViolationInfo = {
-      type: 'arbitrary-value-usage',
-      file,
-      line: arbitrary.line,
-      column: arbitrary.column,
-      endLine: arbitrary.line,
-      endColumn: arbitrary.column + arbitrary.matchedText.length,
-      classNames: [arbitrary.matchedText],
-      issue: `Arbitrary value '${arbitrary.matchedText}' used instead of standard Tailwind class`,
-      lineContent: arbitrary.context || '',
-    };
-
-    if (finalSuggestedFix !== undefined) {
-      violation.suggestedFix = finalSuggestedFix;
+    
+    // Only create a violation if we have a concrete suggestion
+    if (suggestedFix) {
+      const violation: TailwindViolationInfo = {
+        type: 'arbitrary-value-usage',
+        file,
+        line: arbitrary.line,
+        column: arbitrary.column,
+        endLine: arbitrary.line,
+        endColumn: arbitrary.column + arbitrary.matchedText.length,
+        classNames: [arbitrary.matchedText],
+        issue: `Arbitrary value '${arbitrary.matchedText}' can be replaced with standard class '${suggestedFix}'`,
+        suggestedFix,
+        lineContent: arbitrary.context || '',
+      };
+      results.push(violation);
     }
-
-    results.push(violation);
+    // Don't flag arbitrary values without clear alternatives - they're legitimate Tailwind escape hatches
   }
 
   return results;
@@ -1018,16 +1008,23 @@ export function analyzeTailwindPatterns(content: string, file: string): Tailwind
   ];
 
   // Detect violations
-  const arbitraryViolations = detectArbitraryValueViolations(arbitraryValues, utilityClasses, file);
-  const conflictingViolations = detectConflictingClasses(content, file);
+  // NOTE: We've disabled most violation detection because:
+  // 1. Arbitrary values are intentional Tailwind escape hatches, not violations
+  // 2. "Mixed arbitrary and standard" is a normal pattern, not a problem
+  // 3. "Conflicting classes" often aren't conflicts (e.g., conditional rendering)
+  // 
+  // The detector should focus on detecting PATTERNS, not enforcing arbitrary rules.
+  // Violations should only be flagged when there's clear inconsistency within
+  // the project's own established patterns.
+  
+  // Disabled: arbitraryViolations - arbitrary values are intentional
+  // Disabled: mixedViolations - mixing is fine
+  // Disabled: conflictingViolations - too many false positives
   const breakpointViolations = detectInconsistentBreakpointOrder(content, file);
-  const mixedViolations = detectMixedArbitraryStandard(arbitraryValues, utilityClasses, file);
 
   const allViolations = [
-    ...arbitraryViolations,
-    ...conflictingViolations,
+    // Only keep breakpoint ordering violations - these are genuinely confusing
     ...breakpointViolations,
-    ...mixedViolations,
   ];
 
   // Calculate confidence

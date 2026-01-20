@@ -21,7 +21,7 @@
  * @requirements 10.1 - THE API_Detector SHALL detect route URL structure patterns
  */
 
-import type { PatternMatch, Violation, QuickFix, Language } from '@drift/core';
+import type { PatternMatch, Violation, QuickFix, Language } from 'driftdetect-core';
 import { RegexDetector, type DetectionContext, type DetectionResult } from '../base/index.js';
 
 // ============================================================================
@@ -112,8 +112,13 @@ export interface RouteStructureAnalysis {
 export const HTTP_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'] as const;
 
 export const EXPRESS_ROUTE_PATTERNS = [
+  // TypeScript/JavaScript patterns
   /(?:router|app)\.(get|post|put|patch|delete|head|options)\s*\(\s*['"`]([^'"`]+)['"`]/gi,
   /\.route\s*\(\s*['"`]([^'"`]+)['"`]\)/gi,
+  // Python patterns - FastAPI, Flask, Django
+  /@(?:app|router)\.(get|post|put|patch|delete)\s*\(\s*['"`]([^'"`]+)['"`]/gi,
+  /@app\.route\s*\(\s*['"`]([^'"`]+)['"`]/gi,
+  /path\s*\(\s*['"`]([^'"`]+)['"`]/gi,
 ] as const;
 
 export const NEXTJS_APP_ROUTER_PATTERN = /\/app\/(?:api\/)?(?:[^/]+\/)*route\.(ts|js|tsx|jsx)$/;
@@ -157,7 +162,7 @@ export const SINGULAR_RESOURCES = new Set([
   'log', 'metric', 'report', 'analytic', 'dashboard',
 ]);
 
-export const MAX_NESTING_DEPTH = 3;
+export const MAX_NESTING_DEPTH = 4;
 
 export const EXCLUDED_FILE_PATTERNS = [
   /\.test\.[jt]sx?$/,
@@ -440,44 +445,88 @@ export function detectCasingViolations(
     if (!pattern.routePath) continue;
     const segments = pattern.routePath.split('/').filter(Boolean);
     for (const segment of segments) {
+      // Skip path parameters entirely - they follow language conventions, not URL conventions
       if (segment.startsWith(':') || segment.startsWith('[') || 
-          /^v\d+$/.test(segment) || segment === 'api') {
+          segment.startsWith('{') || /^v\d+$/.test(segment) || segment === 'api') {
         continue;
       }
       const casing = detectCasing(segment);
       casingCounts[casing]++;
     }
   }
+  
+  // Combine kebab-case and lowercase counts since they're compatible
+  // (kebab-case IS lowercase, just with hyphens for multi-word segments)
+  const lowercaseCompatible = casingCounts['lowercase'] + casingCounts['kebab-case'];
+  
   let dominantCasing: UrlCasingConvention = 'kebab-case';
-  let maxCount = 0;
-  for (const [casing, count] of Object.entries(casingCounts)) {
-    if (count > maxCount) {
-      maxCount = count;
-      dominantCasing = casing as UrlCasingConvention;
-    }
+  let maxCount = lowercaseCompatible;
+  
+  // Only flag camelCase or snake_case if they're more common than lowercase/kebab-case
+  if (casingCounts['camelCase'] > maxCount) {
+    maxCount = casingCounts['camelCase'];
+    dominantCasing = 'camelCase';
   }
-  for (const pattern of routePatterns) {
-    if (!pattern.routePath) continue;
-    const segments = pattern.routePath.split('/').filter(Boolean);
-    for (const segment of segments) {
-      if (segment.startsWith(':') || segment.startsWith('[') || 
-          /^v\d+$/.test(segment) || segment === 'api') {
-        continue;
+  if (casingCounts['snake_case'] > maxCount) {
+    maxCount = casingCounts['snake_case'];
+    dominantCasing = 'snake_case';
+  }
+  
+  // If lowercase/kebab-case is dominant, don't flag either as violations
+  if (dominantCasing === 'kebab-case') {
+    // Only flag camelCase and snake_case as violations
+    for (const pattern of routePatterns) {
+      if (!pattern.routePath) continue;
+      const segments = pattern.routePath.split('/').filter(Boolean);
+      for (const segment of segments) {
+        // Skip path parameters entirely
+        if (segment.startsWith(':') || segment.startsWith('[') || 
+            segment.startsWith('{') || /^v\d+$/.test(segment) || segment === 'api') {
+          continue;
+        }
+        const casing = detectCasing(segment);
+        // Only flag camelCase and snake_case, not lowercase vs kebab-case
+        if (casing === 'camelCase' || casing === 'snake_case') {
+          violations.push({
+            type: 'inconsistent-casing',
+            file,
+            line: pattern.line,
+            column: pattern.column,
+            endLine: pattern.line,
+            endColumn: pattern.column + pattern.matchedText.length,
+            value: segment,
+            issue: `URL segment '${segment}' uses ${casing} but project uses kebab-case/lowercase`,
+            suggestedFix: toKebabCase(segment),
+            lineContent: pattern.context || '',
+          });
+        }
       }
-      const casing = detectCasing(segment);
-      if (casing !== dominantCasing && casing !== 'lowercase') {
-        violations.push({
-          type: 'inconsistent-casing',
-          file,
-          line: pattern.line,
-          column: pattern.column,
-          endLine: pattern.line,
-          endColumn: pattern.column + pattern.matchedText.length,
-          value: segment,
-          issue: `URL segment '${segment}' uses ${casing} but project uses ${dominantCasing}`,
-          suggestedFix: dominantCasing === 'kebab-case' ? toKebabCase(segment) : segment,
-          lineContent: pattern.context || '',
-        });
+    }
+  } else {
+    // If camelCase or snake_case is dominant, flag everything else
+    for (const pattern of routePatterns) {
+      if (!pattern.routePath) continue;
+      const segments = pattern.routePath.split('/').filter(Boolean);
+      for (const segment of segments) {
+        if (segment.startsWith(':') || segment.startsWith('[') || 
+            segment.startsWith('{') || /^v\d+$/.test(segment) || segment === 'api') {
+          continue;
+        }
+        const casing = detectCasing(segment);
+        if (casing !== dominantCasing && casing !== 'lowercase') {
+          violations.push({
+            type: 'inconsistent-casing',
+            file,
+            line: pattern.line,
+            column: pattern.column,
+            endLine: pattern.line,
+            endColumn: pattern.column + pattern.matchedText.length,
+            value: segment,
+            issue: `URL segment '${segment}' uses ${casing} but project uses ${dominantCasing}`,
+            suggestedFix: toKebabCase(segment),
+            lineContent: pattern.context || '',
+          });
+        }
       }
     }
   }
@@ -535,6 +584,27 @@ export function detectNamingViolations(
   return violations;
 }
 
+/**
+ * Routes that are exempt from versioning requirements
+ * These are typically framework-provided routes or special endpoints
+ */
+const VERSIONING_EXEMPT_ROUTES = new Set([
+  '/api/docs',
+  '/api/redoc',
+  '/api/openapi.json',
+  '/api/swagger',
+  '/api/health',
+  '/api/healthz',
+  '/api/ready',
+  '/api/readyz',
+  '/api/metrics',
+  '/health',
+  '/healthz',
+  '/ready',
+  '/readyz',
+  '/metrics',
+]);
+
 export function detectMissingVersioning(
   routePatterns: RoutePatternInfo[],
   file: string
@@ -547,12 +617,32 @@ export function detectMissingVersioning(
   if (hasVersioning) {
     for (const pattern of routePatterns) {
       if (!pattern.routePath) continue;
+      
+      // Skip if already versioned
       if (/\/v\d+\//.test(pattern.routePath)) {
         continue;
       }
+      
+      // Skip if it's a version prefix assignment (e.g., prefix="/api/v1")
+      if (/\/api\/v\d+$/.test(pattern.routePath)) {
+        continue;
+      }
+      
+      // Skip non-API routes
       if (!pattern.routePath.includes('/api/')) {
         continue;
       }
+      
+      // Skip exempt routes (docs, health checks, etc.)
+      if (VERSIONING_EXEMPT_ROUTES.has(pattern.routePath)) {
+        continue;
+      }
+      
+      // Skip if the context shows this is a router prefix assignment
+      if (pattern.context && /prefix\s*=/.test(pattern.context)) {
+        continue;
+      }
+      
       violations.push({
         type: 'missing-versioning',
         file,
@@ -702,7 +792,7 @@ export class RouteStructureDetector extends RegexDetector {
   readonly subcategory = 'route-structure';
   readonly name = 'Route Structure Detector';
   readonly description = 'Detects route URL structure patterns and flags inconsistencies';
-  readonly supportedLanguages: Language[] = ['typescript', 'javascript'];
+  readonly supportedLanguages: Language[] = ['typescript', 'javascript', 'python'];
 
   async detect(context: DetectionContext): Promise<DetectionResult> {
     const patterns: PatternMatch[] = [];

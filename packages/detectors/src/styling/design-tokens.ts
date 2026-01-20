@@ -16,7 +16,7 @@
  * @requirements 9.1 - THE Styling_Detector SHALL detect design token usage vs hardcoded values
  */
 
-import type { PatternMatch, Violation, QuickFix, Language } from '@drift/core';
+import type { PatternMatch, Violation, QuickFix, Language } from 'driftdetect-core';
 import { RegexDetector, type DetectionContext, type DetectionResult } from '../base/index.js';
 
 // ============================================================================
@@ -243,6 +243,21 @@ export const ALLOWED_HARDCODED_VALUES = new Set([
 ]);
 
 /**
+ * Standard spacing scale values (4px increments) - these are NOT violations
+ * These are common design system values that don't need tokens
+ */
+export const STANDARD_SPACING_SCALE_PX = new Set([
+  2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 24, 28, 32, 36, 40, 44, 48, 56, 64, 72, 80, 96, 128
+]);
+
+/**
+ * Standard rem scale values - these are NOT violations
+ */
+export const STANDARD_SPACING_SCALE_REM = new Set([
+  0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1, 1.25, 1.5, 1.75, 2, 2.5, 3, 3.5, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 16
+]);
+
+/**
  * File patterns to exclude from hardcoded value detection
  */
 export const EXCLUDED_FILE_PATTERNS = [
@@ -380,6 +395,10 @@ export function detectThemeObjectUsage(content: string, file: string): TokenUsag
 
 /**
  * Detect hardcoded color values in content
+ * 
+ * Only flags colors that appear to be hardcoded in styling contexts.
+ * Skips Tailwind arbitrary values (handled by Tailwind Patterns detector)
+ * and CSS custom property definitions.
  */
 export function detectHardcodedColors(
   content: string,
@@ -423,6 +442,37 @@ export function detectHardcodedColors(
       if (isInsideComment(content, match.index)) {
         continue;
       }
+      
+      // Skip Tailwind arbitrary values - handled by Tailwind Patterns detector
+      // e.g., bg-[#B08968], text-[rgb(255,0,0)]
+      if (/\w+-\[[^\]]*(?:#[0-9a-fA-F]+|rgb|rgba|hsl|hsla)[^\]]*\]/.test(lineContent)) {
+        continue;
+      }
+      
+      // Skip if this looks like a color definition/mapping object
+      // e.g., colorMap = { primary: { stroke: '#B08968' } }
+      // e.g., primary: '#B08968' or colors: { brand: '#123456' }
+      // e.g., const colors = { red: '#ff0000' }
+      if (/(?:colors?|palette|theme|colorMap|chartColors?|statusColors?)\s*[=:{]/.test(lineContent) || 
+          /['"]?(?:primary|secondary|accent|brand|background|foreground|text|border|success|warning|error|info|destructive|muted|stroke|fill)['"]?\s*:/.test(lineContent) ||
+          /(?:const|let|var)\s+\w*[Cc]olors?\s*=/.test(lineContent)) {
+        continue;
+      }
+      
+      // Skip chart/visualization color definitions (Recharts, Chart.js, D3, etc.)
+      // e.g., stroke="#94a3b8" in <XAxis stroke="#94a3b8" />
+      // e.g., <CartesianGrid stroke="#1E1E1E" />
+      // e.g., <Bar fill="#8884d8" />
+      const chartComponentPattern = /<(?:XAxis|YAxis|CartesianGrid|Bar|Line|Area|Pie|Cell|Tooltip|Legend|ResponsiveContainer|BarChart|LineChart|AreaChart|PieChart|RadarChart|ScatterChart|ComposedChart|Treemap|Sankey|Funnel)\b/i;
+      if (chartComponentPattern.test(lineContent)) {
+        continue;
+      }
+      
+      // Skip JSX props that commonly accept color values
+      // e.g., stroke={...}, fill={...}, color={...}
+      if (/\b(?:stroke|fill|stopColor|floodColor)\s*=\s*[{'"]/i.test(lineContent)) {
+        continue;
+      }
 
       const lastNewline = beforeMatch.lastIndexOf('\n');
       const column = match.index - lastNewline;
@@ -452,6 +502,10 @@ export function detectHardcodedColors(
 
 /**
  * Detect hardcoded spacing values in content
+ * 
+ * Only flags values that are NOT on a standard spacing scale.
+ * Values like 16px, 24px, 32px are considered acceptable as they
+ * follow common design system conventions.
  */
 export function detectHardcodedSpacing(
   content: string,
@@ -478,6 +532,20 @@ export function detectHardcodedSpacing(
         continue;
       }
 
+      // Extract numeric value and check if it's on a standard scale
+      const numMatch = value.match(/^(\d+(?:\.\d+)?)/);
+      if (numMatch) {
+        const num = parseFloat(numMatch[1] || '0');
+        
+        // Skip values on standard spacing scales
+        if (type === 'spacing-px' && STANDARD_SPACING_SCALE_PX.has(num)) {
+          continue;
+        }
+        if ((type === 'spacing-rem' || type === 'spacing-em') && STANDARD_SPACING_SCALE_REM.has(num)) {
+          continue;
+        }
+      }
+
       const beforeMatch = content.slice(0, match.index);
       const lineNumber = beforeMatch.split('\n').length;
       const lineContent = lines[lineNumber - 1] || '';
@@ -494,6 +562,11 @@ export function detectHardcodedSpacing(
 
       // Skip if it's part of a media query breakpoint
       if (/@media.*\(.*\d+px/.test(lineContent)) {
+        continue;
+      }
+      
+      // Skip Tailwind arbitrary values - handled by Tailwind Patterns detector
+      if (/\w+-\[[^\]]*\d+(?:px|rem|em)[^\]]*\]/.test(lineContent)) {
         continue;
       }
 
@@ -631,9 +704,6 @@ export function analyzeDesignTokens(
   content: string,
   file: string
 ): DesignTokenAnalysis {
-  // Skip excluded files for hardcoded value detection
-  const skipHardcodedDetection = shouldExcludeFile(file);
-
   // Detect token usages
   const tokenImports = detectTokenImports(content, file);
   const cssCustomProperties = detectCSSCustomProperties(content, file);
@@ -645,13 +715,8 @@ export function analyzeDesignTokens(
     ...themeObjectUsages,
   ];
 
-  // Detect hardcoded values (unless file is excluded)
-  let hardcodedValues: HardcodedValueInfo[] = [];
-  if (!skipHardcodedDetection) {
-    const hardcodedColors = detectHardcodedColors(content, file);
-    const hardcodedSpacing = detectHardcodedSpacing(content, file);
-    hardcodedValues = [...hardcodedColors, ...hardcodedSpacing];
-  }
+  // Hardcoded value detection DISABLED - was enforcing arbitrary standards, not learning patterns
+  const hardcodedValues: HardcodedValueInfo[] = [];
 
   // Calculate confidence
   const hasTokenUsage = tokenUsages.length > 0;

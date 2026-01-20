@@ -10,7 +10,7 @@
  * @requirements 13.5 - DTO pattern detection
  */
 
-import type { Violation, QuickFix, PatternCategory, Language } from '@drift/core';
+import type { Violation, QuickFix, PatternCategory, Language } from 'driftdetect-core';
 import { RegexDetector } from '../base/regex-detector.js';
 import type { DetectionContext, DetectionResult } from '../base/base-detector.js';
 
@@ -59,8 +59,13 @@ export interface DTOAnalysis {
 // ============================================================================
 
 export const DTO_CLASS_PATTERNS = [
+  // JavaScript/TypeScript
   /class\s+(\w+(?:DTO|Dto|Request|Response|Input|Output))\s*(?:extends|implements|\{)/gi,
   /export\s+class\s+(\w+(?:DTO|Dto))/gi,
+  // Python
+  /class\s+(\w+(?:DTO|Dto|Request|Response|Input|Output))\s*\(/gi,
+  /class\s+(\w+(?:Schema|Model))\s*\(\s*(?:BaseModel|Schema)\s*\)/gi, // Pydantic
+  /@dataclass/gi,
 ];
 
 export const DTO_INTERFACE_PATTERNS = [
@@ -74,10 +79,18 @@ export const DTO_TYPE_PATTERNS = [
 ];
 
 export const MAPPER_FUNCTION_PATTERNS = [
+  // JavaScript/TypeScript
   /function\s+(to\w+|from\w+|map\w+|transform\w+)\s*\(/gi,
   /const\s+(to\w+|from\w+|map\w+|transform\w+)\s*=\s*(?:\([^)]*\)|[^=])\s*=>/gi,
   /(\w+)\.toDTO\s*\(/gi,
   /(\w+)\.fromDTO\s*\(/gi,
+  // Python
+  /def\s+(to_\w+|from_\w+|map_\w+|transform_\w+)\s*\(/gi,
+  /def\s+(to_dict|from_dict|to_model|from_model)\s*\(/gi,
+  /\.model_dump\s*\(/gi, // Pydantic v2
+  /\.dict\s*\(/gi, // Pydantic v1
+  /\.model_validate\s*\(/gi, // Pydantic v2
+  /\.parse_obj\s*\(/gi, // Pydantic v1
 ];
 
 export const TRANSFORMER_CLASS_PATTERNS = [
@@ -87,11 +100,18 @@ export const TRANSFORMER_CLASS_PATTERNS = [
 ];
 
 export const SERIALIZER_PATTERNS = [
+  // JavaScript/TypeScript
   /class\s+(\w+Serializer)/gi,
   /\.serialize\s*\(/gi,
   /\.deserialize\s*\(/gi,
   /JSON\.stringify\s*\(/gi,
   /JSON\.parse\s*\(/gi,
+  // Python
+  /class\s+(\w+Serializer)\s*\(/gi,
+  /json\.dumps\s*\(/gi,
+  /json\.loads\s*\(/gi,
+  /\.json\s*\(\s*\)/gi, // Pydantic .json()
+  /jsonable_encoder\s*\(/gi, // FastAPI
 ];
 
 export const ENTITY_EXPOSURE_PATTERNS = [
@@ -325,7 +345,7 @@ export class DTOPatternsDetector extends RegexDetector {
   readonly description = 'Detects Data Transfer Object patterns and identifies entity exposure';
   readonly category: PatternCategory = 'data-access';
   readonly subcategory = 'dto-patterns';
-  readonly supportedLanguages: Language[] = ['typescript', 'javascript'];
+  readonly supportedLanguages: Language[] = ['typescript', 'javascript', 'python'];
 
   async detect(context: DetectionContext): Promise<DetectionResult> {
     if (!this.supportsLanguage(context.language)) {
@@ -338,11 +358,21 @@ export class DTOPatternsDetector extends RegexDetector {
       return this.createEmptyResult();
     }
 
+    // Convert internal violations to standard Violation format
+    const violations = analysis.violations.map(v => this.convertViolationInfo({
+      file: context.file,
+      line: v.line,
+      column: v.column,
+      type: v.type,
+      value: v.match,
+      issue: v.message,
+      severity: 'warning',
+    }));
+
     const confidence = analysis.hasDTOs ? 0.9 : 0.7;
-    return this.createResult([], [], confidence, {
+    return this.createResult([], violations, confidence, {
       custom: {
         patterns: analysis.patterns,
-        violations: analysis.violations,
         hasDTOs: analysis.hasDTOs,
         dtoCount: analysis.dtoCount,
       },

@@ -6,7 +6,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import type { PatternCategory, Language, Violation, QuickFix, AST, ASTNode } from '@drift/core';
+import type { PatternCategory, Language, Violation, QuickFix, AST, ASTNode } from 'driftdetect-core';
 import {
   ASTDetector,
   isASTDetector,

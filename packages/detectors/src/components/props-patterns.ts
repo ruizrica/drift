@@ -8,7 +8,7 @@
  *   (destructuring, defaults, required vs optional)
  */
 
-import type { PatternMatch, Violation, QuickFix, Language, Range, ASTNode } from '@drift/core';
+import type { PatternMatch, Violation, QuickFix, Language, Range, ASTNode } from 'driftdetect-core';
 import { ASTDetector, type DetectionContext, type DetectionResult } from '../base/index.js';
 
 // ============================================================================
@@ -1087,5 +1087,3 @@ export class PropsPatternDetector extends ASTDetector {
 export function createPropsPatternDetector(): PropsPatternDetector {
   return new PropsPatternDetector();
 }
-
-export default PropsPatternDetector;

@@ -11,7 +11,7 @@
  * @requirements 16.4 - CSRF protection patterns
  */
 
-import type { Violation, QuickFix, PatternCategory, Language } from '@drift/core';
+import type { Violation, QuickFix, PatternCategory, Language } from 'driftdetect-core';
 import { RegexDetector } from '../base/regex-detector.js';
 import type { DetectionContext, DetectionResult } from '../base/base-detector.js';
 
@@ -66,6 +66,7 @@ export interface CSRFProtectionAnalysis {
 // ============================================================================
 
 export const CSRF_TOKEN_PATTERNS = [
+  // TypeScript/JavaScript patterns
   /csrfToken/gi,
   /csrf_token/gi,
   /xsrfToken/gi,
@@ -75,6 +76,13 @@ export const CSRF_TOKEN_PATTERNS = [
   /generateCsrfToken\s*\(/gi,
   /validateCsrfToken\s*\(/gi,
   /verifyCsrfToken\s*\(/gi,
+  // Python patterns - Django, Flask
+  /csrf_protect/gi,
+  /CSRFProtect/gi,
+  /@csrf_exempt/gi,
+  /csrf_token\s*\(/gi,
+  /get_token\s*\(/gi,
+  /CsrfViewMiddleware/gi,
 ] as const;
 
 export const CSRF_MIDDLEWARE_PATTERNS = [
@@ -102,11 +110,18 @@ export const DOUBLE_SUBMIT_PATTERNS = [
 ] as const;
 
 export const ORIGIN_VALIDATION_PATTERNS = [
+  // TypeScript/JavaScript patterns
   /req\.headers\s*\[\s*['"`]origin['"`]\s*\]/gi,
   /request\.headers\.origin/gi,
   /validateOrigin\s*\(/gi,
   /checkOrigin\s*\(/gi,
   /allowedOrigins/gi,
+  // Python patterns - FastAPI, Flask
+  /request\.headers\.get\s*\(\s*['"`]origin['"`]/gi,
+  /validate_origin\s*\(/gi,
+  /check_origin\s*\(/gi,
+  /allowed_origins/gi,
+  /CORSMiddleware/gi,
 ] as const;
 
 export const REFERER_VALIDATION_PATTERNS = [
@@ -423,7 +438,7 @@ export class CSRFProtectionDetector extends RegexDetector {
     'Detects CSRF protection patterns and identifies potential vulnerabilities';
   readonly category: PatternCategory = 'security';
   readonly subcategory = 'csrf-protection';
-  readonly supportedLanguages: Language[] = ['typescript', 'javascript'];
+  readonly supportedLanguages: Language[] = ['typescript', 'javascript', 'python'];
 
   async detect(context: DetectionContext): Promise<DetectionResult> {
     if (!this.supportsLanguage(context.language)) {
@@ -436,10 +451,21 @@ export class CSRFProtectionDetector extends RegexDetector {
       return this.createEmptyResult();
     }
 
-    return this.createResult([], [], analysis.confidence, {
+    // Convert internal violations to standard Violation format
+    // Map severity: high -> error, medium -> warning, low -> info
+    const violations = analysis.violations.map(v => this.convertViolationInfo({
+      file: v.file,
+      line: v.line,
+      column: v.column,
+      value: v.matchedText,
+      issue: v.issue,
+      suggestedFix: v.suggestedFix,
+      severity: v.severity === 'high' ? 'error' : v.severity === 'medium' ? 'warning' : 'info',
+    }));
+
+    return this.createResult([], violations, analysis.confidence, {
       custom: {
         patterns: analysis.patterns,
-        violations: analysis.violations,
         hasCSRFProtection: analysis.hasCSRFProtection,
         hasSameSiteCookies: analysis.hasSameSiteCookies,
       },

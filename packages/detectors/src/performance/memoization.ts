@@ -11,7 +11,7 @@
  * @requirements 19.3 - Memoization patterns
  */
 
-import type { Violation, QuickFix, PatternCategory, Language } from '@drift/core';
+import type { Violation, QuickFix, PatternCategory, Language } from 'driftdetect-core';
 import { RegexDetector } from '../base/regex-detector.js';
 import type { DetectionContext, DetectionResult } from '../base/base-detector.js';
 
@@ -94,10 +94,18 @@ export const RESELECT_PATTERNS = [
 ] as const;
 
 export const CUSTOM_MEMOIZE_PATTERNS = [
+  // JavaScript/TypeScript
   /memoize\s*\(/g,
   /memoized/gi,
   /cache\s*=\s*new\s+Map/g,
   /WeakMap\s*\(\)/g,
+  // Python
+  /@lru_cache/g,
+  /@cache/g,
+  /functools\.lru_cache/g,
+  /functools\.cache/g,
+  /@cached_property/g,
+  /cachetools/gi,
 ] as const;
 
 export const LODASH_MEMOIZE_PATTERNS = [
@@ -313,7 +321,7 @@ export class MemoizationDetector extends RegexDetector {
   readonly description = 'Detects memoization patterns including React hooks and selectors';
   readonly category: PatternCategory = 'performance';
   readonly subcategory = 'memoization';
-  readonly supportedLanguages: Language[] = ['typescript', 'javascript'];
+  readonly supportedLanguages: Language[] = ['typescript', 'javascript', 'python'];
 
   async detect(context: DetectionContext): Promise<DetectionResult> {
     if (!this.supportsLanguage(context.language)) {
@@ -326,10 +334,20 @@ export class MemoizationDetector extends RegexDetector {
       return this.createEmptyResult();
     }
 
-    return this.createResult([], [], analysis.confidence, {
+    // Convert internal violations to standard Violation format
+    const violations = this.convertViolationInfos(analysis.violations.map(v => ({
+      file: v.file,
+      line: v.line,
+      column: v.column,
+      value: v.matchedText,
+      issue: v.issue,
+      suggestedFix: v.suggestedFix,
+      severity: v.severity === 'high' ? 'error' as const : v.severity === 'medium' ? 'warning' as const : 'info' as const,
+    })));
+
+    return this.createResult([], violations, analysis.confidence, {
       custom: {
         patterns: analysis.patterns,
-        violations: analysis.violations,
         useMemoCount: analysis.useMemoCount,
         useCallbackCount: analysis.useCallbackCount,
         reactMemoCount: analysis.reactMemoCount,

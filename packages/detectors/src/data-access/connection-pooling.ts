@@ -10,7 +10,7 @@
  * @requirements 13.7 - Connection pooling detection
  */
 
-import type { Violation, QuickFix, PatternCategory, Language } from '@drift/core';
+import type { Violation, QuickFix, PatternCategory, Language } from 'driftdetect-core';
 import { RegexDetector } from '../base/regex-detector.js';
 import type { DetectionContext, DetectionResult } from '../base/base-detector.js';
 
@@ -59,18 +59,33 @@ export interface ConnectionPoolAnalysis {
 // ============================================================================
 
 export const POOL_CONFIG_PATTERNS = [
+  // JavaScript/TypeScript
   /pool\s*:\s*\{/gi,
   /connectionPool\s*:\s*\{/gi,
   /poolConfig\s*:\s*\{/gi,
   /createPool\s*\(/gi,
   /Pool\s*\(/gi,
+  // Python
+  /pool_size\s*=/gi,
+  /max_overflow\s*=/gi,
+  /pool_pre_ping\s*=/gi,
+  /create_engine\s*\([^)]*pool/gi,
+  /QueuePool/gi,
+  /NullPool/gi,
+  /StaticPool/gi,
+  /AsyncAdaptedQueuePool/gi,
 ];
 
 export const POOL_SIZE_PATTERNS = [
+  // JavaScript/TypeScript
   /(?:max|min|poolSize|connectionLimit)\s*:\s*(\d+)/gi,
   /max_connections\s*[=:]\s*(\d+)/gi,
   /pool_size\s*[=:]\s*(\d+)/gi,
   /CONNECTION_POOL_SIZE\s*[=:]\s*(\d+)/gi,
+  // Python
+  /pool_size\s*=\s*(\d+)/gi,
+  /max_overflow\s*=\s*(\d+)/gi,
+  /POOL_SIZE\s*=\s*(\d+)/gi,
 ];
 
 export const CONNECTION_TIMEOUT_PATTERNS = [
@@ -86,17 +101,29 @@ export const IDLE_TIMEOUT_PATTERNS = [
 ];
 
 export const CONNECTION_ACQUIRE_PATTERNS = [
+  // JavaScript/TypeScript
   /\.getConnection\s*\(/gi,
   /\.acquire\s*\(/gi,
   /\.connect\s*\(/gi,
   /pool\.query\s*\(/gi,
+  // Python
+  /engine\.connect\s*\(/gi,
+  /\.get_connection\s*\(/gi,
+  /connection_pool\.getconn\s*\(/gi,
+  /pool\.connection\s*\(/gi,
 ];
 
 export const CONNECTION_RELEASE_PATTERNS = [
+  // JavaScript/TypeScript
   /\.release\s*\(/gi,
   /\.end\s*\(/gi,
   /\.destroy\s*\(/gi,
   /connection\.close\s*\(/gi,
+  // Python
+  /connection\.close\s*\(/gi,
+  /\.putconn\s*\(/gi,
+  /\.dispose\s*\(/gi,
+  /session\.close\s*\(/gi,
 ];
 
 export const CONNECTION_LEAK_PATTERNS = [
@@ -322,7 +349,7 @@ export class ConnectionPoolingDetector extends RegexDetector {
   readonly description = 'Detects database connection pooling patterns and potential leaks';
   readonly category: PatternCategory = 'data-access';
   readonly subcategory = 'connection-pooling';
-  readonly supportedLanguages: Language[] = ['typescript', 'javascript'];
+  readonly supportedLanguages: Language[] = ['typescript', 'javascript', 'python'];
 
   async detect(context: DetectionContext): Promise<DetectionResult> {
     if (!this.supportsLanguage(context.language)) {
@@ -335,11 +362,21 @@ export class ConnectionPoolingDetector extends RegexDetector {
       return this.createEmptyResult();
     }
 
+    // Convert internal violations to standard Violation format
+    const violations = analysis.violations.map(v => this.convertViolationInfo({
+      file: context.file,
+      line: v.line,
+      column: v.column,
+      type: v.type,
+      value: v.match,
+      issue: v.message,
+      severity: 'warning',
+    }));
+
     const confidence = analysis.hasPoolConfig ? 0.9 : 0.7;
-    return this.createResult([], [], confidence, {
+    return this.createResult([], violations, confidence, {
       custom: {
         patterns: analysis.patterns,
-        violations: analysis.violations,
         hasPoolConfig: analysis.hasPoolConfig,
         poolSettings: analysis.poolSettings,
       },

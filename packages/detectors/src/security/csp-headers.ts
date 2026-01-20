@@ -11,7 +11,7 @@
  * @requirements 16.5 - CSP header patterns
  */
 
-import type { Violation, QuickFix, PatternCategory, Language } from '@drift/core';
+import type { Violation, QuickFix, PatternCategory, Language } from 'driftdetect-core';
 import { RegexDetector } from '../base/regex-detector.js';
 import type { DetectionContext, DetectionResult } from '../base/base-detector.js';
 
@@ -511,7 +511,7 @@ export class CSPHeadersDetector extends RegexDetector {
     'Detects Content Security Policy patterns and identifies potential weaknesses';
   readonly category: PatternCategory = 'security';
   readonly subcategory = 'csp-headers';
-  readonly supportedLanguages: Language[] = ['typescript', 'javascript'];
+  readonly supportedLanguages: Language[] = ['typescript', 'javascript', 'python'];
 
   async detect(context: DetectionContext): Promise<DetectionResult> {
     if (!this.supportsLanguage(context.language)) {
@@ -524,10 +524,21 @@ export class CSPHeadersDetector extends RegexDetector {
       return this.createEmptyResult();
     }
 
-    return this.createResult([], [], analysis.confidence, {
+    // Convert internal violations to standard Violation format
+    // Map severity: high -> error, medium -> warning, low -> info
+    const violations = analysis.violations.map(v => this.convertViolationInfo({
+      file: v.file,
+      line: v.line,
+      column: v.column,
+      value: v.matchedText,
+      issue: v.issue,
+      suggestedFix: v.suggestedFix,
+      severity: v.severity === 'high' ? 'error' : v.severity === 'medium' ? 'warning' : 'info',
+    }));
+
+    return this.createResult([], violations, analysis.confidence, {
       custom: {
         patterns: analysis.patterns,
-        violations: analysis.violations,
         hasCSP: analysis.hasCSP,
         usesNonce: analysis.usesNonce,
         usesHash: analysis.usesHash,

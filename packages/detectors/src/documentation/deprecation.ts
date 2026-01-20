@@ -3,7 +3,7 @@
  * @requirements 21.4 - Deprecation patterns
  */
 
-import type { Violation, QuickFix, PatternCategory, Language } from '@drift/core';
+import type { Violation, QuickFix, PatternCategory, Language } from 'driftdetect-core';
 import { RegexDetector } from '../base/regex-detector.js';
 import type { DetectionContext, DetectionResult } from '../base/base-detector.js';
 
@@ -14,14 +14,32 @@ export interface DeprecationPatternInfo { type: DeprecationPatternType; file: st
 export interface DeprecationViolationInfo { type: DeprecationViolationType; file: string; line: number; column: number; matchedText: string; issue: string; suggestedFix?: string | undefined; severity: 'high' | 'medium' | 'low'; }
 export interface DeprecationAnalysis { patterns: DeprecationPatternInfo[]; violations: DeprecationViolationInfo[]; deprecatedCount: number; hasAlternatives: boolean; confidence: number; }
 
+// JavaScript/TypeScript deprecation patterns
 export const JSDOC_DEPRECATED_PATTERNS = [/@deprecated/gi, /\*\s*@deprecated\s+(.+)/g] as const;
 export const DECORATOR_DEPRECATED_PATTERNS = [/@Deprecated\s*\(/g, /@deprecated\s*\(/g] as const;
 export const CONSOLE_WARN_PATTERNS = [/console\.warn\s*\([^)]*deprecat/gi, /console\.warn\s*\([^)]*will be removed/gi] as const;
 export const DEPRECATION_NOTICE_PATTERNS = [/DEPRECATED/g, /deprecated/g, /will be removed/gi, /no longer supported/gi] as const;
 export const LEGACY_MARKER_PATTERNS = [/legacy/gi, /old\s+api/gi, /v1\s+api/gi] as const;
 
+// Python deprecation patterns
+export const PYTHON_DEPRECATED_DECORATOR_PATTERNS = [/@deprecated/g, /@deprecation\.deprecated/g, /@typing\.deprecated/g] as const;
+export const PYTHON_WARNINGS_PATTERNS = [/warnings\.warn\s*\([^)]*deprecat/gi, /warnings\.warn\s*\([^)]*will be removed/gi, /DeprecationWarning/g, /PendingDeprecationWarning/g] as const;
+export const PYTHON_DOCSTRING_DEPRECATED_PATTERNS = [/"""[^"]*deprecated[^"]*"""/gi, /'''[^']*deprecated[^']*'''/gi, /:deprecated:/gi, /\.\.\s*deprecated::/gi] as const;
+
 export function shouldExcludeFile(filePath: string): boolean {
-  return [/\.test\.[jt]sx?$/, /\.spec\.[jt]sx?$/, /__tests__\//, /node_modules\//, /\.min\.[jt]s$/].some((p) => p.test(filePath));
+  return [/\.test\.[jt]sx?$/, /\.spec\.[jt]sx?$/, /__tests__\//, /node_modules\//, /\.min\.[jt]s$/, /test_.*\.py$/, /_test\.py$/, /__pycache__\//, /\.pyc$/].some((p) => p.test(filePath));
+}
+
+function detectPythonDeprecatedDecorator(content: string, filePath: string): DeprecationPatternInfo[] {
+  return detectPatterns(content, filePath, PYTHON_DEPRECATED_DECORATOR_PATTERNS, 'decorator-deprecated');
+}
+
+function detectPythonWarnings(content: string, filePath: string): DeprecationPatternInfo[] {
+  return detectPatterns(content, filePath, PYTHON_WARNINGS_PATTERNS, 'console-warn');
+}
+
+function detectPythonDocstringDeprecated(content: string, filePath: string): DeprecationPatternInfo[] {
+  return detectPatterns(content, filePath, PYTHON_DOCSTRING_DEPRECATED_PATTERNS, 'jsdoc-deprecated');
 }
 
 function detectPatterns(content: string, filePath: string, patterns: readonly RegExp[], type: DeprecationPatternType): DeprecationPatternInfo[] {
@@ -49,7 +67,10 @@ export function detectLegacyMarker(content: string, filePath: string): Deprecati
 
 export function analyzeDeprecation(content: string, filePath: string): DeprecationAnalysis {
   if (shouldExcludeFile(filePath)) return { patterns: [], violations: [], deprecatedCount: 0, hasAlternatives: false, confidence: 1.0 };
-  const patterns: DeprecationPatternInfo[] = [...detectJsdocDeprecated(content, filePath), ...detectDecoratorDeprecated(content, filePath), ...detectConsoleWarn(content, filePath), ...detectDeprecationNotice(content, filePath), ...detectLegacyMarker(content, filePath)];
+  const isPython = filePath.endsWith('.py');
+  const patterns: DeprecationPatternInfo[] = isPython
+    ? [...detectPythonDeprecatedDecorator(content, filePath), ...detectPythonWarnings(content, filePath), ...detectPythonDocstringDeprecated(content, filePath), ...detectDeprecationNotice(content, filePath), ...detectLegacyMarker(content, filePath)]
+    : [...detectJsdocDeprecated(content, filePath), ...detectDecoratorDeprecated(content, filePath), ...detectConsoleWarn(content, filePath), ...detectDeprecationNotice(content, filePath), ...detectLegacyMarker(content, filePath)];
   const violations: DeprecationViolationInfo[] = [];
   const deprecatedCount = patterns.length;
   const hasAlternatives = patterns.some((p) => p.alternative);
@@ -63,13 +84,28 @@ export class DeprecationDetector extends RegexDetector {
   readonly description = 'Detects deprecation patterns and notices';
   readonly category: PatternCategory = 'documentation';
   readonly subcategory = 'deprecation';
-  readonly supportedLanguages: Language[] = ['typescript', 'javascript'];
+  readonly supportedLanguages: Language[] = ['typescript', 'javascript', 'python'];
 
   async detect(context: DetectionContext): Promise<DetectionResult> {
     if (!this.supportsLanguage(context.language)) return this.createEmptyResult();
     const analysis = analyzeDeprecation(context.content, context.file);
     if (analysis.patterns.length === 0 && analysis.violations.length === 0) return this.createEmptyResult();
-    return this.createResult([], [], analysis.confidence, { custom: { patterns: analysis.patterns, violations: analysis.violations, deprecatedCount: analysis.deprecatedCount, hasAlternatives: analysis.hasAlternatives } });
+    
+    // Convert internal violations to standard Violation format
+    const violations = this.convertViolationInfos(
+      analysis.violations.map((v) => ({
+        type: v.type,
+        file: v.file,
+        line: v.line,
+        column: v.column,
+        value: v.matchedText,
+        issue: v.issue,
+        suggestedFix: v.suggestedFix,
+        severity: v.severity === 'high' ? 'error' as const : v.severity === 'medium' ? 'warning' as const : 'info' as const,
+      }))
+    );
+    
+    return this.createResult([], violations, analysis.confidence, { custom: { patterns: analysis.patterns, deprecatedCount: analysis.deprecatedCount, hasAlternatives: analysis.hasAlternatives } });
   }
 
   generateQuickFix(_violation: Violation): QuickFix | null { return null; }

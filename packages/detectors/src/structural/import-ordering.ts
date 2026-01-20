@@ -9,7 +9,7 @@
  * @requirements 7.5 - THE Structural_Detector SHALL detect import ordering and grouping patterns
  */
 
-import type { PatternMatch, Violation, QuickFix, Language, Range } from '@drift/core';
+import type { PatternMatch, Violation, QuickFix, Language, Range } from 'driftdetect-core';
 import { StructuralDetector, type DetectionContext, type DetectionResult } from '../base/index.js';
 
 // ============================================================================
@@ -149,6 +149,99 @@ export interface ImportOrderingAnalysis {
 // ============================================================================
 
 /**
+ * Python standard library modules (subset of most common)
+ */
+export const PYTHON_STDLIB_MODULES = [
+  'abc', 'argparse', 'asyncio', 'base64', 'collections', 'contextlib',
+  'copy', 'csv', 'dataclasses', 'datetime', 'decimal', 'enum', 'functools',
+  'hashlib', 'http', 'importlib', 'inspect', 'io', 'itertools', 'json',
+  'logging', 'math', 'multiprocessing', 'os', 'pathlib', 'pickle', 'random',
+  're', 'shutil', 'socket', 'sqlite3', 'ssl', 'string', 'subprocess', 'sys',
+  'tempfile', 'threading', 'time', 'traceback', 'typing', 'unittest', 'urllib',
+  'uuid', 'warnings', 'xml', 'zipfile',
+] as const;
+
+/**
+ * Determine the type of a Python import based on its source
+ */
+export function getPythonImportType(source: string): ImportType {
+  // Check for standard library modules
+  const baseModule = source.split('.')[0] || source;
+  if (PYTHON_STDLIB_MODULES.includes(baseModule as typeof PYTHON_STDLIB_MODULES[number])) {
+    return 'builtin';
+  }
+
+  // Check for relative imports
+  if (source.startsWith('.')) {
+    if (source === '.') {
+      return 'index';
+    }
+    if (source.startsWith('..')) {
+      return 'parent';
+    }
+    return 'sibling';
+  }
+
+  // Everything else is external (third-party)
+  return 'external';
+}
+
+/**
+ * Parse Python import statements from file content
+ */
+export function parsePythonImports(content: string): ImportInfo[] {
+  const imports: ImportInfo[] = [];
+  const lines = content.split('\n');
+
+  // Python import patterns
+  const importPatterns = [
+    // import module
+    /^import\s+(\S+)/,
+    // from module import ...
+    /^from\s+(\S+)\s+import/,
+  ];
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i]!;
+    const trimmedLine = line.trim();
+    const lineNumber = i + 1;
+
+    // Skip empty lines and comments
+    if (!trimmedLine || trimmedLine.startsWith('#')) {
+      continue;
+    }
+
+    // Skip if we're past the import section (Python convention: imports at top)
+    if (!trimmedLine.startsWith('import') && !trimmedLine.startsWith('from') && 
+        imports.length > 0 && !trimmedLine.startsWith('(') && !trimmedLine.endsWith(',')) {
+      // Check if this looks like code (not a continuation)
+      if (/^(def|class|async|@|\w+\s*=)/.test(trimmedLine)) {
+        break;
+      }
+    }
+
+    // Try to match import patterns
+    for (const pattern of importPatterns) {
+      const match = trimmedLine.match(pattern);
+      if (match && match[1]) {
+        const source = match[1];
+        imports.push({
+          source,
+          type: getPythonImportType(source),
+          line: lineNumber,
+          statement: trimmedLine,
+          isTypeOnly: trimmedLine.includes('TYPE_CHECKING') || trimmedLine.includes('typing'),
+          isSideEffect: false,
+        });
+        break;
+      }
+    }
+  }
+
+  return imports;
+}
+
+/**
  * Determine the type of an import based on its source
  */
 export function getImportType(source: string): ImportType {
@@ -183,7 +276,12 @@ export function getImportType(source: string): ImportType {
 /**
  * Parse import statements from file content
  */
-export function parseImports(content: string): ImportInfo[] {
+export function parseImports(content: string, filePath?: string): ImportInfo[] {
+  // Use Python parser for .py files
+  if (filePath?.endsWith('.py')) {
+    return parsePythonImports(content);
+  }
+  
   const imports: ImportInfo[] = [];
   const lines = content.split('\n');
 
@@ -424,8 +522,8 @@ export function getGroupOrder(groups: ImportGroup[]): ImportType[] {
 /**
  * Analyze import ordering in a single file
  */
-export function analyzeFileImports(content: string): FileImportAnalysis {
-  const imports = parseImports(content);
+export function analyzeFileImports(content: string, filePath?: string): FileImportAnalysis {
+  const imports = parseImports(content, filePath);
   const groups = detectImportGroups(imports, content);
   const isGrouped = areImportsGroupedByType(groups);
   const hasSeparators = hasBlankLineSeparators(groups, content);
@@ -454,8 +552,8 @@ export function analyzeImportOrdering(
   let filesWithBlankLineSeparators = 0;
   const groupOrders: ImportType[][] = [];
 
-  for (const [, content] of fileContents) {
-    const analysis = analyzeFileImports(content);
+  for (const [filePath, content] of fileContents) {
+    const analysis = analyzeFileImports(content, filePath);
 
     // Skip files with no imports or only one import
     if (analysis.imports.length <= 1) {
@@ -642,6 +740,7 @@ export class ImportOrderingDetector extends StructuralDetector {
   readonly supportedLanguages: Language[] = [
     'typescript',
     'javascript',
+    'python',
   ];
 
   /**
@@ -652,7 +751,7 @@ export class ImportOrderingDetector extends StructuralDetector {
     const violations: Violation[] = [];
 
     // Analyze the current file's imports
-    const fileAnalysis = analyzeFileImports(context.content);
+    const fileAnalysis = analyzeFileImports(context.content, context.file);
 
     // Skip files with no imports or only one import
     if (fileAnalysis.imports.length <= 1) {
@@ -983,5 +1082,3 @@ export class ImportOrderingDetector extends StructuralDetector {
 export function createImportOrderingDetector(): ImportOrderingDetector {
   return new ImportOrderingDetector();
 }
-
-export default ImportOrderingDetector;

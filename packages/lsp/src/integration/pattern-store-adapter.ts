@@ -1,7 +1,7 @@
 /**
  * Pattern Store Adapter
  *
- * Adapts @drift/core PatternStore and VariantManager for use in LSP commands.
+ * Adapts driftdetect-core PatternStore and VariantManager for use in LSP commands.
  * Provides approve, ignore, and variant operations that persist to disk.
  *
  * @requirements 28.1 - drift.approvePattern
@@ -17,7 +17,7 @@ import {
   type VariantManagerConfig,
   type PatternLocation,
   type VariantScope,
-} from '@drift/core';
+} from 'driftdetect-core';
 
 import type { ViolationInfo, PatternInfo } from '../types/lsp-types.js';
 import type {
@@ -43,7 +43,7 @@ interface Logger {
  * Pattern Store Adapter
  *
  * Provides a simplified interface for LSP commands to interact with
- * the @drift/core PatternStore and VariantManager.
+ * the driftdetect-core PatternStore and VariantManager.
  */
 export class PatternStoreAdapter {
   private config: CoreIntegrationConfig;
@@ -257,7 +257,7 @@ export class PatternStoreAdapter {
       };
 
       // Build the variant input, conditionally including scopeValue
-      const variantInput: import('@drift/core').CreateVariantInput = {
+      const variantInput: import('driftdetect-core').CreateVariantInput = {
         patternId: input.patternId,
         name: input.name,
         reason: input.reason,

@@ -1,7 +1,7 @@
 /**
  * LSP-specific type definitions for Drift
  *
- * These types bridge @drift/core types with LSP protocol types.
+ * These types bridge driftdetect-core types with LSP protocol types.
  * They maintain compatibility with vscode-languageserver while
  * providing Drift-specific extensions.
  *
@@ -15,7 +15,7 @@ import type {
   Position,
   Severity,
   WorkspaceEdit as CoreWorkspaceEdit,
-} from '@drift/core';
+} from 'driftdetect-core';
 
 // ============================================================================
 // Re-export core types for convenience
@@ -239,7 +239,7 @@ export interface PatternInfo {
 }
 
 /**
- * Violation information - simplified from @drift/core Violation
+ * Violation information - simplified from driftdetect-core Violation
  * Uses range instead of location for LSP compatibility
  */
 export interface ViolationInfo {
@@ -354,7 +354,7 @@ export interface ServerCapabilityOptions {
 // ============================================================================
 
 /**
- * Convert @drift/core Violation to ViolationInfo
+ * Convert driftdetect-core Violation to ViolationInfo
  */
 export function violationToInfo(violation: Violation): ViolationInfo {
   return {
@@ -474,7 +474,7 @@ export function numberToSeverity(num: number): DiagnosticSeverity {
 }
 
 /**
- * Convert @drift/core QuickFix to DriftQuickFix
+ * Convert driftdetect-core QuickFix to DriftQuickFix
  */
 export function quickFixToLsp(quickFix: QuickFix, _uri: string): DriftQuickFix {
   const changes: Record<string, TextEdit[]> = {};
@@ -499,7 +499,7 @@ export function quickFixToLsp(quickFix: QuickFix, _uri: string): DriftQuickFix {
 }
 
 /**
- * Convert @drift/core WorkspaceEdit to LSP WorkspaceEdit
+ * Convert driftdetect-core WorkspaceEdit to LSP WorkspaceEdit
  */
 export function workspaceEditToLsp(edit: CoreWorkspaceEdit): WorkspaceEdit {
   const changes: Record<string, TextEdit[]> = {};

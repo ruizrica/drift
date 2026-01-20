@@ -33,7 +33,7 @@ export async function executeIgnoreOnce(
 
   logger.info(`Ignoring violation once: ${violationId} at ${uri}:${line}`);
 
-  // TODO: Integrate with @drift/core to persist inline ignore comment
+  // TODO: Integrate with driftdetect-core to persist inline ignore comment
   // For now, we'll update the in-memory state
 
   // Find and remove the specific violation

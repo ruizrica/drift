@@ -16,7 +16,7 @@ import type {
   Violation,
   QuickFix,
   AST,
-} from '@drift/core';
+} from 'driftdetect-core';
 
 import type { DetectionMethod, DetectorInfo } from '../registry/types.js';
 
@@ -486,6 +486,77 @@ export abstract class BaseDetector {
     }
 
     return result;
+  }
+
+  /**
+   * Convert a common violation info object to a standard Violation
+   *
+   * Many detectors use internal violation info types. This helper converts
+   * them to the standard Violation format expected by the detection result.
+   *
+   * @param info - Common violation info object
+   * @returns Standard Violation object
+   */
+  protected convertViolationInfo(info: {
+    type?: string | undefined;
+    file: string;
+    line: number;
+    column: number;
+    endLine?: number | undefined;
+    endColumn?: number | undefined;
+    value?: string | undefined;
+    issue?: string | undefined;
+    message?: string | undefined;
+    suggestedFix?: string | undefined;
+    severity?: 'error' | 'warning' | 'info' | 'hint' | undefined;
+    lineContent?: string | undefined;
+  }): Violation {
+    const violation: Violation = {
+      id: `${this.id}-${info.file}-${info.line}-${info.column}`,
+      patternId: this.id,
+      severity: info.severity || 'warning',
+      file: info.file,
+      range: {
+        start: { line: info.line - 1, character: info.column - 1 },
+        end: { line: (info.endLine || info.line) - 1, character: (info.endColumn || info.column) - 1 },
+      },
+      message: info.issue || info.message || info.type || 'Pattern violation detected',
+      expected: info.suggestedFix || 'Follow established patterns',
+      actual: info.value || info.lineContent || 'Non-conforming code',
+      aiExplainAvailable: true,
+      aiFixAvailable: !!info.suggestedFix,
+      firstSeen: new Date(),
+      occurrences: 1,
+    };
+    
+    if (info.type) {
+      violation.explanation = `Violation type: ${info.type}`;
+    }
+    
+    return violation;
+  }
+
+  /**
+   * Convert an array of common violation info objects to standard Violations
+   *
+   * @param infos - Array of common violation info objects
+   * @returns Array of standard Violation objects
+   */
+  protected convertViolationInfos(infos: Array<{
+    type?: string | undefined;
+    file: string;
+    line: number;
+    column: number;
+    endLine?: number | undefined;
+    endColumn?: number | undefined;
+    value?: string | undefined;
+    issue?: string | undefined;
+    message?: string | undefined;
+    suggestedFix?: string | undefined;
+    severity?: 'error' | 'warning' | 'info' | 'hint' | undefined;
+    lineContent?: string | undefined;
+  }>): Violation[] {
+    return infos.map(info => this.convertViolationInfo(info));
   }
 }
 

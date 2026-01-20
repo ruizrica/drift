@@ -11,7 +11,7 @@
  * @requirements 7.7 - THE Structural_Detector SHALL detect circular dependencies
  */
 
-import type { PatternMatch, Violation, QuickFix, Language, Range } from '@drift/core';
+import type { PatternMatch, Violation, QuickFix, Language, Range } from 'driftdetect-core';
 import { StructuralDetector, type DetectionContext, type DetectionResult } from '../base/index.js';
 
 // ============================================================================
@@ -584,5 +584,3 @@ export class CircularDependenciesDetector extends StructuralDetector {
 export function createCircularDependenciesDetector(): CircularDependenciesDetector {
   return new CircularDependenciesDetector();
 }
-
-export default CircularDependenciesDetector;

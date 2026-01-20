@@ -10,7 +10,7 @@
  * @requirements 17.5 - Configuration validation patterns
  */
 
-import type { Violation, QuickFix, PatternCategory, Language } from '@drift/core';
+import type { Violation, QuickFix, PatternCategory, Language } from 'driftdetect-core';
 import { RegexDetector } from '../base/regex-detector.js';
 import type { DetectionContext, DetectionResult } from '../base/base-detector.js';
 
@@ -118,6 +118,7 @@ export const TYPE_ASSERTION_PATTERNS = [
 ] as const;
 
 export const RUNTIME_CHECK_PATTERNS = [
+  // JavaScript/TypeScript
   /typeof\s+\w+\s*[!=]==?\s*['"`](?:string|number|boolean|object)['"`]/gi,
   /instanceof\s+\w+/gi,
   /Array\.isArray\s*\(/gi,
@@ -125,9 +126,14 @@ export const RUNTIME_CHECK_PATTERNS = [
   /Number\.isFinite\s*\(/gi,
   /isNaN\s*\(/gi,
   /isFinite\s*\(/gi,
+  // Python
+  /isinstance\s*\(\s*\w+\s*,\s*(?:str|int|float|bool|list|dict)/gi,
+  /type\s*\(\s*\w+\s*\)\s*(?:==|is)\s*(?:str|int|float|bool|list|dict)/gi,
+  /hasattr\s*\(/gi,
 ] as const;
 
 export const STARTUP_VALIDATION_PATTERNS = [
+  // JavaScript/TypeScript
   /validateConfig\s*\(/gi,
   /validateEnv\s*\(/gi,
   /checkConfig\s*\(/gi,
@@ -136,9 +142,19 @@ export const STARTUP_VALIDATION_PATTERNS = [
   /loadAndValidate\s*\(/gi,
   /configSchema\.parse/gi,
   /envSchema\.parse/gi,
+  // Python
+  /validate_config\s*\(/gi,
+  /validate_env\s*\(/gi,
+  /check_config\s*\(/gi,
+  /assert_config\s*\(/gi,
+  /verify_config\s*\(/gi,
+  /load_and_validate\s*\(/gi,
+  /Settings\s*\(\s*\)/gi, // Pydantic Settings instantiation
+  /BaseSettings\s*\(/gi,
 ] as const;
 
 export const ENV_VALIDATION_PATTERNS = [
+  // JavaScript/TypeScript
   /envalid/gi,
   /env-var/gi,
   /dotenv-safe/gi,
@@ -148,6 +164,15 @@ export const ENV_VALIDATION_PATTERNS = [
   /bool\s*\(\s*\{/gi,
   /url\s*\(\s*\{/gi,
   /port\s*\(\s*\{/gi,
+  // Python
+  /pydantic_settings/gi,
+  /pydantic\.BaseSettings/gi,
+  /from\s+pydantic\s+import.*BaseSettings/gi,
+  /class\s+\w+\s*\(\s*BaseSettings\s*\)/gi,
+  /python-dotenv/gi,
+  /dotenv\.load_dotenv/gi,
+  /load_dotenv\s*\(/gi,
+  /environ-config/gi,
 ] as const;
 
 export const UNSAFE_CAST_PATTERNS = [
@@ -521,7 +546,7 @@ export class ConfigValidationDetector extends RegexDetector {
     'Detects configuration validation patterns';
   readonly category: PatternCategory = 'config';
   readonly subcategory = 'config-validation';
-  readonly supportedLanguages: Language[] = ['typescript', 'javascript'];
+  readonly supportedLanguages: Language[] = ['typescript', 'javascript', 'python'];
 
   async detect(context: DetectionContext): Promise<DetectionResult> {
     if (!this.supportsLanguage(context.language)) {
@@ -534,10 +559,20 @@ export class ConfigValidationDetector extends RegexDetector {
       return this.createEmptyResult();
     }
 
-    return this.createResult([], [], analysis.confidence, {
+    // Convert internal violations to standard Violation format
+    const violations = this.convertViolationInfos(analysis.violations.map(v => ({
+      file: v.file,
+      line: v.line,
+      column: v.column,
+      value: v.matchedText,
+      issue: v.issue,
+      suggestedFix: v.suggestedFix,
+      severity: v.severity === 'high' ? 'error' as const : v.severity === 'medium' ? 'warning' as const : 'info' as const,
+    })));
+
+    return this.createResult([], violations, analysis.confidence, {
       custom: {
         patterns: analysis.patterns,
-        violations: analysis.violations,
         hasValidation: analysis.hasValidation,
         validationLibrary: analysis.validationLibrary,
       },

@@ -7,7 +7,7 @@
  * @requirements 7.2 - THE Structural_Detector SHALL detect directory structure patterns (feature-based vs layer-based)
  */
 
-import type { PatternMatch, Violation, QuickFix, Language, Range } from '@drift/core';
+import type { PatternMatch, Violation, QuickFix, Language, Range } from 'driftdetect-core';
 import { StructuralDetector, type DetectionContext, type DetectionResult } from '../base/index.js';
 
 // ============================================================================
@@ -57,6 +57,8 @@ export const LAYER_DIRECTORIES = [
 
 /**
  * Common feature-based directory indicators
+ * Note: 'components' is excluded because it's commonly used in both
+ * feature-based AND layer-based architectures
  */
 export const FEATURE_DIRECTORIES = [
   'features',
@@ -64,9 +66,21 @@ export const FEATURE_DIRECTORIES = [
   'domains',
   'pages',
   'screens',
-  'components',
+  // 'components' removed - it's valid in layer-based architectures too
   'apps',
   'packages',
+] as const;
+
+/**
+ * Directories that are valid in BOTH feature-based and layer-based architectures
+ * These should not be flagged as inconsistencies
+ */
+export const UNIVERSAL_DIRECTORIES = [
+  'components',
+  'shared',
+  'common',
+  'core',
+  'ui',
 ] as const;
 
 /**
@@ -197,6 +211,17 @@ export function isFeatureContainer(name: string): boolean {
   return FEATURE_DIRECTORIES.some(feature => 
     lowerName === feature || 
     lowerName === `${feature}s`
+  );
+}
+
+/**
+ * Check if a directory is valid in both architectures (shouldn't be flagged)
+ */
+export function isUniversalDirectory(name: string): boolean {
+  const lowerName = name.toLowerCase();
+  return UNIVERSAL_DIRECTORIES.some(dir => 
+    lowerName === dir || 
+    lowerName === `${dir}s`
   );
 }
 
@@ -494,6 +519,12 @@ export class DirectoryStructureDetector extends StructuralDetector {
     if (!file.includes(inconsistent.path)) {
       return null;
     }
+    
+    // Don't flag universal directories (components, shared, common, etc.)
+    // These are valid in both feature-based and layer-based architectures
+    if (isUniversalDirectory(inconsistent.name)) {
+      return null;
+    }
 
     const range: Range = {
       start: { line: 1, character: 1 },
@@ -599,5 +630,3 @@ export class DirectoryStructureDetector extends StructuralDetector {
 export function createDirectoryStructureDetector(): DirectoryStructureDetector {
   return new DirectoryStructureDetector();
 }
-
-export default DirectoryStructureDetector;

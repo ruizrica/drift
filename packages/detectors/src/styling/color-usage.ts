@@ -17,7 +17,7 @@
  * @requirements 9.3 - THE Styling_Detector SHALL detect color usage patterns (system colors vs hex)
  */
 
-import type { PatternMatch, Violation, QuickFix, Language } from '@drift/core';
+import type { PatternMatch, Violation, QuickFix, Language } from 'driftdetect-core';
 import { RegexDetector, type DetectionContext, type DetectionResult } from '../base/index.js';
 
 // ============================================================================
@@ -682,10 +682,15 @@ export class ColorUsageDetector extends RegexDetector {
 
   /**
    * Detect color patterns and violations
+   * 
+   * NOTE: This detector focuses on PATTERN detection only.
+   * Hardcoded color violations are handled by the Design Tokens Detector
+   * to avoid duplicate violations.
    */
   async detect(context: DetectionContext): Promise<DetectionResult> {
     const patterns: PatternMatch[] = [];
-    const violations: Violation[] = [];
+    // NOTE: We don't create violations here - Design Tokens Detector handles hardcoded values
+    // This prevents duplicate violations for the same hardcoded colors
 
     // Analyze the file
     const analysis = analyzeColorUsage(context.content, context.file);
@@ -703,12 +708,10 @@ export class ColorUsageDetector extends RegexDetector {
       patterns.push(this.createTailwindColorPattern(context.file, analysis));
     }
 
-    // Create violations for hardcoded colors
-    for (const hardcoded of analysis.hardcodedColors) {
-      violations.push(this.createHardcodedColorViolation(hardcoded));
-    }
+    // NOTE: Hardcoded color violations are NOT created here to avoid duplication
+    // with the Design Tokens Detector which handles all hardcoded values
 
-    return this.createResult(patterns, violations, analysis.colorTokenConfidence);
+    return this.createResult(patterns, [], analysis.colorTokenConfidence);
   }
 
   /**
@@ -780,95 +783,6 @@ export class ColorUsageDetector extends RegexDetector {
       },
       confidence: 1.0,
       isOutlier: false,
-    };
-  }
-
-  /**
-   * Create a violation for a hardcoded color value
-   */
-  private createHardcodedColorViolation(hardcoded: HardcodedColorInfo): Violation {
-    const typeDescriptions: Record<HardcodedColorType, string> = {
-      'color-hex': 'hex color',
-      'color-rgb': 'RGB color',
-      'color-rgba': 'RGBA color',
-      'color-hsl': 'HSL color',
-      'color-hsla': 'HSLA color',
-    };
-
-    const typeDescription = typeDescriptions[hardcoded.type] || 'hardcoded color';
-    const propertyInfo = hardcoded.property ? ` in '${hardcoded.property}'` : '';
-
-    const violation: Violation = {
-      id: `${this.id}-${hardcoded.file}-${hardcoded.line}-${hardcoded.column}`,
-      patternId: this.id,
-      severity: 'warning',
-      file: hardcoded.file,
-      range: {
-        start: { line: hardcoded.line - 1, character: hardcoded.column - 1 },
-        end: { line: hardcoded.endLine - 1, character: hardcoded.endColumn - 1 },
-      },
-      message: `Hardcoded ${typeDescription} '${hardcoded.value}'${propertyInfo} should use a color token`,
-      explanation: `Using hardcoded color values instead of design tokens makes it difficult to maintain consistent colors across the application. Color tokens provide a single source of truth for your color palette.`,
-      expected: hardcoded.suggestedToken || 'A color token',
-      actual: hardcoded.value,
-      aiExplainAvailable: true,
-      aiFixAvailable: true,
-      firstSeen: new Date(),
-      occurrences: 1,
-    };
-
-    const quickFix = this.createQuickFixForHardcodedColor(hardcoded);
-    if (quickFix !== undefined) {
-      violation.quickFix = quickFix;
-    }
-
-    return violation;
-  }
-
-  /**
-   * Create a quick fix for replacing a hardcoded color with a token
-   */
-  private createQuickFixForHardcodedColor(hardcoded: HardcodedColorInfo): QuickFix | undefined {
-    // Only provide quick fix if we have a suggested token
-    if (!hardcoded.suggestedToken) {
-      return undefined;
-    }
-
-    // Extract the first suggested token (before "or")
-    const suggestedToken = hardcoded.suggestedToken.split(' or ')[0] || hardcoded.suggestedToken;
-
-    // Determine the replacement based on context
-    let replacement: string;
-    if (hardcoded.lineContent.includes('var(')) {
-      // Already using CSS custom properties, suggest a different custom property
-      replacement = `var(--${suggestedToken.replace(/\./g, '-').replace('colors', 'color')})`;
-    } else if (hardcoded.lineContent.includes('${') || hardcoded.lineContent.includes('`')) {
-      // Template literal context (styled-components, emotion)
-      replacement = `\${${suggestedToken}}`;
-    } else {
-      // Default: suggest the token directly
-      replacement = suggestedToken;
-    }
-
-    return {
-      title: `Replace with color token: ${suggestedToken}`,
-      kind: 'quickfix',
-      edit: {
-        changes: {
-          [hardcoded.file]: [
-            {
-              range: {
-                start: { line: hardcoded.line - 1, character: hardcoded.column - 1 },
-                end: { line: hardcoded.endLine - 1, character: hardcoded.endColumn - 1 },
-              },
-              newText: replacement,
-            },
-          ],
-        },
-      },
-      isPreferred: true,
-      confidence: 0.7,
-      preview: `Replace '${hardcoded.value}' with '${replacement}'`,
     };
   }
 

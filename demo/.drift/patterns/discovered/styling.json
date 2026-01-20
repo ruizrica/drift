@@ -1,0 +1,348 @@
+{
+  "version": "1.0.0",
+  "category": "styling",
+  "patterns": [
+    {
+      "id": "c616195d63d9b7f0",
+      "subcategory": "spacing-scale",
+      "name": "Spacing Scale Detector",
+      "description": "Detects spacing scale adherence and flags arbitrary spacing values",
+      "detector": {
+        "type": "regex",
+        "config": {
+          "detectorId": "styling/spacing-scale",
+          "patternId": "styling/spacing-scale/tailwind"
+        }
+      },
+      "confidence": {
+        "frequency": 0.04,
+        "consistency": 0.9,
+        "age": 0,
+        "spread": 4,
+        "score": 0.95,
+        "level": "high"
+      },
+      "locations": [
+        {
+          "file": "frontend/src/components/Button.tsx",
+          "line": 40,
+          "column": 10
+        },
+        {
+          "file": "frontend/src/components/Card.tsx",
+          "line": 30,
+          "column": 22
+        },
+        {
+          "file": "frontend/src/components/Input.tsx",
+          "line": 54,
+          "column": 11
+        },
+        {
+          "file": "frontend/src/components/Table.tsx",
+          "line": 38,
+          "column": 56
+        }
+      ],
+      "outliers": [],
+      "metadata": {
+        "firstSeen": "2026-01-20T01:02:50.733Z",
+        "lastSeen": "2026-01-20T01:02:50.733Z",
+        "source": "auto-detected",
+        "tags": [
+          "styling",
+          "spacing-scale"
+        ]
+      },
+      "severity": "info",
+      "autoFixable": false
+    },
+    {
+      "id": "c7941f7cf32f8e77",
+      "subcategory": "color-usage",
+      "name": "Color Usage Detector",
+      "description": "Detects color usage patterns and flags hardcoded color values that should use design tokens",
+      "detector": {
+        "type": "regex",
+        "config": {
+          "detectorId": "styling/color-usage",
+          "patternId": "styling/color-usage/tailwind-color"
+        }
+      },
+      "confidence": {
+        "frequency": 0.04,
+        "consistency": 0.9,
+        "age": 0,
+        "spread": 4,
+        "score": 0.95,
+        "level": "high"
+      },
+      "locations": [
+        {
+          "file": "frontend/src/components/Button.tsx",
+          "line": 35,
+          "column": 29
+        },
+        {
+          "file": "frontend/src/components/Card.tsx",
+          "line": 56,
+          "column": 57
+        },
+        {
+          "file": "frontend/src/components/Input.tsx",
+          "line": 40,
+          "column": 65
+        },
+        {
+          "file": "frontend/src/components/Table.tsx",
+          "line": 46,
+          "column": 40
+        }
+      ],
+      "outliers": [],
+      "metadata": {
+        "firstSeen": "2026-01-20T01:02:50.733Z",
+        "lastSeen": "2026-01-20T01:02:50.733Z",
+        "source": "auto-detected",
+        "tags": [
+          "styling",
+          "color-usage"
+        ]
+      },
+      "severity": "info",
+      "autoFixable": false
+    },
+    {
+      "id": "0553e9974f49b985",
+      "subcategory": "typography",
+      "name": "Typography Detector",
+      "description": "Detects typography scale adherence and flags hardcoded typography values",
+      "detector": {
+        "type": "regex",
+        "config": {
+          "detectorId": "styling/typography",
+          "patternId": "styling/typography/tailwind"
+        }
+      },
+      "confidence": {
+        "frequency": 0.03,
+        "consistency": 0.9,
+        "age": 0,
+        "spread": 3,
+        "score": 0.95,
+        "level": "high"
+      },
+      "locations": [
+        {
+          "file": "frontend/src/components/Button.tsx",
+          "line": 40,
+          "column": 22
+        },
+        {
+          "file": "frontend/src/components/Input.tsx",
+          "line": 40,
+          "column": 45
+        },
+        {
+          "file": "frontend/src/components/Table.tsx",
+          "line": 39,
+          "column": 39
+        }
+      ],
+      "outliers": [],
+      "metadata": {
+        "firstSeen": "2026-01-20T01:02:50.733Z",
+        "lastSeen": "2026-01-20T01:02:50.733Z",
+        "source": "auto-detected",
+        "tags": [
+          "styling",
+          "typography"
+        ]
+      },
+      "severity": "info",
+      "autoFixable": false
+    },
+    {
+      "id": "c36c2d0f06aa50b2",
+      "subcategory": "class-naming",
+      "name": "Class Naming Detector",
+      "description": "Detects CSS class naming conventions (BEM, utility-first, CSS Modules) and flags inconsistent naming",
+      "detector": {
+        "type": "regex",
+        "config": {
+          "detectorId": "styling/class-naming",
+          "patternId": "styling/class-naming/utility-first"
+        }
+      },
+      "confidence": {
+        "frequency": 0.06,
+        "consistency": 0.9,
+        "age": 0,
+        "spread": 6,
+        "score": 0.95,
+        "level": "high"
+      },
+      "locations": [
+        {
+          "file": "frontend/src/components/Button.tsx",
+          "line": 55,
+          "column": 26
+        },
+        {
+          "file": "frontend/src/components/Card.tsx",
+          "line": 30,
+          "column": 22
+        },
+        {
+          "file": "frontend/src/components/Input.tsx",
+          "line": 38,
+          "column": 22
+        },
+        {
+          "file": "frontend/src/components/Table.tsx",
+          "line": 38,
+          "column": 23
+        },
+        {
+          "file": "frontend/src/components/legacy/OldButton.tsx",
+          "line": 24,
+          "column": 5
+        },
+        {
+          "file": "frontend/src/components/legacy/UserCard.tsx",
+          "line": 29,
+          "column": 9
+        }
+      ],
+      "outliers": [],
+      "metadata": {
+        "firstSeen": "2026-01-20T01:02:50.734Z",
+        "lastSeen": "2026-01-20T01:02:50.734Z",
+        "source": "auto-detected",
+        "tags": [
+          "styling",
+          "class-naming"
+        ]
+      },
+      "severity": "info",
+      "autoFixable": false
+    },
+    {
+      "id": "94183bdb973d7637",
+      "subcategory": "tailwind-patterns",
+      "name": "Tailwind Patterns Detector",
+      "description": "Detects Tailwind CSS patterns and flags inconsistent usage",
+      "detector": {
+        "type": "regex",
+        "config": {
+          "detectorId": "styling/tailwind-patterns",
+          "patternId": "styling/tailwind-patterns/utility-class"
+        }
+      },
+      "confidence": {
+        "frequency": 0.06,
+        "consistency": 0.9,
+        "age": 0,
+        "spread": 6,
+        "score": 0.95,
+        "level": "high"
+      },
+      "locations": [
+        {
+          "file": "frontend/src/components/Button.tsx",
+          "line": 55,
+          "column": 26
+        },
+        {
+          "file": "frontend/src/components/Card.tsx",
+          "line": 30,
+          "column": 22
+        },
+        {
+          "file": "frontend/src/components/Input.tsx",
+          "line": 38,
+          "column": 22
+        },
+        {
+          "file": "frontend/src/components/Table.tsx",
+          "line": 38,
+          "column": 23
+        },
+        {
+          "file": "frontend/src/components/legacy/OldButton.tsx",
+          "line": 24,
+          "column": 5
+        },
+        {
+          "file": "frontend/src/components/legacy/UserCard.tsx",
+          "line": 29,
+          "column": 9
+        }
+      ],
+      "outliers": [],
+      "metadata": {
+        "firstSeen": "2026-01-20T01:02:50.734Z",
+        "lastSeen": "2026-01-20T01:02:50.734Z",
+        "source": "auto-detected",
+        "tags": [
+          "styling",
+          "tailwind-patterns"
+        ]
+      },
+      "severity": "info",
+      "autoFixable": false
+    },
+    {
+      "id": "55055ac36a37e776",
+      "subcategory": "tailwind-patterns",
+      "name": "Tailwind Patterns Detector",
+      "description": "Detects Tailwind CSS patterns and flags inconsistent usage",
+      "detector": {
+        "type": "regex",
+        "config": {
+          "detectorId": "styling/tailwind-patterns",
+          "patternId": "styling/tailwind-patterns/state-variant"
+        }
+      },
+      "confidence": {
+        "frequency": 0.03,
+        "consistency": 0.9,
+        "age": 0,
+        "spread": 3,
+        "score": 0.95,
+        "level": "high"
+      },
+      "locations": [
+        {
+          "file": "frontend/src/components/Button.tsx",
+          "line": 31,
+          "column": 61
+        },
+        {
+          "file": "frontend/src/components/Input.tsx",
+          "line": 55,
+          "column": 11
+        },
+        {
+          "file": "frontend/src/components/Table.tsx",
+          "line": 72,
+          "column": 55
+        }
+      ],
+      "outliers": [],
+      "metadata": {
+        "firstSeen": "2026-01-20T01:02:50.734Z",
+        "lastSeen": "2026-01-20T01:02:50.734Z",
+        "source": "auto-detected",
+        "tags": [
+          "styling",
+          "tailwind-patterns"
+        ]
+      },
+      "severity": "info",
+      "autoFixable": false
+    }
+  ],
+  "lastUpdated": "2026-01-20T01:02:50.735Z",
+  "checksum": "b5f13cef59c77f28"
+}

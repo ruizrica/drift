@@ -15,7 +15,7 @@
  * @requirements 12.2 - Error code patterns
  */
 
-import type { Language } from '@drift/core';
+import type { Language } from 'driftdetect-core';
 import { RegexDetector, type DetectionContext, type DetectionResult } from '../base/index.js';
 
 // ============================================================================
@@ -270,14 +270,24 @@ export class ErrorCodesDetector extends RegexDetector {
   readonly description = 'Detects error code patterns and usage';
   readonly category = 'errors';
   readonly subcategory = 'codes';
-  readonly supportedLanguages: Language[] = ['typescript', 'javascript'];
+  readonly supportedLanguages: Language[] = ['typescript', 'javascript', 'python'];
   
   async detect(context: DetectionContext): Promise<DetectionResult> {
     const { content, file } = context;
     if (shouldExcludeFile(file)) return this.createEmptyResult();
     
     const analysis = analyzeErrorCodes(content, file);
-    return this.createResult([], [], analysis.confidence);
+    
+    // Convert internal violations to standard Violation format
+    const violations = this.convertViolationInfos(analysis.violations);
+    
+    return this.createResult([], violations, analysis.confidence, {
+      custom: {
+        patterns: analysis.patterns,
+        hasErrorCodeEnum: analysis.hasErrorCodeEnum,
+        errorCodes: analysis.errorCodes,
+      },
+    });
   }
   
   generateQuickFix(): null {

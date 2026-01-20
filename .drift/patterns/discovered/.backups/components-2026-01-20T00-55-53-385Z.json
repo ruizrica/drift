@@ -1,0 +1,498 @@
+{
+  "version": "1.0.0",
+  "category": "components",
+  "patterns": [
+    {
+      "id": "3743794554ae99bf",
+      "subcategory": "file-structure",
+      "name": "Component Structure Detector",
+      "description": "Detects component file structure patterns (single file vs split) and identifies inconsistencies",
+      "detector": {
+        "type": "regex",
+        "config": {
+          "detectorId": "components/component-structure",
+          "patternId": "component-structure-single-file"
+        }
+      },
+      "confidence": {
+        "frequency": 0.3,
+        "consistency": 0.9,
+        "age": 0,
+        "spread": 30,
+        "score": 0.95,
+        "level": "high"
+      },
+      "locations": [
+        {
+          "file": "demo/backend/src/index.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/middleware/auth.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/middleware/errorHandler.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/middleware/logger.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/admin.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/legacy.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/orders.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/products.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/users.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/services/adminService.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/services/orderService.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/services/productService.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/services/userService.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/utils/errors.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/utils/response.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/api/admin.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/api/client.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/api/orders.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/api/products.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/api/users.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/components/Button.tsx",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/components/Card.tsx",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/components/Input.tsx",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/components/Table.tsx",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/components/legacy/DataFetcher.tsx",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/components/legacy/OldButton.tsx",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/components/legacy/UserCard.tsx",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/hooks/useApi.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/hooks/useAuth.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/types/api.ts",
+          "line": 1,
+          "column": 1
+        }
+      ],
+      "outliers": [],
+      "metadata": {
+        "firstSeen": "2026-01-20T00:55:46.150Z",
+        "lastSeen": "2026-01-20T00:55:46.150Z",
+        "source": "auto-detected",
+        "tags": [
+          "components",
+          "file-structure"
+        ]
+      },
+      "severity": "info",
+      "autoFixable": false
+    },
+    {
+      "id": "775226336f07ab6b",
+      "subcategory": "file-structure",
+      "name": "Component Structure Detector",
+      "description": "Detects component file structure patterns (single file vs split) and identifies inconsistencies",
+      "detector": {
+        "type": "regex",
+        "config": {
+          "detectorId": "components/component-structure",
+          "patternId": "component-structure-type-single-file"
+        }
+      },
+      "confidence": {
+        "frequency": 0.3,
+        "consistency": 0.9,
+        "age": 0,
+        "spread": 30,
+        "score": 0.95,
+        "level": "high"
+      },
+      "locations": [
+        {
+          "file": "demo/backend/src/index.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/middleware/auth.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/middleware/errorHandler.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/middleware/logger.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/admin.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/legacy.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/orders.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/products.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/users.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/services/adminService.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/services/orderService.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/services/productService.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/services/userService.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/utils/errors.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/utils/response.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/api/admin.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/api/client.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/api/orders.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/api/products.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/api/users.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/components/Button.tsx",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/components/Card.tsx",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/components/Input.tsx",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/components/Table.tsx",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/components/legacy/DataFetcher.tsx",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/components/legacy/OldButton.tsx",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/components/legacy/UserCard.tsx",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/hooks/useApi.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/hooks/useAuth.ts",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/types/api.ts",
+          "line": 1,
+          "column": 1
+        }
+      ],
+      "outliers": [],
+      "metadata": {
+        "firstSeen": "2026-01-20T00:55:46.150Z",
+        "lastSeen": "2026-01-20T00:55:46.150Z",
+        "source": "auto-detected",
+        "tags": [
+          "components",
+          "file-structure"
+        ]
+      },
+      "severity": "info",
+      "autoFixable": false
+    },
+    {
+      "id": "39e9342ac3d8277d",
+      "subcategory": "composition",
+      "name": "Composition Pattern Detector",
+      "description": "Detects component composition patterns (children, render props, HOCs, compound components) and identifies anti-patterns",
+      "detector": {
+        "type": "regex",
+        "config": {
+          "detectorId": "components/composition",
+          "patternId": "composition-uncontrolled"
+        }
+      },
+      "confidence": {
+        "frequency": 0.01,
+        "consistency": 0.9,
+        "age": 0,
+        "spread": 1,
+        "score": 0.95,
+        "level": "high"
+      },
+      "locations": [
+        {
+          "file": "demo/frontend/src/components/legacy/UserCard.tsx",
+          "line": 1,
+          "column": 1
+        }
+      ],
+      "outliers": [],
+      "metadata": {
+        "firstSeen": "2026-01-20T00:55:46.150Z",
+        "lastSeen": "2026-01-20T00:55:46.150Z",
+        "source": "auto-detected",
+        "tags": [
+          "components",
+          "composition"
+        ]
+      },
+      "severity": "info",
+      "autoFixable": false
+    },
+    {
+      "id": "5e6dec51bee2eaee",
+      "subcategory": "ref-forwarding",
+      "name": "Ref Forwarding Detector",
+      "description": "Detects ref forwarding patterns and identifies issues with ref handling",
+      "detector": {
+        "type": "regex",
+        "config": {
+          "detectorId": "components/ref-forwarding",
+          "patternId": "ref-forwarding-ref-prop-to-dom"
+        }
+      },
+      "confidence": {
+        "frequency": 0.01,
+        "consistency": 0.9,
+        "age": 0,
+        "spread": 1,
+        "score": 0.5,
+        "level": "low"
+      },
+      "locations": [
+        {
+          "file": "demo/frontend/src/components/legacy/UserCard.tsx",
+          "line": 1,
+          "column": 1
+        }
+      ],
+      "outliers": [],
+      "metadata": {
+        "firstSeen": "2026-01-20T00:55:46.150Z",
+        "lastSeen": "2026-01-20T00:55:46.150Z",
+        "source": "auto-detected",
+        "tags": [
+          "components",
+          "ref-forwarding"
+        ]
+      },
+      "severity": "info",
+      "autoFixable": false
+    },
+    {
+      "id": "5188b18cf91d2a46",
+      "subcategory": "ref-forwarding",
+      "name": "Ref Forwarding Detector",
+      "description": "Detects ref forwarding patterns and identifies issues with ref handling",
+      "detector": {
+        "type": "regex",
+        "config": {
+          "detectorId": "components/ref-forwarding",
+          "patternId": "ref-forwarding-useRef-dom"
+        }
+      },
+      "confidence": {
+        "frequency": 0.01,
+        "consistency": 0.9,
+        "age": 0,
+        "spread": 1,
+        "score": 0.5,
+        "level": "low"
+      },
+      "locations": [
+        {
+          "file": "demo/frontend/src/components/legacy/UserCard.tsx",
+          "line": 1,
+          "column": 1
+        }
+      ],
+      "outliers": [],
+      "metadata": {
+        "firstSeen": "2026-01-20T00:55:46.150Z",
+        "lastSeen": "2026-01-20T00:55:46.150Z",
+        "source": "auto-detected",
+        "tags": [
+          "components",
+          "ref-forwarding"
+        ]
+      },
+      "severity": "info",
+      "autoFixable": false
+    }
+  ],
+  "lastUpdated": "2026-01-20T00:55:46.151Z",
+  "checksum": "c5856e63f42ab866"
+}

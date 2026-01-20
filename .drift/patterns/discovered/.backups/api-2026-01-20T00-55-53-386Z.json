@@ -1,0 +1,1249 @@
+{
+  "version": "1.0.0",
+  "category": "api",
+  "patterns": [
+    {
+      "id": "ef05c81b2707d090",
+      "subcategory": "route-structure",
+      "name": "Route Structure Detector",
+      "description": "Detects route URL structure patterns and flags inconsistencies",
+      "detector": {
+        "type": "regex",
+        "config": {
+          "detectorId": "api/route-structure",
+          "patternId": "api/route-structure/restful"
+        }
+      },
+      "confidence": {
+        "frequency": 0.1,
+        "consistency": 0.9,
+        "age": 0,
+        "spread": 10,
+        "score": 0.95,
+        "level": "high"
+      },
+      "locations": [
+        {
+          "file": "demo/backend/src/index.ts",
+          "line": 30,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/admin.ts",
+          "line": 21,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/legacy.ts",
+          "line": 17,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/orders.ts",
+          "line": 22,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/products.ts",
+          "line": 19,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/users.ts",
+          "line": 20,
+          "column": 1
+        },
+        {
+          "file": "demo/frontend/src/api/admin.ts",
+          "line": 13,
+          "column": 52
+        },
+        {
+          "file": "demo/frontend/src/api/orders.ts",
+          "line": 15,
+          "column": 46
+        },
+        {
+          "file": "demo/frontend/src/api/products.ts",
+          "line": 15,
+          "column": 48
+        },
+        {
+          "file": "demo/frontend/src/api/users.ts",
+          "line": 11,
+          "column": 45
+        }
+      ],
+      "outliers": [
+        {
+          "file": "demo/backend/src/routes/admin.ts",
+          "line": 21,
+          "column": 1,
+          "reason": "Resource 'dashboard' should use plural form for RESTful consistency",
+          "deviationScore": 0.4
+        },
+        {
+          "file": "demo/frontend/src/api/admin.ts",
+          "line": 13,
+          "column": 52,
+          "reason": "Resource 'dashboard' should use plural form for RESTful consistency",
+          "deviationScore": 0.4
+        }
+      ],
+      "metadata": {
+        "firstSeen": "2026-01-20T00:55:46.149Z",
+        "lastSeen": "2026-01-20T00:55:46.149Z",
+        "source": "auto-detected",
+        "tags": [
+          "api",
+          "route-structure"
+        ]
+      },
+      "severity": "warning",
+      "autoFixable": false
+    },
+    {
+      "id": "ef025f002a5ae187",
+      "subcategory": "route-structure",
+      "name": "Route Structure Detector",
+      "description": "Detects route URL structure patterns and flags inconsistencies",
+      "detector": {
+        "type": "regex",
+        "config": {
+          "detectorId": "api/route-structure",
+          "patternId": "api/route-structure/express-route"
+        }
+      },
+      "confidence": {
+        "frequency": 0.06,
+        "consistency": 0.9,
+        "age": 0,
+        "spread": 6,
+        "score": 0.95,
+        "level": "high"
+      },
+      "locations": [
+        {
+          "file": "demo/backend/src/index.ts",
+          "line": 30,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/admin.ts",
+          "line": 21,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/legacy.ts",
+          "line": 17,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/orders.ts",
+          "line": 22,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/products.ts",
+          "line": 19,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/users.ts",
+          "line": 20,
+          "column": 1
+        }
+      ],
+      "outliers": [
+        {
+          "file": "demo/backend/src/routes/admin.ts",
+          "line": 21,
+          "column": 1,
+          "reason": "Resource 'dashboard' should use plural form for RESTful consistency",
+          "deviationScore": 0.4
+        },
+        {
+          "file": "demo/frontend/src/api/admin.ts",
+          "line": 13,
+          "column": 52,
+          "reason": "Resource 'dashboard' should use plural form for RESTful consistency",
+          "deviationScore": 0.4
+        }
+      ],
+      "metadata": {
+        "firstSeen": "2026-01-20T00:55:46.150Z",
+        "lastSeen": "2026-01-20T00:55:46.150Z",
+        "source": "auto-detected",
+        "tags": [
+          "api",
+          "route-structure"
+        ]
+      },
+      "severity": "warning",
+      "autoFixable": false
+    },
+    {
+      "id": "3faa20eb91189879",
+      "subcategory": "route-structure",
+      "name": "Route Structure Detector",
+      "description": "Detects route URL structure patterns and flags inconsistencies",
+      "detector": {
+        "type": "regex",
+        "config": {
+          "detectorId": "api/route-structure",
+          "patternId": "api/route-structure/restful-route"
+        }
+      },
+      "confidence": {
+        "frequency": 0.07,
+        "consistency": 0.9,
+        "age": 0,
+        "spread": 7,
+        "score": 0.95,
+        "level": "high"
+      },
+      "locations": [
+        {
+          "file": "demo/backend/src/index.ts",
+          "line": 35,
+          "column": 9
+        },
+        {
+          "file": "demo/backend/src/routes/admin.ts",
+          "line": 55,
+          "column": 13
+        },
+        {
+          "file": "demo/backend/src/routes/legacy.ts",
+          "line": 31,
+          "column": 12
+        },
+        {
+          "file": "demo/frontend/src/api/admin.ts",
+          "line": 13,
+          "column": 52
+        },
+        {
+          "file": "demo/frontend/src/api/orders.ts",
+          "line": 15,
+          "column": 46
+        },
+        {
+          "file": "demo/frontend/src/api/products.ts",
+          "line": 15,
+          "column": 48
+        },
+        {
+          "file": "demo/frontend/src/api/users.ts",
+          "line": 11,
+          "column": 45
+        }
+      ],
+      "outliers": [
+        {
+          "file": "demo/backend/src/routes/admin.ts",
+          "line": 21,
+          "column": 1,
+          "reason": "Resource 'dashboard' should use plural form for RESTful consistency",
+          "deviationScore": 0.4
+        },
+        {
+          "file": "demo/frontend/src/api/admin.ts",
+          "line": 13,
+          "column": 52,
+          "reason": "Resource 'dashboard' should use plural form for RESTful consistency",
+          "deviationScore": 0.4
+        }
+      ],
+      "metadata": {
+        "firstSeen": "2026-01-20T00:55:46.150Z",
+        "lastSeen": "2026-01-20T00:55:46.150Z",
+        "source": "auto-detected",
+        "tags": [
+          "api",
+          "route-structure"
+        ]
+      },
+      "severity": "warning",
+      "autoFixable": false
+    },
+    {
+      "id": "7b8eba01facacf70",
+      "subcategory": "http-methods",
+      "name": "HTTP Methods Detector",
+      "description": "Detects HTTP method usage patterns and flags RESTful convention violations",
+      "detector": {
+        "type": "regex",
+        "config": {
+          "detectorId": "api/http-methods",
+          "patternId": "api/http-methods/express-handler"
+        }
+      },
+      "confidence": {
+        "frequency": 0.06,
+        "consistency": 0.9,
+        "age": 0,
+        "spread": 6,
+        "score": 0.95,
+        "level": "high"
+      },
+      "locations": [
+        {
+          "file": "demo/backend/src/index.ts",
+          "line": 30,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/admin.ts",
+          "line": 21,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/legacy.ts",
+          "line": 17,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/orders.ts",
+          "line": 22,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/products.ts",
+          "line": 19,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/users.ts",
+          "line": 20,
+          "column": 1
+        }
+      ],
+      "outliers": [],
+      "metadata": {
+        "firstSeen": "2026-01-20T00:55:46.150Z",
+        "lastSeen": "2026-01-20T00:55:46.150Z",
+        "source": "auto-detected",
+        "tags": [
+          "api",
+          "http-methods"
+        ]
+      },
+      "severity": "info",
+      "autoFixable": false
+    },
+    {
+      "id": "ee6d5c5b894c5c7f",
+      "subcategory": "http-methods",
+      "name": "HTTP Methods Detector",
+      "description": "Detects HTTP method usage patterns and flags RESTful convention violations",
+      "detector": {
+        "type": "regex",
+        "config": {
+          "detectorId": "api/http-methods",
+          "patternId": "api/http-methods/method-get"
+        }
+      },
+      "confidence": {
+        "frequency": 0.06,
+        "consistency": 0.9,
+        "age": 0,
+        "spread": 6,
+        "score": 0.95,
+        "level": "high"
+      },
+      "locations": [
+        {
+          "file": "demo/backend/src/index.ts",
+          "line": 30,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/admin.ts",
+          "line": 21,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/legacy.ts",
+          "line": 17,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/orders.ts",
+          "line": 22,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/products.ts",
+          "line": 19,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/users.ts",
+          "line": 20,
+          "column": 1
+        }
+      ],
+      "outliers": [],
+      "metadata": {
+        "firstSeen": "2026-01-20T00:55:46.150Z",
+        "lastSeen": "2026-01-20T00:55:46.150Z",
+        "source": "auto-detected",
+        "tags": [
+          "api",
+          "http-methods"
+        ]
+      },
+      "severity": "info",
+      "autoFixable": false
+    },
+    {
+      "id": "565839623cb6bd47",
+      "subcategory": "response-envelope",
+      "name": "Response Envelope Detector",
+      "description": "Detects response envelope patterns and flags inconsistencies",
+      "detector": {
+        "type": "regex",
+        "config": {
+          "detectorId": "api/response-envelope",
+          "patternId": "api/response-envelope/format-standard"
+        }
+      },
+      "confidence": {
+        "frequency": 0.09,
+        "consistency": 0.9,
+        "age": 0,
+        "spread": 9,
+        "score": 0.95,
+        "level": "high"
+      },
+      "locations": [
+        {
+          "file": "demo/backend/src/index.ts",
+          "line": 31,
+          "column": 3
+        },
+        {
+          "file": "demo/backend/src/middleware/errorHandler.ts",
+          "line": 19,
+          "column": 5
+        },
+        {
+          "file": "demo/backend/src/routes/legacy.ts",
+          "line": 81,
+          "column": 3
+        },
+        {
+          "file": "demo/backend/src/services/orderService.ts",
+          "line": 29,
+          "column": 14
+        },
+        {
+          "file": "demo/backend/src/services/productService.ts",
+          "line": 40,
+          "column": 26
+        },
+        {
+          "file": "demo/backend/src/utils/response.ts",
+          "line": 34,
+          "column": 3
+        },
+        {
+          "file": "demo/frontend/src/components/Table.tsx",
+          "line": 17,
+          "column": 32
+        },
+        {
+          "file": "demo/frontend/src/hooks/useApi.ts",
+          "line": 9,
+          "column": 26
+        },
+        {
+          "file": "demo/frontend/src/types/api.ts",
+          "line": 10,
+          "column": 33
+        }
+      ],
+      "outliers": [
+        {
+          "file": "demo/backend/src/routes/legacy.ts",
+          "line": 81,
+          "column": 3,
+          "reason": "Response envelope is missing an error field",
+          "deviationScore": 0.4
+        },
+        {
+          "file": "demo/backend/src/routes/legacy.ts",
+          "line": 92,
+          "column": 3,
+          "reason": "Response envelope is missing an error field",
+          "deviationScore": 0.4
+        },
+        {
+          "file": "demo/backend/src/services/adminService.ts",
+          "line": 19,
+          "column": 5,
+          "reason": "Direct array/data return without envelope wrapper",
+          "deviationScore": 0.4
+        },
+        {
+          "file": "demo/frontend/src/types/api.ts",
+          "line": 10,
+          "column": 33,
+          "reason": "Response envelope is missing a data field",
+          "deviationScore": 0.4
+        },
+        {
+          "file": "demo/frontend/src/types/api.ts",
+          "line": 21,
+          "column": 27,
+          "reason": "Response envelope is missing a data field",
+          "deviationScore": 0.4
+        },
+        {
+          "file": "demo/frontend/src/types/api.ts",
+          "line": 13,
+          "column": 10,
+          "reason": "Response envelope is missing a data field",
+          "deviationScore": 0.4
+        }
+      ],
+      "metadata": {
+        "firstSeen": "2026-01-20T00:55:46.150Z",
+        "lastSeen": "2026-01-20T00:55:46.150Z",
+        "source": "auto-detected",
+        "tags": [
+          "api",
+          "response-envelope"
+        ]
+      },
+      "severity": "warning",
+      "autoFixable": false
+    },
+    {
+      "id": "5fcf68d599d2eb4a",
+      "subcategory": "response-envelope",
+      "name": "Response Envelope Detector",
+      "description": "Detects response envelope patterns and flags inconsistencies",
+      "detector": {
+        "type": "regex",
+        "config": {
+          "detectorId": "api/response-envelope",
+          "patternId": "api/response-envelope/express-response"
+        }
+      },
+      "confidence": {
+        "frequency": 0.04,
+        "consistency": 0.9,
+        "age": 0,
+        "spread": 4,
+        "score": 0.95,
+        "level": "high"
+      },
+      "locations": [
+        {
+          "file": "demo/backend/src/index.ts",
+          "line": 31,
+          "column": 3
+        },
+        {
+          "file": "demo/backend/src/middleware/errorHandler.ts",
+          "line": 19,
+          "column": 5
+        },
+        {
+          "file": "demo/backend/src/routes/legacy.ts",
+          "line": 81,
+          "column": 3
+        },
+        {
+          "file": "demo/backend/src/utils/response.ts",
+          "line": 34,
+          "column": 3
+        }
+      ],
+      "outliers": [
+        {
+          "file": "demo/backend/src/routes/legacy.ts",
+          "line": 81,
+          "column": 3,
+          "reason": "Response envelope is missing an error field",
+          "deviationScore": 0.4
+        },
+        {
+          "file": "demo/backend/src/routes/legacy.ts",
+          "line": 92,
+          "column": 3,
+          "reason": "Response envelope is missing an error field",
+          "deviationScore": 0.4
+        },
+        {
+          "file": "demo/backend/src/services/adminService.ts",
+          "line": 19,
+          "column": 5,
+          "reason": "Direct array/data return without envelope wrapper",
+          "deviationScore": 0.4
+        },
+        {
+          "file": "demo/frontend/src/types/api.ts",
+          "line": 10,
+          "column": 33,
+          "reason": "Response envelope is missing a data field",
+          "deviationScore": 0.4
+        },
+        {
+          "file": "demo/frontend/src/types/api.ts",
+          "line": 21,
+          "column": 27,
+          "reason": "Response envelope is missing a data field",
+          "deviationScore": 0.4
+        },
+        {
+          "file": "demo/frontend/src/types/api.ts",
+          "line": 13,
+          "column": 10,
+          "reason": "Response envelope is missing a data field",
+          "deviationScore": 0.4
+        }
+      ],
+      "metadata": {
+        "firstSeen": "2026-01-20T00:55:46.150Z",
+        "lastSeen": "2026-01-20T00:55:46.150Z",
+        "source": "auto-detected",
+        "tags": [
+          "api",
+          "response-envelope"
+        ]
+      },
+      "severity": "warning",
+      "autoFixable": false
+    },
+    {
+      "id": "574824b5a187decc",
+      "subcategory": "response-envelope",
+      "name": "Response Envelope Detector",
+      "description": "Detects response envelope patterns and flags inconsistencies",
+      "detector": {
+        "type": "regex",
+        "config": {
+          "detectorId": "api/response-envelope",
+          "patternId": "api/response-envelope/envelope-structure"
+        }
+      },
+      "confidence": {
+        "frequency": 0.06,
+        "consistency": 0.9,
+        "age": 0,
+        "spread": 6,
+        "score": 0.95,
+        "level": "high"
+      },
+      "locations": [
+        {
+          "file": "demo/backend/src/middleware/errorHandler.ts",
+          "line": 21,
+          "column": 14
+        },
+        {
+          "file": "demo/backend/src/services/adminService.ts",
+          "line": 9,
+          "column": 5
+        },
+        {
+          "file": "demo/backend/src/utils/response.ts",
+          "line": 10,
+          "column": 33
+        },
+        {
+          "file": "demo/frontend/src/components/Table.tsx",
+          "line": 17,
+          "column": 32
+        },
+        {
+          "file": "demo/frontend/src/hooks/useApi.ts",
+          "line": 9,
+          "column": 26
+        },
+        {
+          "file": "demo/frontend/src/types/api.ts",
+          "line": 10,
+          "column": 33
+        }
+      ],
+      "outliers": [
+        {
+          "file": "demo/backend/src/routes/legacy.ts",
+          "line": 81,
+          "column": 3,
+          "reason": "Response envelope is missing an error field",
+          "deviationScore": 0.4
+        },
+        {
+          "file": "demo/backend/src/routes/legacy.ts",
+          "line": 92,
+          "column": 3,
+          "reason": "Response envelope is missing an error field",
+          "deviationScore": 0.4
+        },
+        {
+          "file": "demo/backend/src/services/adminService.ts",
+          "line": 19,
+          "column": 5,
+          "reason": "Direct array/data return without envelope wrapper",
+          "deviationScore": 0.4
+        },
+        {
+          "file": "demo/frontend/src/types/api.ts",
+          "line": 10,
+          "column": 33,
+          "reason": "Response envelope is missing a data field",
+          "deviationScore": 0.4
+        },
+        {
+          "file": "demo/frontend/src/types/api.ts",
+          "line": 21,
+          "column": 27,
+          "reason": "Response envelope is missing a data field",
+          "deviationScore": 0.4
+        },
+        {
+          "file": "demo/frontend/src/types/api.ts",
+          "line": 13,
+          "column": 10,
+          "reason": "Response envelope is missing a data field",
+          "deviationScore": 0.4
+        }
+      ],
+      "metadata": {
+        "firstSeen": "2026-01-20T00:55:46.150Z",
+        "lastSeen": "2026-01-20T00:55:46.150Z",
+        "source": "auto-detected",
+        "tags": [
+          "api",
+          "response-envelope"
+        ]
+      },
+      "severity": "warning",
+      "autoFixable": false
+    },
+    {
+      "id": "39f63e492885f896",
+      "subcategory": "http-methods",
+      "name": "HTTP Methods Detector",
+      "description": "Detects HTTP method usage patterns and flags RESTful convention violations",
+      "detector": {
+        "type": "regex",
+        "config": {
+          "detectorId": "api/http-methods",
+          "patternId": "api/http-methods/method-post"
+        }
+      },
+      "confidence": {
+        "frequency": 0.05,
+        "consistency": 0.9,
+        "age": 0,
+        "spread": 5,
+        "score": 0.95,
+        "level": "high"
+      },
+      "locations": [
+        {
+          "file": "demo/backend/src/routes/admin.ts",
+          "line": 55,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/legacy.ts",
+          "line": 55,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/orders.ts",
+          "line": 43,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/products.ts",
+          "line": 40,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/users.ts",
+          "line": 40,
+          "column": 1
+        }
+      ],
+      "outliers": [],
+      "metadata": {
+        "firstSeen": "2026-01-20T00:55:46.150Z",
+        "lastSeen": "2026-01-20T00:55:46.150Z",
+        "source": "auto-detected",
+        "tags": [
+          "api",
+          "http-methods"
+        ]
+      },
+      "severity": "info",
+      "autoFixable": false
+    },
+    {
+      "id": "d7910706c09680f7",
+      "subcategory": "http-methods",
+      "name": "HTTP Methods Detector",
+      "description": "Detects HTTP method usage patterns and flags RESTful convention violations",
+      "detector": {
+        "type": "regex",
+        "config": {
+          "detectorId": "api/http-methods",
+          "patternId": "api/http-methods/method-delete"
+        }
+      },
+      "confidence": {
+        "frequency": 0.03,
+        "consistency": 0.9,
+        "age": 0,
+        "spread": 3,
+        "score": 0.95,
+        "level": "high"
+      },
+      "locations": [
+        {
+          "file": "demo/backend/src/routes/legacy.ts",
+          "line": 74,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/products.ts",
+          "line": 63,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/users.ts",
+          "line": 63,
+          "column": 1
+        }
+      ],
+      "outliers": [],
+      "metadata": {
+        "firstSeen": "2026-01-20T00:55:46.150Z",
+        "lastSeen": "2026-01-20T00:55:46.150Z",
+        "source": "auto-detected",
+        "tags": [
+          "api",
+          "http-methods"
+        ]
+      },
+      "severity": "info",
+      "autoFixable": false
+    },
+    {
+      "id": "2fe905b06a8a9f8b",
+      "subcategory": "response-envelope",
+      "name": "Response Envelope Detector",
+      "description": "Detects response envelope patterns and flags inconsistencies",
+      "detector": {
+        "type": "regex",
+        "config": {
+          "detectorId": "api/response-envelope",
+          "patternId": "api/response-envelope/pagination-offset"
+        }
+      },
+      "confidence": {
+        "frequency": 0.04,
+        "consistency": 0.9,
+        "age": 0,
+        "spread": 4,
+        "score": 0.95,
+        "level": "high"
+      },
+      "locations": [
+        {
+          "file": "demo/backend/src/routes/legacy.ts",
+          "line": 92,
+          "column": 3
+        },
+        {
+          "file": "demo/backend/src/services/orderService.ts",
+          "line": 29,
+          "column": 14
+        },
+        {
+          "file": "demo/backend/src/services/productService.ts",
+          "line": 40,
+          "column": 26
+        },
+        {
+          "file": "demo/frontend/src/types/api.ts",
+          "line": 13,
+          "column": 10
+        }
+      ],
+      "outliers": [
+        {
+          "file": "demo/backend/src/routes/legacy.ts",
+          "line": 81,
+          "column": 3,
+          "reason": "Response envelope is missing an error field",
+          "deviationScore": 0.4
+        },
+        {
+          "file": "demo/backend/src/routes/legacy.ts",
+          "line": 92,
+          "column": 3,
+          "reason": "Response envelope is missing an error field",
+          "deviationScore": 0.4
+        },
+        {
+          "file": "demo/backend/src/services/adminService.ts",
+          "line": 19,
+          "column": 5,
+          "reason": "Direct array/data return without envelope wrapper",
+          "deviationScore": 0.4
+        },
+        {
+          "file": "demo/frontend/src/types/api.ts",
+          "line": 10,
+          "column": 33,
+          "reason": "Response envelope is missing a data field",
+          "deviationScore": 0.4
+        },
+        {
+          "file": "demo/frontend/src/types/api.ts",
+          "line": 21,
+          "column": 27,
+          "reason": "Response envelope is missing a data field",
+          "deviationScore": 0.4
+        },
+        {
+          "file": "demo/frontend/src/types/api.ts",
+          "line": 13,
+          "column": 10,
+          "reason": "Response envelope is missing a data field",
+          "deviationScore": 0.4
+        }
+      ],
+      "metadata": {
+        "firstSeen": "2026-01-20T00:55:46.150Z",
+        "lastSeen": "2026-01-20T00:55:46.150Z",
+        "source": "auto-detected",
+        "tags": [
+          "api",
+          "response-envelope"
+        ]
+      },
+      "severity": "warning",
+      "autoFixable": false
+    },
+    {
+      "id": "ae916e84fee3958d",
+      "subcategory": "http-methods",
+      "name": "HTTP Methods Detector",
+      "description": "Detects HTTP method usage patterns and flags RESTful convention violations",
+      "detector": {
+        "type": "regex",
+        "config": {
+          "detectorId": "api/http-methods",
+          "patternId": "api/http-methods/method-put"
+        }
+      },
+      "confidence": {
+        "frequency": 0.03,
+        "consistency": 0.9,
+        "age": 0,
+        "spread": 3,
+        "score": 0.95,
+        "level": "high"
+      },
+      "locations": [
+        {
+          "file": "demo/backend/src/routes/orders.ts",
+          "line": 64,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/products.ts",
+          "line": 52,
+          "column": 1
+        },
+        {
+          "file": "demo/backend/src/routes/users.ts",
+          "line": 52,
+          "column": 1
+        }
+      ],
+      "outliers": [],
+      "metadata": {
+        "firstSeen": "2026-01-20T00:55:46.150Z",
+        "lastSeen": "2026-01-20T00:55:46.150Z",
+        "source": "auto-detected",
+        "tags": [
+          "api",
+          "http-methods"
+        ]
+      },
+      "severity": "info",
+      "autoFixable": false
+    },
+    {
+      "id": "6faf9f6a33b91b06",
+      "subcategory": "response-envelope",
+      "name": "Response Envelope Detector",
+      "description": "Detects response envelope patterns and flags inconsistencies",
+      "detector": {
+        "type": "regex",
+        "config": {
+          "detectorId": "api/response-envelope",
+          "patternId": "api/response-envelope/format-custom"
+        }
+      },
+      "confidence": {
+        "frequency": 0.01,
+        "consistency": 0.9,
+        "age": 0,
+        "spread": 1,
+        "score": 0.95,
+        "level": "high"
+      },
+      "locations": [
+        {
+          "file": "demo/backend/src/services/adminService.ts",
+          "line": 9,
+          "column": 5
+        }
+      ],
+      "outliers": [
+        {
+          "file": "demo/backend/src/routes/legacy.ts",
+          "line": 81,
+          "column": 3,
+          "reason": "Response envelope is missing an error field",
+          "deviationScore": 0.4
+        },
+        {
+          "file": "demo/backend/src/routes/legacy.ts",
+          "line": 92,
+          "column": 3,
+          "reason": "Response envelope is missing an error field",
+          "deviationScore": 0.4
+        },
+        {
+          "file": "demo/backend/src/services/adminService.ts",
+          "line": 19,
+          "column": 5,
+          "reason": "Direct array/data return without envelope wrapper",
+          "deviationScore": 0.4
+        },
+        {
+          "file": "demo/frontend/src/types/api.ts",
+          "line": 10,
+          "column": 33,
+          "reason": "Response envelope is missing a data field",
+          "deviationScore": 0.4
+        },
+        {
+          "file": "demo/frontend/src/types/api.ts",
+          "line": 21,
+          "column": 27,
+          "reason": "Response envelope is missing a data field",
+          "deviationScore": 0.4
+        },
+        {
+          "file": "demo/frontend/src/types/api.ts",
+          "line": 13,
+          "column": 10,
+          "reason": "Response envelope is missing a data field",
+          "deviationScore": 0.4
+        }
+      ],
+      "metadata": {
+        "firstSeen": "2026-01-20T00:55:46.150Z",
+        "lastSeen": "2026-01-20T00:55:46.150Z",
+        "source": "auto-detected",
+        "tags": [
+          "api",
+          "response-envelope"
+        ]
+      },
+      "severity": "warning",
+      "autoFixable": false
+    },
+    {
+      "id": "5b3783210c136667",
+      "subcategory": "response-envelope",
+      "name": "Response Envelope Detector",
+      "description": "Detects response envelope patterns and flags inconsistencies",
+      "detector": {
+        "type": "regex",
+        "config": {
+          "detectorId": "api/response-envelope",
+          "patternId": "api/response-envelope/pagination-metadata"
+        }
+      },
+      "confidence": {
+        "frequency": 0.03,
+        "consistency": 0.9,
+        "age": 0,
+        "spread": 3,
+        "score": 0.95,
+        "level": "high"
+      },
+      "locations": [
+        {
+          "file": "demo/backend/src/services/orderService.ts",
+          "line": 29,
+          "column": 14
+        },
+        {
+          "file": "demo/backend/src/services/productService.ts",
+          "line": 40,
+          "column": 26
+        },
+        {
+          "file": "demo/frontend/src/types/api.ts",
+          "line": 13,
+          "column": 10
+        }
+      ],
+      "outliers": [
+        {
+          "file": "demo/backend/src/routes/legacy.ts",
+          "line": 81,
+          "column": 3,
+          "reason": "Response envelope is missing an error field",
+          "deviationScore": 0.4
+        },
+        {
+          "file": "demo/backend/src/routes/legacy.ts",
+          "line": 92,
+          "column": 3,
+          "reason": "Response envelope is missing an error field",
+          "deviationScore": 0.4
+        },
+        {
+          "file": "demo/backend/src/services/adminService.ts",
+          "line": 19,
+          "column": 5,
+          "reason": "Direct array/data return without envelope wrapper",
+          "deviationScore": 0.4
+        },
+        {
+          "file": "demo/frontend/src/types/api.ts",
+          "line": 10,
+          "column": 33,
+          "reason": "Response envelope is missing a data field",
+          "deviationScore": 0.4
+        },
+        {
+          "file": "demo/frontend/src/types/api.ts",
+          "line": 21,
+          "column": 27,
+          "reason": "Response envelope is missing a data field",
+          "deviationScore": 0.4
+        },
+        {
+          "file": "demo/frontend/src/types/api.ts",
+          "line": 13,
+          "column": 10,
+          "reason": "Response envelope is missing a data field",
+          "deviationScore": 0.4
+        }
+      ],
+      "metadata": {
+        "firstSeen": "2026-01-20T00:55:46.150Z",
+        "lastSeen": "2026-01-20T00:55:46.150Z",
+        "source": "auto-detected",
+        "tags": [
+          "api",
+          "response-envelope"
+        ]
+      },
+      "severity": "warning",
+      "autoFixable": false
+    },
+    {
+      "id": "1d46a4a42027cdc4",
+      "subcategory": "response-envelope",
+      "name": "Response Envelope Detector",
+      "description": "Detects response envelope patterns and flags inconsistencies",
+      "detector": {
+        "type": "regex",
+        "config": {
+          "detectorId": "api/response-envelope",
+          "patternId": "api/response-envelope/pagination-page-based"
+        }
+      },
+      "confidence": {
+        "frequency": 0.01,
+        "consistency": 0.9,
+        "age": 0,
+        "spread": 1,
+        "score": 0.95,
+        "level": "high"
+      },
+      "locations": [
+        {
+          "file": "demo/backend/src/utils/response.ts",
+          "line": 34,
+          "column": 3
+        }
+      ],
+      "outliers": [
+        {
+          "file": "demo/backend/src/routes/legacy.ts",
+          "line": 81,
+          "column": 3,
+          "reason": "Response envelope is missing an error field",
+          "deviationScore": 0.4
+        },
+        {
+          "file": "demo/backend/src/routes/legacy.ts",
+          "line": 92,
+          "column": 3,
+          "reason": "Response envelope is missing an error field",
+          "deviationScore": 0.4
+        },
+        {
+          "file": "demo/backend/src/services/adminService.ts",
+          "line": 19,
+          "column": 5,
+          "reason": "Direct array/data return without envelope wrapper",
+          "deviationScore": 0.4
+        },
+        {
+          "file": "demo/frontend/src/types/api.ts",
+          "line": 10,
+          "column": 33,
+          "reason": "Response envelope is missing a data field",
+          "deviationScore": 0.4
+        },
+        {
+          "file": "demo/frontend/src/types/api.ts",
+          "line": 21,
+          "column": 27,
+          "reason": "Response envelope is missing a data field",
+          "deviationScore": 0.4
+        },
+        {
+          "file": "demo/frontend/src/types/api.ts",
+          "line": 13,
+          "column": 10,
+          "reason": "Response envelope is missing a data field",
+          "deviationScore": 0.4
+        }
+      ],
+      "metadata": {
+        "firstSeen": "2026-01-20T00:55:46.150Z",
+        "lastSeen": "2026-01-20T00:55:46.150Z",
+        "source": "auto-detected",
+        "tags": [
+          "api",
+          "response-envelope"
+        ]
+      },
+      "severity": "warning",
+      "autoFixable": false
+    }
+  ],
+  "lastUpdated": "2026-01-20T00:55:46.152Z",
+  "checksum": "e6475291027d1d4e"
+}

@@ -1,7 +1,7 @@
 /**
  * Core Scanner Integration Tests
  *
- * Tests the integration between the LSP server and @drift/core scanner.
+ * Tests the integration between the LSP server and driftdetect-core scanner.
  * Uses mock LSP client to verify diagnostics publishing and pattern detection.
  *
  * @requirements 27.1-27.7 - LSP Server Core Capabilities

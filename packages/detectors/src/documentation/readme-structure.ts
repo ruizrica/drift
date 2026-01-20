@@ -3,7 +3,7 @@
  * @requirements 21.2 - README structure patterns
  */
 
-import type { Violation, QuickFix, PatternCategory, Language } from '@drift/core';
+import type { Violation, QuickFix, PatternCategory, Language } from 'driftdetect-core';
 import { RegexDetector } from '../base/regex-detector.js';
 import type { DetectionContext, DetectionResult } from '../base/base-detector.js';
 
@@ -77,7 +77,22 @@ export class ReadmeStructureDetector extends RegexDetector {
     if (!this.supportsLanguage(context.language) && !context.file.toLowerCase().includes('readme')) return this.createEmptyResult();
     const analysis = analyzeReadmeStructure(context.content, context.file);
     if (analysis.patterns.length === 0 && analysis.violations.length === 0) return this.createEmptyResult();
-    return this.createResult([], [], analysis.confidence, { custom: { patterns: analysis.patterns, violations: analysis.violations, sectionCount: analysis.sectionCount, hasInstallation: analysis.hasInstallation, hasUsage: analysis.hasUsage } });
+    
+    // Convert internal violations to standard Violation format
+    const violations = this.convertViolationInfos(
+      analysis.violations.map((v) => ({
+        type: v.type,
+        file: v.file,
+        line: v.line,
+        column: v.column,
+        value: v.matchedText,
+        issue: v.issue,
+        suggestedFix: v.suggestedFix,
+        severity: v.severity === 'high' ? 'error' as const : v.severity === 'medium' ? 'warning' as const : 'info' as const,
+      }))
+    );
+    
+    return this.createResult([], violations, analysis.confidence, { custom: { patterns: analysis.patterns, sectionCount: analysis.sectionCount, hasInstallation: analysis.hasInstallation, hasUsage: analysis.hasUsage } });
   }
 
   generateQuickFix(_violation: Violation): QuickFix | null { return null; }

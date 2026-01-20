@@ -15,7 +15,7 @@
  * @requirements 12.5, 12.8 - Async error handling patterns
  */
 
-import type { Language } from '@drift/core';
+import type { Language } from 'driftdetect-core';
 import { RegexDetector, type DetectionContext, type DetectionResult } from '../base/index.js';
 
 // ============================================================================
@@ -68,30 +68,50 @@ export interface AsyncErrorAnalysis {
 // ============================================================================
 
 export const ASYNC_TRY_CATCH_PATTERNS = [
+  // JavaScript/TypeScript
   /async\s+function\s+\w+\s*\([^)]*\)\s*\{[\s\S]*?try\s*\{/gi,
   /async\s+\([^)]*\)\s*=>\s*\{[\s\S]*?try\s*\{/gi,
   /async\s+\w+\s*=\s*async\s*\([^)]*\)\s*=>\s*\{[\s\S]*?try\s*\{/gi,
+  // Python
+  /async\s+def\s+\w+\s*\([^)]*\)\s*:[\s\S]*?try\s*:/gi,
 ] as const;
 
 export const PROMISE_CATCH_PATTERNS = [
+  // JavaScript/TypeScript
   /\.catch\s*\(\s*(?:async\s*)?\(?[^)]*\)?\s*=>/gi,
   /\.catch\s*\(\s*function/gi,
   /\.catch\s*\(\s*\w+\s*\)/gi,
 ] as const;
 
 export const PROMISE_FINALLY_PATTERNS = [
+  // JavaScript/TypeScript
   /\.finally\s*\(\s*(?:async\s*)?\(?[^)]*\)?\s*=>/gi,
   /\.finally\s*\(\s*function/gi,
 ] as const;
 
 export const ERROR_BOUNDARY_PATTERNS = [
+  // JavaScript/TypeScript (React)
   /ErrorBoundary/gi,
   /componentDidCatch/gi,
   /getDerivedStateFromError/gi,
+  // Python (FastAPI/Starlette)
+  /exception_handler/gi,
+  /@app\.exception_handler/gi,
+  /HTTPException/gi,
 ] as const;
 
 export const FLOATING_PROMISE_PATTERNS = [
   /^\s*\w+\.\w+\s*\([^)]*\)\s*;?\s*$/gim,
+] as const;
+
+// Python-specific async patterns
+export const PYTHON_ASYNC_PATTERNS = [
+  /async\s+def\s+\w+/gi,
+  /await\s+\w+/gi,
+  /asyncio\.gather/gi,
+  /asyncio\.create_task/gi,
+  /async\s+with\s+/gi,
+  /async\s+for\s+/gi,
 ] as const;
 
 export const EXCLUDED_FILE_PATTERNS = [
@@ -247,14 +267,24 @@ export class AsyncErrorsDetector extends RegexDetector {
   readonly description = 'Detects async error handling patterns';
   readonly category = 'errors';
   readonly subcategory = 'async';
-  readonly supportedLanguages: Language[] = ['typescript', 'javascript'];
+  readonly supportedLanguages: Language[] = ['typescript', 'javascript', 'python'];
   
   async detect(context: DetectionContext): Promise<DetectionResult> {
     const { content, file } = context;
     if (shouldExcludeFile(file)) return this.createEmptyResult();
     
     const analysis = analyzeAsyncErrors(content, file);
-    return this.createResult([], [], analysis.confidence);
+    
+    // Convert internal violations to standard Violation format
+    const violations = this.convertViolationInfos(analysis.violations);
+    
+    return this.createResult([], violations, analysis.confidence, {
+      custom: {
+        patterns: analysis.patterns,
+        hasAsyncErrorHandling: analysis.hasAsyncErrorHandling,
+        hasPromiseCatch: analysis.hasPromiseCatch,
+      },
+    });
   }
   
   generateQuickFix(): null {

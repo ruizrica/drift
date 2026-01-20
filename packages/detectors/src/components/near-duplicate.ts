@@ -12,7 +12,7 @@
  * @requirements 8.4 - THE Component_Detector SHALL detect near-duplicate components that should be abstracted
  */
 
-import type { PatternMatch, Violation, QuickFix, Language, Range, ASTNode, AST } from '@drift/core';
+import type { PatternMatch, Violation, QuickFix, Language, Range, ASTNode, AST } from 'driftdetect-core';
 import { ASTDetector, type DetectionContext, type DetectionResult } from '../base/index.js';
 
 // ============================================================================
@@ -1591,5 +1591,3 @@ export function createNearDuplicateDetector(
 ): NearDuplicateDetector {
   return new NearDuplicateDetector(config);
 }
-
-export default NearDuplicateDetector;

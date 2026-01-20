@@ -11,7 +11,7 @@
  * @requirements 16.2 - SQL injection prevention patterns
  */
 
-import type { Violation, QuickFix, PatternCategory, Language } from '@drift/core';
+import type { Violation, QuickFix, PatternCategory, Language } from 'driftdetect-core';
 import { RegexDetector } from '../base/regex-detector.js';
 import type { DetectionContext, DetectionResult } from '../base/base-detector.js';
 
@@ -68,12 +68,20 @@ export interface SQLInjectionAnalysis {
 // ============================================================================
 
 export const PARAMETERIZED_QUERY_PATTERNS = [
+  // TypeScript/JavaScript patterns
   /\$\d+/g,
   /\?\s*(?:,\s*\?)*\s*\)/g,
   /:\w+/g,
   /\@\w+/g,
   /\.query\s*\(\s*['"`][^'"`]*\$\d+/gi,
   /\.query\s*\(\s*['"`][^'"`]*\?/gi,
+  // Python patterns - SQLAlchemy, psycopg2, sqlite3
+  /%s/g,
+  /%\(\w+\)s/g,
+  /:\w+/g,
+  /\.execute\s*\(\s*['"`][^'"`]*%s/gi,
+  /\.execute\s*\(\s*['"`][^'"`]*:\w+/gi,
+  /text\s*\(\s*['"`][^'"`]*:\w+/gi,
 ] as const;
 
 export const PREPARED_STATEMENT_PATTERNS = [
@@ -86,12 +94,23 @@ export const PREPARED_STATEMENT_PATTERNS = [
 ] as const;
 
 export const ORM_QUERY_PATTERNS = [
+  // TypeScript/JavaScript patterns
   /prisma\.\w+\.(findMany|findFirst|findUnique|create|update|delete|upsert)\s*\(/gi,
   /\.createQueryBuilder\s*\(/gi,
   /getRepository\s*\(\s*\w+\s*\)\.(find|save|delete)/gi,
   /sequelize\.query\s*\([^,]+,\s*\{[^}]*replacements/gi,
   /Model\.(findAll|findOne|create|update|destroy)\s*\(/gi,
   /knex\s*\(\s*['"`]\w+['"`]\s*\)/gi,
+  // Python patterns - SQLAlchemy, Django ORM, Supabase
+  /session\.query\s*\(/gi,
+  /\.filter\s*\(/gi,
+  /\.filter_by\s*\(/gi,
+  /objects\.filter\s*\(/gi,
+  /objects\.get\s*\(/gi,
+  /objects\.create\s*\(/gi,
+  /objects\.all\s*\(/gi,
+  /\.select\s*\(\s*\)\s*\.eq\s*\(/gi,
+  /supabase\.\w+\.(select|insert|update|delete)\s*\(/gi,
 ] as const;
 
 export const QUERY_BUILDER_PATTERNS = [
@@ -115,8 +134,13 @@ export const TAGGED_TEMPLATE_PATTERNS = [
 ] as const;
 
 export const STRING_CONCAT_VIOLATION_PATTERNS = [
+  // TypeScript/JavaScript patterns
   /['"`]\s*\+\s*\w+\s*\+\s*['"`].*(?:SELECT|INSERT|UPDATE|DELETE|FROM|WHERE)/gi,
   /(?:SELECT|INSERT|UPDATE|DELETE|FROM|WHERE).*['"`]\s*\+\s*\w+/gi,
+  // Python patterns - f-strings, format, % formatting in SQL
+  /f['"`].*(?:SELECT|INSERT|UPDATE|DELETE|FROM|WHERE).*\{/gi,
+  /['"`].*(?:SELECT|INSERT|UPDATE|DELETE).*['"`]\s*%\s*\(/gi,
+  /['"`].*(?:SELECT|INSERT|UPDATE|DELETE).*['"`]\.format\s*\(/gi,
 ] as const;
 
 export const TEMPLATE_LITERAL_VIOLATION_PATTERNS = [
@@ -463,7 +487,7 @@ export class SQLInjectionDetector extends RegexDetector {
     'Detects SQL injection prevention patterns and identifies potential vulnerabilities';
   readonly category: PatternCategory = 'security';
   readonly subcategory = 'sql-injection';
-  readonly supportedLanguages: Language[] = ['typescript', 'javascript'];
+  readonly supportedLanguages: Language[] = ['typescript', 'javascript', 'python'];
 
   async detect(context: DetectionContext): Promise<DetectionResult> {
     if (!this.supportsLanguage(context.language)) {
@@ -476,10 +500,17 @@ export class SQLInjectionDetector extends RegexDetector {
       return this.createEmptyResult();
     }
 
-    return this.createResult([], [], analysis.confidence, {
+    // Convert internal violations to standard Violation format
+    // Map severity: high -> error, medium -> warning, low -> info
+    const violations = analysis.violations.map(v => this.convertViolationInfo({
+      ...v,
+      severity: v.severity === 'high' ? 'error' : v.severity === 'medium' ? 'warning' : 'info',
+      value: v.matchedText,
+    }));
+
+    return this.createResult([], violations, analysis.confidence, {
       custom: {
         patterns: analysis.patterns,
-        violations: analysis.violations,
         hasParameterizedQueries: analysis.hasParameterizedQueries,
         usesORM: analysis.usesORM,
         hasViolations: analysis.hasViolations,

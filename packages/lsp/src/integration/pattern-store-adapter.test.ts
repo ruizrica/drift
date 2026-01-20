@@ -1,7 +1,7 @@
 /**
  * Pattern Store Adapter Integration Tests
  *
- * Tests the integration between the LSP server and @drift/core pattern store.
+ * Tests the integration between the LSP server and driftdetect-core pattern store.
  * Verifies approve, ignore, and variant operations persist correctly.
  *
  * @requirements 28.1-28.4 - LSP Server Commands

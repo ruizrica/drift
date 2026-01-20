@@ -10,7 +10,7 @@
  * @requirements 11.7 - Unprotected route detection
  */
 
-import type { Language } from '@drift/core';
+import type { Language } from 'driftdetect-core';
 import { RegexDetector, type DetectionContext, type DetectionResult } from '../base/index.js';
 
 export type AuthMiddlewareType = 'express-middleware' | 'nextjs-middleware' | 'route-guard' | 'session-check' | 'api-key-check' | 'jwt-verify';
@@ -47,12 +47,17 @@ export interface AuthMiddlewareAnalysis {
   unprotectedRoutes: number;
 }
 
-// Constants
+// Constants (JavaScript/TypeScript + Python)
 export const AUTH_MIDDLEWARE_PATTERNS = [
+  // JavaScript/TypeScript
   /(?:requireAuth|isAuthenticated|authenticate|authMiddleware|withAuth|protected)\s*[,(]/gi,
   /middleware\s*:\s*\[?[^}\]]*(?:auth|protect|guard)/gi,
   /app\.use\s*\([^)]*(?:passport|session|jwt|auth)/gi,
   /router\.use\s*\([^)]*(?:auth|protect|verify)/gi,
+  // Python FastAPI
+  /Depends\s*\(\s*(?:get_current_user|verify_token|auth_required)/gi,
+  /dependencies\s*=\s*\[[^\]]*(?:auth|verify|current_user)/gi,
+  /@(?:requires_auth|login_required|authenticated)/gi,
 ] as const;
 
 export const NEXTJS_MIDDLEWARE_PATTERNS = [
@@ -64,17 +69,27 @@ export const NEXTJS_MIDDLEWARE_PATTERNS = [
 ] as const;
 
 export const JWT_PATTERNS = [
+  // JavaScript/TypeScript
   /jwt\.verify\s*\(/gi,
   /jsonwebtoken/gi,
   /verifyToken\s*\(/gi,
   /decodeToken\s*\(/gi,
   /validateToken\s*\(/gi,
+  // Python
+  /jwt\.decode\s*\(/gi,
+  /PyJWT/gi,
+  /python-jose/gi,
+  /verify_token\s*\(/gi,
+  /decode_token\s*\(/gi,
 ] as const;
 
 export const ROUTE_PATTERNS = [
+  // JavaScript/TypeScript
   /app\.(get|post|put|patch|delete)\s*\(\s*['"`][^'"`]+['"`]/gi,
   /router\.(get|post|put|patch|delete)\s*\(\s*['"`][^'"`]+['"`]/gi,
   /export\s+async\s+function\s+(GET|POST|PUT|PATCH|DELETE)/gi,
+  // Python FastAPI
+  /@(?:app|router)\.(get|post|put|patch|delete)\s*\(\s*['"][^'"]+['"]/gi,
 ] as const;
 
 export const SENSITIVE_ROUTE_PATTERNS = [
@@ -211,7 +226,7 @@ export class AuthMiddlewareDetector extends RegexDetector {
   readonly description = 'Detects auth middleware patterns and unprotected routes';
   readonly category = 'auth';
   readonly subcategory = 'middleware';
-  readonly supportedLanguages: Language[] = ['typescript', 'javascript'];
+  readonly supportedLanguages: Language[] = ['typescript', 'javascript', 'python'];
   
   async detect(context: DetectionContext): Promise<DetectionResult> {
     const { content, file } = context;
@@ -220,7 +235,17 @@ export class AuthMiddlewareDetector extends RegexDetector {
     const analysis = analyzeAuthMiddleware(content, file);
     const confidence = analysis.hasAuthMiddleware ? 0.9 : 0.7;
     
-    return this.createResult([], [], confidence);
+    // Convert internal violations to standard Violation format
+    const violations = this.convertViolationInfos(analysis.violations);
+    
+    return this.createResult([], violations, confidence, {
+      custom: {
+        patterns: analysis.patterns,
+        hasAuthMiddleware: analysis.hasAuthMiddleware,
+        protectedRoutes: analysis.protectedRoutes,
+        unprotectedRoutes: analysis.unprotectedRoutes,
+      },
+    });
   }
   
   generateQuickFix(): null {

@@ -10,7 +10,7 @@
  * @requirements 15.6 - Metric naming patterns
  */
 
-import type { Violation, QuickFix, PatternCategory, Language } from '@drift/core';
+import type { Violation, QuickFix, PatternCategory, Language } from 'driftdetect-core';
 import { RegexDetector } from '../base/regex-detector.js';
 import type { DetectionContext, DetectionResult } from '../base/base-detector.js';
 
@@ -40,43 +40,62 @@ export interface MetricNamingAnalysis {
 }
 
 // ============================================================================
-// Patterns
+// Patterns (JavaScript/TypeScript + Python)
 // ============================================================================
 
 export const COUNTER_METRIC_PATTERNS = [
+  // JavaScript/TypeScript
   /Counter\s*\(\s*['"`]([^'"`]+)['"`]/gi,
   /createCounter\s*\(\s*['"`]([^'"`]+)['"`]/gi,
   /\.counter\s*\(\s*['"`]([^'"`]+)['"`]/gi,
   /_total\s*[=:]/gi,
   /_count\s*[=:]/gi,
+  // Python prometheus_client
+  /Counter\s*\(\s*['"]([^'"]+)['"]/gi,
+  /counter\.inc\s*\(/gi,
 ];
 
 export const GAUGE_METRIC_PATTERNS = [
+  // JavaScript/TypeScript
   /Gauge\s*\(\s*['"`]([^'"`]+)['"`]/gi,
   /createGauge\s*\(\s*['"`]([^'"`]+)['"`]/gi,
   /\.gauge\s*\(\s*['"`]([^'"`]+)['"`]/gi,
+  // Python prometheus_client
+  /Gauge\s*\(\s*['"]([^'"]+)['"]/gi,
+  /gauge\.set\s*\(/gi,
 ];
 
 export const HISTOGRAM_METRIC_PATTERNS = [
+  // JavaScript/TypeScript
   /Histogram\s*\(\s*['"`]([^'"`]+)['"`]/gi,
   /createHistogram\s*\(\s*['"`]([^'"`]+)['"`]/gi,
   /\.histogram\s*\(\s*['"`]([^'"`]+)['"`]/gi,
   /_bucket\s*[=:]/gi,
   /_duration/gi,
+  // Python prometheus_client
+  /Histogram\s*\(\s*['"]([^'"]+)['"]/gi,
+  /histogram\.observe\s*\(/gi,
 ];
 
 export const SUMMARY_METRIC_PATTERNS = [
+  // JavaScript/TypeScript
   /Summary\s*\(\s*['"`]([^'"`]+)['"`]/gi,
   /createSummary\s*\(\s*['"`]([^'"`]+)['"`]/gi,
   /\.summary\s*\(\s*['"`]([^'"`]+)['"`]/gi,
+  // Python prometheus_client
+  /Summary\s*\(\s*['"]([^'"]+)['"]/gi,
 ];
 
 export const METRIC_PREFIX_PATTERNS = [
+  // Both languages
   /http_request_/gi,
   /app_/gi,
   /service_/gi,
   /process_/gi,
   /nodejs_/gi,
+  // Python specific
+  /python_/gi,
+  /fastapi_/gi,
 ];
 
 // ============================================================================
@@ -159,7 +178,7 @@ export class MetricNamingDetector extends RegexDetector {
   readonly description = 'Detects metric naming convention patterns';
   readonly category: PatternCategory = 'logging';
   readonly subcategory = 'metric-naming';
-  readonly supportedLanguages: Language[] = ['typescript', 'javascript'];
+  readonly supportedLanguages: Language[] = ['typescript', 'javascript', 'python'];
 
   async detect(context: DetectionContext): Promise<DetectionResult> {
     if (!this.supportsLanguage(context.language)) {

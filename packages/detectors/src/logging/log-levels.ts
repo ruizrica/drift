@@ -9,7 +9,7 @@
  * @requirements 15.2 - Log level patterns
  */
 
-import type { Violation, QuickFix, PatternCategory, Language } from '@drift/core';
+import type { Violation, QuickFix, PatternCategory, Language } from 'driftdetect-core';
 import { RegexDetector } from '../base/regex-detector.js';
 import type { DetectionContext, DetectionResult } from '../base/base-detector.js';
 
@@ -40,47 +40,80 @@ export interface LogLevelAnalysis {
 }
 
 // ============================================================================
-// Patterns
+// Patterns (JavaScript/TypeScript + Python)
 // ============================================================================
 
 export const DEBUG_LEVEL_PATTERNS = [
+  // JavaScript/TypeScript
   /logger\.debug\s*\(/gi,
   /log\.debug\s*\(/gi,
   /console\.debug\s*\(/gi,
+  // Python
+  /logging\.debug\s*\(/gi,
+  /self\.logger\.debug\s*\(/gi,
+  /self\._logger\.debug\s*\(/gi,
 ];
 
 export const INFO_LEVEL_PATTERNS = [
+  // JavaScript/TypeScript
   /logger\.info\s*\(/gi,
   /log\.info\s*\(/gi,
   /console\.info\s*\(/gi,
+  // Python
+  /logging\.info\s*\(/gi,
+  /self\.logger\.info\s*\(/gi,
+  /self\._logger\.info\s*\(/gi,
 ];
 
 export const WARN_LEVEL_PATTERNS = [
+  // JavaScript/TypeScript
   /logger\.warn\s*\(/gi,
   /log\.warn\s*\(/gi,
   /console\.warn\s*\(/gi,
+  // Python (uses warning not warn)
+  /logger\.warning\s*\(/gi,
+  /logging\.warning\s*\(/gi,
+  /self\.logger\.warning\s*\(/gi,
 ];
 
 export const ERROR_LEVEL_PATTERNS = [
+  // JavaScript/TypeScript
   /logger\.error\s*\(/gi,
   /log\.error\s*\(/gi,
   /console\.error\s*\(/gi,
+  // Python
+  /logging\.error\s*\(/gi,
+  /self\.logger\.error\s*\(/gi,
+  /self\._logger\.error\s*\(/gi,
+  /logger\.exception\s*\(/gi,
+  /logging\.exception\s*\(/gi,
 ];
 
 export const FATAL_LEVEL_PATTERNS = [
+  // JavaScript/TypeScript
   /logger\.fatal\s*\(/gi,
   /log\.fatal\s*\(/gi,
+  // Python (uses critical)
+  /logger\.critical\s*\(/gi,
+  /logging\.critical\s*\(/gi,
+  /self\.logger\.critical\s*\(/gi,
 ];
 
 export const TRACE_LEVEL_PATTERNS = [
+  // JavaScript/TypeScript
   /logger\.trace\s*\(/gi,
   /log\.trace\s*\(/gi,
 ];
 
 export const LEVEL_CONFIG_PATTERNS = [
+  // JavaScript/TypeScript
   /level\s*:\s*['"`](?:debug|info|warn|error|fatal|trace)['"`]/gi,
   /LOG_LEVEL\s*[=:]/gi,
   /logLevel\s*[=:]/gi,
+  // Python
+  /logging\.basicConfig\s*\(/gi,
+  /setLevel\s*\(\s*logging\./gi,
+  /level\s*=\s*logging\./gi,
 ];
 
 // ============================================================================
@@ -170,7 +203,7 @@ export class LogLevelsDetector extends RegexDetector {
   readonly description = 'Detects log level usage patterns';
   readonly category: PatternCategory = 'logging';
   readonly subcategory = 'log-levels';
-  readonly supportedLanguages: Language[] = ['typescript', 'javascript'];
+  readonly supportedLanguages: Language[] = ['typescript', 'javascript', 'python'];
 
   async detect(context: DetectionContext): Promise<DetectionResult> {
     if (!this.supportsLanguage(context.language)) {

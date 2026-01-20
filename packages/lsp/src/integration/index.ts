@@ -1,7 +1,7 @@
 /**
  * Integration module exports
  *
- * Provides integration between @drift/lsp and @drift/core.
+ * Provides integration between @drift/lsp and driftdetect-core.
  * Connects the LSP server to the core scanner, pattern store,
  * and variant manager for full drift detection functionality.
  */

@@ -10,7 +10,7 @@
  * @requirements 13.2 - Repository pattern detection
  */
 
-import type { Violation, QuickFix, PatternCategory, Language } from '@drift/core';
+import type { Violation, QuickFix, PatternCategory, Language } from 'driftdetect-core';
 import { RegexDetector } from '../base/regex-detector.js';
 import type { DetectionContext, DetectionResult } from '../base/base-detector.js';
 
@@ -58,9 +58,14 @@ export interface RepositoryAnalysis {
 // ============================================================================
 
 export const REPOSITORY_CLASS_PATTERNS = [
+  // JavaScript/TypeScript
   /class\s+(\w+Repository)\s+(?:extends|implements)/gi,
   /class\s+(\w+Repository)\s*\{/gi,
   /export\s+class\s+(\w+Repository)/gi,
+  // Python
+  /class\s+(\w+Repository)\s*\(/gi,
+  /class\s+(\w+Repository)\s*:/gi,
+  /class\s+(\w+Repo)\s*\(/gi,
 ];
 
 export const REPOSITORY_INTERFACE_PATTERNS = [
@@ -87,8 +92,15 @@ export const BASE_REPOSITORY_PATTERNS = [
 ];
 
 export const DIRECT_DB_ACCESS_PATTERNS = [
+  // JavaScript/TypeScript
   /(?:prisma|db|database)\.\w+\.(find|create|update|delete)/gi,
   /getRepository\s*\(\s*\w+\s*\)\.(find|save|delete)/gi,
+  // Python
+  /session\.query\s*\(/gi,
+  /session\.execute\s*\(/gi,
+  /\.objects\.(get|filter|create|update|delete)/gi, // Django ORM
+  /supabase\.table\s*\(/gi,
+  /cursor\.execute\s*\(/gi,
 ];
 
 // ============================================================================
@@ -296,7 +308,7 @@ export class RepositoryPatternDetector extends RegexDetector {
   readonly description = 'Detects repository pattern usage and identifies direct database access violations';
   readonly category: PatternCategory = 'data-access';
   readonly subcategory = 'repository-pattern';
-  readonly supportedLanguages: Language[] = ['typescript', 'javascript'];
+  readonly supportedLanguages: Language[] = ['typescript', 'javascript', 'python'];
 
   async detect(context: DetectionContext): Promise<DetectionResult> {
     if (!this.supportsLanguage(context.language)) {
@@ -309,11 +321,21 @@ export class RepositoryPatternDetector extends RegexDetector {
       return this.createEmptyResult();
     }
 
+    // Convert internal violations to standard Violation format
+    const violations = analysis.violations.map(v => this.convertViolationInfo({
+      file: context.file,
+      line: v.line,
+      column: v.column,
+      type: v.type,
+      value: v.match,
+      issue: v.message,
+      severity: 'warning',
+    }));
+
     const confidence = analysis.hasRepositoryPattern ? 0.9 : 0.7;
-    return this.createResult([], [], confidence, {
+    return this.createResult([], violations, confidence, {
       custom: {
         patterns: analysis.patterns,
-        violations: analysis.violations,
         hasRepositoryPattern: analysis.hasRepositoryPattern,
         repositoryCount: analysis.repositoryCount,
       },

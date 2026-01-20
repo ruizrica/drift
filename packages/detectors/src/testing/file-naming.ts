@@ -9,7 +9,7 @@
  * @requirements 14.1 - Test file naming patterns
  */
 
-import type { Violation, QuickFix, PatternCategory, Language } from '@drift/core';
+import type { Violation, QuickFix, PatternCategory, Language } from 'driftdetect-core';
 import { RegexDetector } from '../base/regex-detector.js';
 import type { DetectionContext, DetectionResult } from '../base/base-detector.js';
 
@@ -44,6 +44,9 @@ export const TEST_SUFFIX_PATTERN = /\.test\.[jt]sx?$/;
 export const SPEC_SUFFIX_PATTERN = /\.spec\.[jt]sx?$/;
 export const TESTS_DIRECTORY_PATTERN = /__tests__\//;
 export const TEST_DIRECTORY_PATTERN = /\/tests?\//;
+// Python patterns
+export const PYTHON_TEST_PREFIX_PATTERN = /test_\w+\.py$/;
+export const PYTHON_TEST_SUFFIX_PATTERN = /\w+_test\.py$/;
 
 // ============================================================================
 // Analysis Functions
@@ -79,6 +82,23 @@ export function detectTestFileNaming(filePath: string): TestFileNamingPatternInf
       type: 'test-directory',
       filePath,
       convention: 'tests/',
+    };
+  }
+
+  // Python test file patterns
+  if (PYTHON_TEST_PREFIX_PATTERN.test(filePath)) {
+    return {
+      type: 'test-suffix',
+      filePath,
+      convention: 'test_*.py',
+    };
+  }
+
+  if (PYTHON_TEST_SUFFIX_PATTERN.test(filePath)) {
+    return {
+      type: 'test-suffix',
+      filePath,
+      convention: '*_test.py',
     };
   }
 
@@ -133,7 +153,7 @@ export class TestFileNamingDetector extends RegexDetector {
   readonly description = 'Detects test file naming conventions and consistency';
   readonly category: PatternCategory = 'testing';
   readonly subcategory = 'file-naming';
-  readonly supportedLanguages: Language[] = ['typescript', 'javascript'];
+  readonly supportedLanguages: Language[] = ['typescript', 'javascript', 'python'];
 
   async detect(context: DetectionContext): Promise<DetectionResult> {
     if (!this.supportsLanguage(context.language)) {

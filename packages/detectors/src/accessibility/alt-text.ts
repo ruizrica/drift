@@ -3,7 +3,7 @@
  * @requirements 20.6 - Alt text patterns
  */
 
-import type { Violation, QuickFix, PatternCategory, Language } from '@drift/core';
+import type { Violation, QuickFix, PatternCategory, Language } from 'driftdetect-core';
 import { RegexDetector } from '../base/regex-detector.js';
 import type { DetectionContext, DetectionResult } from '../base/base-detector.js';
 
@@ -103,7 +103,20 @@ export class AltTextDetector extends RegexDetector {
     if (!this.supportsLanguage(context.language)) return this.createEmptyResult();
     const analysis = analyzeAltText(context.content, context.file);
     if (analysis.patterns.length === 0 && analysis.violations.length === 0) return this.createEmptyResult();
-    return this.createResult([], [], analysis.confidence, { custom: { patterns: analysis.patterns, violations: analysis.violations, imgWithAltCount: analysis.imgWithAltCount, decorativeCount: analysis.decorativeCount } });
+    
+    // Convert internal violations to standard Violation format
+    const violations = analysis.violations.map(v => this.convertViolationInfo({
+      file: v.file,
+      line: v.line,
+      column: v.column,
+      type: v.type,
+      value: v.matchedText,
+      issue: v.issue,
+      suggestedFix: v.suggestedFix,
+      severity: v.severity === 'high' ? 'error' : v.severity === 'medium' ? 'warning' : 'info',
+    }));
+    
+    return this.createResult([], violations, analysis.confidence, { custom: { patterns: analysis.patterns, imgWithAltCount: analysis.imgWithAltCount, decorativeCount: analysis.decorativeCount } });
   }
 
   generateQuickFix(_violation: Violation): QuickFix | null { return null; }

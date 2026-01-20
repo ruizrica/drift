@@ -9,7 +9,7 @@
  * @requirements 13.6 - N+1 query detection
  */
 
-import type { Violation, QuickFix, PatternCategory, Language } from '@drift/core';
+import type { Violation, QuickFix, PatternCategory, Language } from 'driftdetect-core';
 import { RegexDetector } from '../base/regex-detector.js';
 import type { DetectionContext, DetectionResult } from '../base/base-detector.js';
 
@@ -55,19 +55,33 @@ export interface NPlusOneAnalysis {
 // ============================================================================
 
 export const EAGER_LOADING_PATTERNS = [
+  // JavaScript/TypeScript
   /include\s*:\s*\{/gi,
   /include\s*:\s*\[/gi,
   /\.include\s*\(/gi,
   /relations\s*:\s*\[/gi,
   /\.leftJoinAndSelect\s*\(/gi,
   /\.innerJoinAndSelect\s*\(/gi,
+  // Python SQLAlchemy
+  /joinedload\s*\(/gi,
+  /subqueryload\s*\(/gi,
+  /selectinload\s*\(/gi,
+  /\.options\s*\(\s*(?:joinedload|subqueryload|selectinload)/gi,
+  // Python Django
+  /\.select_related\s*\(/gi,
+  /\.prefetch_related\s*\(/gi,
 ];
 
 export const BATCH_QUERY_PATTERNS = [
+  // JavaScript/TypeScript
   /findMany\s*\(\s*\{\s*where\s*:\s*\{\s*\w+\s*:\s*\{\s*in\s*:/gi,
   /\.whereIn\s*\(/gi,
   /WHERE\s+\w+\s+IN\s*\(/gi,
   /\$in\s*:/gi,
+  // Python
+  /\.filter\s*\(\s*\w+__in\s*=/gi, // Django __in lookup
+  /\.in_\s*\(/gi, // SQLAlchemy in_()
+  /WHERE\s+\w+\s+IN\s*\(/gi,
 ];
 
 export const JOIN_QUERY_PATTERNS = [
@@ -86,10 +100,15 @@ export const PRELOAD_PATTERNS = [
 ];
 
 export const QUERY_IN_LOOP_PATTERNS = [
+  // JavaScript/TypeScript
   /for\s*\([^)]+\)\s*\{[^}]*(?:await\s+)?(?:prisma|db)\.\w+\.(find|create|update|delete)/gis,
   /\.forEach\s*\([^)]+\)\s*(?:=>)?\s*\{[^}]*(?:await\s+)?(?:prisma|db)\.\w+\./gis,
   /\.map\s*\([^)]+\)\s*(?:=>)?\s*\{[^}]*(?:await\s+)?(?:prisma|db)\.\w+\./gis,
   /while\s*\([^)]+\)\s*\{[^}]*(?:await\s+)?(?:prisma|db)\.\w+\./gis,
+  // Python
+  /for\s+\w+\s+in\s+[^:]+:[^}]*(?:session|db)\.\w+\.(query|execute|add)/gis,
+  /for\s+\w+\s+in\s+[^:]+:[^}]*\.objects\.(get|filter|create)/gis,
+  /for\s+\w+\s+in\s+[^:]+:[^}]*supabase\./gis,
 ];
 
 export const SEQUENTIAL_QUERY_PATTERNS = [
@@ -292,7 +311,7 @@ export class NPlusOneDetector extends RegexDetector {
   readonly description = 'Detects potential N+1 query problems and missing eager loading';
   readonly category: PatternCategory = 'data-access';
   readonly subcategory = 'n-plus-one';
-  readonly supportedLanguages: Language[] = ['typescript', 'javascript'];
+  readonly supportedLanguages: Language[] = ['typescript', 'javascript', 'python'];
 
   async detect(context: DetectionContext): Promise<DetectionResult> {
     if (!this.supportsLanguage(context.language)) {
@@ -305,11 +324,21 @@ export class NPlusOneDetector extends RegexDetector {
       return this.createEmptyResult();
     }
 
+    // Convert internal violations to standard Violation format
+    const violations = analysis.violations.map(v => this.convertViolationInfo({
+      file: context.file,
+      line: v.line,
+      column: v.column,
+      type: v.type,
+      value: v.match,
+      issue: v.message,
+      severity: 'warning',
+    }));
+
     const confidence = analysis.potentialNPlusOne ? 0.85 : 0.9;
-    return this.createResult([], [], confidence, {
+    return this.createResult([], violations, confidence, {
       custom: {
         patterns: analysis.patterns,
-        violations: analysis.violations,
         hasEagerLoading: analysis.hasEagerLoading,
         potentialNPlusOne: analysis.potentialNPlusOne,
       },

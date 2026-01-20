@@ -8,7 +8,7 @@
  * @requirements 8.7 - THE Component_Detector SHALL detect ref forwarding patterns
  */
 
-import type { PatternMatch, Violation, QuickFix, Language, Range, ASTNode } from '@drift/core';
+import type { PatternMatch, Violation, QuickFix, Language, Range, ASTNode } from 'driftdetect-core';
 import { ASTDetector, type DetectionContext, type DetectionResult } from '../base/index.js';
 
 // ============================================================================
@@ -1160,5 +1160,3 @@ export function createRefForwardingDetector(
 ): RefForwardingDetector {
   return new RefForwardingDetector(config);
 }
-
-export default RefForwardingDetector;

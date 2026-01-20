@@ -10,7 +10,7 @@
  * @requirements 17.6 - Environment detection patterns
  */
 
-import type { Violation, QuickFix, PatternCategory, Language } from '@drift/core';
+import type { Violation, QuickFix, PatternCategory, Language } from 'driftdetect-core';
 import { RegexDetector } from '../base/regex-detector.js';
 import type { DetectionContext, DetectionResult } from '../base/base-detector.js';
 
@@ -66,6 +66,7 @@ export interface EnvironmentDetectionAnalysis {
 // ============================================================================
 
 export const NODE_ENV_CHECK_PATTERNS = [
+  // JavaScript/TypeScript
   /process\.env\.NODE_ENV/gi,
   /import\.meta\.env\.MODE/gi,
   /import\.meta\.env\.DEV/gi,
@@ -73,9 +74,14 @@ export const NODE_ENV_CHECK_PATTERNS = [
   /process\.env\.APP_ENV/gi,
   /process\.env\.ENVIRONMENT/gi,
   /process\.env\.ENV/gi,
+  // Python
+  /os\.environ\[['"](?:ENV|ENVIRONMENT|APP_ENV)['"]\]/gi,
+  /os\.getenv\s*\(\s*['"](?:ENV|ENVIRONMENT|APP_ENV)['"]/gi,
+  /os\.environ\.get\s*\(\s*['"](?:ENV|ENVIRONMENT|APP_ENV)['"]/gi,
 ] as const;
 
 export const IS_DEVELOPMENT_PATTERNS = [
+  // JavaScript/TypeScript
   /process\.env\.NODE_ENV\s*[!=]==?\s*['"`]development['"`]/gi,
   /process\.env\.NODE_ENV\s*[!=]==?\s*['"`]dev['"`]/gi,
   /import\.meta\.env\.DEV/gi,
@@ -83,9 +89,17 @@ export const IS_DEVELOPMENT_PATTERNS = [
   /isDev\b/gi,
   /isDevMode/gi,
   /__DEV__/gi,
+  // Python
+  /os\.environ\.get\s*\(\s*['"]ENV['"]\s*\)\s*==\s*['"]development['"]/gi,
+  /os\.getenv\s*\(\s*['"]ENV['"]\s*\)\s*==\s*['"]development['"]/gi,
+  /is_development/gi,
+  /is_dev\b/gi,
+  /DEBUG\s*=\s*True/gi,
+  /settings\.DEBUG/gi,
 ] as const;
 
 export const IS_PRODUCTION_PATTERNS = [
+  // JavaScript/TypeScript
   /process\.env\.NODE_ENV\s*[!=]==?\s*['"`]production['"`]/gi,
   /process\.env\.NODE_ENV\s*[!=]==?\s*['"`]prod['"`]/gi,
   /import\.meta\.env\.PROD/gi,
@@ -93,9 +107,16 @@ export const IS_PRODUCTION_PATTERNS = [
   /isProd\b/gi,
   /isProdMode/gi,
   /__PROD__/gi,
+  // Python
+  /os\.environ\.get\s*\(\s*['"]ENV['"]\s*\)\s*==\s*['"]production['"]/gi,
+  /os\.getenv\s*\(\s*['"]ENV['"]\s*\)\s*==\s*['"]production['"]/gi,
+  /is_production/gi,
+  /is_prod\b/gi,
+  /DEBUG\s*=\s*False/gi,
 ] as const;
 
 export const IS_TEST_PATTERNS = [
+  // JavaScript/TypeScript
   /process\.env\.NODE_ENV\s*[!=]==?\s*['"`]test['"`]/gi,
   /process\.env\.NODE_ENV\s*[!=]==?\s*['"`]testing['"`]/gi,
   /isTest\b/gi,
@@ -104,6 +125,13 @@ export const IS_TEST_PATTERNS = [
   /__TEST__/gi,
   /process\.env\.JEST_WORKER_ID/gi,
   /process\.env\.VITEST/gi,
+  // Python
+  /os\.environ\.get\s*\(\s*['"]ENV['"]\s*\)\s*==\s*['"]test['"]/gi,
+  /os\.getenv\s*\(\s*['"]TESTING['"]\s*\)/gi,
+  /is_test\b/gi,
+  /is_testing/gi,
+  /TESTING\s*=\s*True/gi,
+  /pytest/gi,
 ] as const;
 
 export const ENV_BRANCHING_PATTERNS = [
@@ -126,6 +154,7 @@ export const ENV_SPECIFIC_IMPORT_PATTERNS = [
 ] as const;
 
 export const DEBUG_MODE_PATTERNS = [
+  // JavaScript/TypeScript
   /process\.env\.DEBUG/gi,
   /DEBUG\s*[=:]/gi,
   /isDebug/gi,
@@ -133,6 +162,15 @@ export const DEBUG_MODE_PATTERNS = [
   /enableDebug/gi,
   /debug\s*:\s*(?:true|false)/gi,
   /verbose\s*:\s*(?:true|false)/gi,
+  // Python
+  /os\.environ\.get\s*\(\s*['"]DEBUG['"]/gi,
+  /os\.getenv\s*\(\s*['"]DEBUG['"]/gi,
+  /is_debug/gi,
+  /debug_mode/gi,
+  /enable_debug/gi,
+  /DEBUG\s*=\s*(?:True|False)/gi,
+  /VERBOSE\s*=\s*(?:True|False)/gi,
+  /logging\.DEBUG/gi,
 ] as const;
 
 export const HARDCODED_ENV_PATTERNS = [
@@ -451,7 +489,7 @@ export class EnvironmentDetectionDetector extends RegexDetector {
     'Detects environment detection patterns';
   readonly category: PatternCategory = 'config';
   readonly subcategory = 'environment-detection';
-  readonly supportedLanguages: Language[] = ['typescript', 'javascript'];
+  readonly supportedLanguages: Language[] = ['typescript', 'javascript', 'python'];
 
   async detect(context: DetectionContext): Promise<DetectionResult> {
     if (!this.supportsLanguage(context.language)) {
@@ -464,10 +502,20 @@ export class EnvironmentDetectionDetector extends RegexDetector {
       return this.createEmptyResult();
     }
 
-    return this.createResult([], [], analysis.confidence, {
+    // Convert internal violations to standard Violation format
+    const violations = this.convertViolationInfos(analysis.violations.map(v => ({
+      file: v.file,
+      line: v.line,
+      column: v.column,
+      value: v.matchedText,
+      issue: v.issue,
+      suggestedFix: v.suggestedFix,
+      severity: v.severity === 'high' ? 'error' as const : v.severity === 'medium' ? 'warning' as const : 'info' as const,
+    })));
+
+    return this.createResult([], violations, analysis.confidence, {
       custom: {
         patterns: analysis.patterns,
-        violations: analysis.violations,
         hasEnvChecks: analysis.hasEnvChecks,
         environments: analysis.environments,
       },

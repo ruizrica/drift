@@ -31,7 +31,7 @@ export async function executeApprovePattern(
     logger.warn(`Pattern not found in cache: ${patternId}`);
   }
 
-  // TODO: Integrate with @drift/core pattern store to persist approval
+  // TODO: Integrate with driftdetect-core pattern store to persist approval
   // For now, we'll update the in-memory state
 
   // Remove violations for this pattern from all documents

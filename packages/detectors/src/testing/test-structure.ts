@@ -9,7 +9,7 @@
  * @requirements 14.3 - Test structure patterns
  */
 
-import type { Violation, QuickFix, PatternCategory, Language } from '@drift/core';
+import type { Violation, QuickFix, PatternCategory, Language } from 'driftdetect-core';
 import { RegexDetector } from '../base/regex-detector.js';
 import type { DetectionContext, DetectionResult } from '../base/base-detector.js';
 
@@ -59,16 +59,24 @@ export const IT_SHOULD_PATTERNS = [
 ];
 
 export const TEST_FUNCTION_PATTERNS = [
+  // JavaScript/TypeScript
   /test\s*\(\s*['"`]/gi,
   /it\s*\(\s*['"`]/gi,
   /it\.(?:only|skip|todo)\s*\(\s*['"`]/gi,
   /test\.(?:only|skip|todo)\s*\(\s*['"`]/gi,
+  // Python pytest
+  /def\s+test_\w+\s*\(/gi,
+  /@pytest\.mark\.\w+/gi,
 ];
 
 export const DESCRIBE_BLOCK_PATTERNS = [
+  // JavaScript/TypeScript
   /describe\s*\(\s*['"`]/gi,
   /describe\.(?:only|skip)\s*\(\s*['"`]/gi,
   /context\s*\(\s*['"`]/gi,
+  // Python pytest classes
+  /class\s+Test\w+\s*:/gi,
+  /class\s+\w+Test\s*:/gi,
 ];
 
 // ============================================================================
@@ -76,8 +84,15 @@ export const DESCRIBE_BLOCK_PATTERNS = [
 // ============================================================================
 
 export function shouldExcludeFile(filePath: string): boolean {
-  // Only analyze test files
-  return !/\.(test|spec)\.[jt]sx?$/.test(filePath) && !/__tests__\//.test(filePath);
+  // JavaScript/TypeScript test files
+  if (/\.(test|spec)\.[jt]sx?$/.test(filePath) || /__tests__\//.test(filePath)) {
+    return false;
+  }
+  // Python test files
+  if (/test_\w+\.py$/.test(filePath) || /\w+_test\.py$/.test(filePath)) {
+    return false;
+  }
+  return true;
 }
 
 export function detectAAAPattern(content: string): TestStructurePatternInfo[] {
@@ -238,7 +253,7 @@ export class TestStructureDetector extends RegexDetector {
   readonly description = 'Detects test structure patterns like AAA and Given-When-Then';
   readonly category: PatternCategory = 'testing';
   readonly subcategory = 'test-structure';
-  readonly supportedLanguages: Language[] = ['typescript', 'javascript'];
+  readonly supportedLanguages: Language[] = ['typescript', 'javascript', 'python'];
 
   async detect(context: DetectionContext): Promise<DetectionResult> {
     if (!this.supportsLanguage(context.language)) {

@@ -2,7 +2,7 @@
  * Base detector type definitions
  */
 
-import type { PatternMatch, Violation } from '@drift/core';
+import type { PatternMatch, Violation } from 'driftdetect-core';
 
 export interface DetectionContext {
   /** File being analyzed */

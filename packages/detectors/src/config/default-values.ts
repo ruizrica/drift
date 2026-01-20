@@ -10,7 +10,7 @@
  * @requirements 17.3 - Default value patterns
  */
 
-import type { Violation, QuickFix, PatternCategory, Language } from '@drift/core';
+import type { Violation, QuickFix, PatternCategory, Language } from 'driftdetect-core';
 import { RegexDetector } from '../base/regex-detector.js';
 import type { DetectionContext, DetectionResult } from '../base/base-detector.js';
 
@@ -65,6 +65,7 @@ export interface DefaultValueAnalysis {
 // ============================================================================
 
 export const HARDCODED_DEFAULT_PATTERNS = [
+  // JavaScript/TypeScript
   /\?\?\s*['"`][^'"`]+['"`]/gi,
   /\|\|\s*['"`][^'"`]+['"`]/gi,
   /\?\?\s*\d+/gi,
@@ -74,15 +75,28 @@ export const HARDCODED_DEFAULT_PATTERNS = [
   /default\s*[=:]\s*['"`][^'"`]+['"`]/gi,
   /default\s*[=:]\s*\d+/gi,
   /defaultValue\s*[=:]\s*['"`][^'"`]+['"`]/gi,
+  // Python
+  /\.get\s*\(\s*['"][^'"]+['"]\s*,\s*['"][^'"]+['"]\s*\)/gi,
+  /\.get\s*\(\s*['"][^'"]+['"]\s*,\s*\d+\s*\)/gi,
+  /or\s+['"][^'"]+['"]/gi,
+  /or\s+\d+/gi,
+  /default\s*=\s*['"][^'"]+['"]/gi,
+  /default\s*=\s*\d+/gi,
 ] as const;
 
 export const ENV_DEFAULT_PATTERNS = [
+  // JavaScript/TypeScript
   /process\.env\.[A-Z_]+\s*\?\?\s*process\.env\.[A-Z_]+/gi,
   /process\.env\.[A-Z_]+\s*\|\|\s*process\.env\.[A-Z_]+/gi,
   /\.default\s*\(\s*process\.env\.[A-Z_]+\s*\)/gi,
+  // Python
+  /os\.environ\.get\s*\(\s*['"][A-Z_]+['"]\s*,\s*os\.environ\.get/gi,
+  /os\.getenv\s*\(\s*['"][A-Z_]+['"]\s*,\s*os\.getenv/gi,
+  /os\.getenv\s*\(\s*['"][A-Z_]+['"]\s*\)\s*or\s*os\.getenv/gi,
 ] as const;
 
 export const COMPUTED_DEFAULT_PATTERNS = [
+  // JavaScript/TypeScript
   /\?\?\s*\w+\s*\(/gi, // Function call as default
   /\|\|\s*\w+\s*\(/gi,
   /\?\?\s*new\s+\w+/gi, // Constructor as default
@@ -91,6 +105,12 @@ export const COMPUTED_DEFAULT_PATTERNS = [
   /default\s*[=:]\s*function\s*\(/gi, // Function default
   /getDefault\w*\s*\(/gi,
   /createDefault\w*\s*\(/gi,
+  // Python
+  /or\s+\w+\s*\(/gi, // Function call as default
+  /default\s*=\s*\w+\s*\(/gi,
+  /default_factory\s*=\s*\w+/gi, // dataclass default_factory
+  /get_default\w*\s*\(/gi,
+  /create_default\w*\s*\(/gi,
 ] as const;
 
 export const FALLBACK_CHAIN_PATTERNS = [
@@ -107,6 +127,7 @@ export const CONDITIONAL_DEFAULT_PATTERNS = [
 ] as const;
 
 export const FACTORY_DEFAULT_PATTERNS = [
+  // JavaScript/TypeScript
   /createConfig\s*\(/gi,
   /getConfig\s*\(/gi,
   /loadConfig\s*\(/gi,
@@ -114,6 +135,15 @@ export const FACTORY_DEFAULT_PATTERNS = [
   /defaultConfig\s*[=:]/gi,
   /DEFAULT_CONFIG\s*[=:]/gi,
   /baseConfig\s*[=:]/gi,
+  // Python
+  /create_config\s*\(/gi,
+  /get_config\s*\(/gi,
+  /load_config\s*\(/gi,
+  /config_factory\s*\(/gi,
+  /default_config\s*=/gi,
+  /DEFAULT_CONFIG\s*=/gi,
+  /base_config\s*=/gi,
+  /class\s+\w*Settings\s*\(\s*BaseSettings\s*\)/gi, // Pydantic Settings
 ] as const;
 
 export const MAGIC_NUMBER_PATTERNS = [
@@ -445,7 +475,7 @@ export class DefaultValuesDetector extends RegexDetector {
     'Detects configuration default value patterns';
   readonly category: PatternCategory = 'config';
   readonly subcategory = 'default-values';
-  readonly supportedLanguages: Language[] = ['typescript', 'javascript'];
+  readonly supportedLanguages: Language[] = ['typescript', 'javascript', 'python'];
 
   async detect(context: DetectionContext): Promise<DetectionResult> {
     if (!this.supportsLanguage(context.language)) {
@@ -458,10 +488,20 @@ export class DefaultValuesDetector extends RegexDetector {
       return this.createEmptyResult();
     }
 
-    return this.createResult([], [], analysis.confidence, {
+    // Convert internal violations to standard Violation format
+    const violations = this.convertViolationInfos(analysis.violations.map(v => ({
+      file: v.file,
+      line: v.line,
+      column: v.column,
+      value: v.matchedText,
+      issue: v.issue,
+      suggestedFix: v.suggestedFix,
+      severity: v.severity === 'high' ? 'error' as const : v.severity === 'medium' ? 'warning' as const : 'info' as const,
+    })));
+
+    return this.createResult([], violations, analysis.confidence, {
       custom: {
         patterns: analysis.patterns,
-        violations: analysis.violations,
         hasHardcodedDefaults: analysis.hasHardcodedDefaults,
         hasEnvDefaults: analysis.hasEnvDefaults,
       },

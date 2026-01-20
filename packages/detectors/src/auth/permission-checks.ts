@@ -7,7 +7,7 @@
  * @requirements 11.3 - Permission check patterns
  */
 
-import type { Language } from '@drift/core';
+import type { Language } from 'driftdetect-core';
 import { RegexDetector, type DetectionContext, type DetectionResult } from '../base/index.js';
 
 export type PermissionPatternType = 'role-check' | 'capability-check' | 'permission-guard' | 'access-control';
@@ -189,14 +189,23 @@ export class PermissionChecksDetector extends RegexDetector {
   readonly description = 'Detects permission checking patterns';
   readonly category = 'auth';
   readonly subcategory = 'permissions';
-  readonly supportedLanguages: Language[] = ['typescript', 'javascript'];
+  readonly supportedLanguages: Language[] = ['typescript', 'javascript', 'python'];
   
   async detect(context: DetectionContext): Promise<DetectionResult> {
     const { content, file } = context;
     if (shouldExcludeFile(file)) return this.createEmptyResult();
     
     const analysis = analyzePermissions(content, file);
-    return this.createResult([], [], analysis.hasPermissionChecks ? 0.85 : 1.0);
+    
+    // Convert internal violations to standard Violation format
+    const violations = this.convertViolationInfos(analysis.violations);
+    
+    return this.createResult([], violations, analysis.hasPermissionChecks ? 0.85 : 1.0, {
+      custom: {
+        patterns: analysis.patterns,
+        hasPermissionChecks: analysis.hasPermissionChecks,
+      },
+    });
   }
   
   generateQuickFix(): null {

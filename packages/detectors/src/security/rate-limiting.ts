@@ -11,7 +11,7 @@
  * @requirements 16.7 - Rate limiting patterns
  */
 
-import type { Violation, QuickFix, PatternCategory, Language } from '@drift/core';
+import type { Violation, QuickFix, PatternCategory, Language } from 'driftdetect-core';
 import { RegexDetector } from '../base/regex-detector.js';
 import type { DetectionContext, DetectionResult } from '../base/base-detector.js';
 
@@ -72,6 +72,7 @@ export interface RateLimitAnalysis {
 // ============================================================================
 
 export const RATE_LIMITER_PATTERNS = [
+  // TypeScript/JavaScript patterns
   /rateLimit\s*\(/gi,
   /rateLimiter/gi,
   /RateLimiter/gi,
@@ -84,6 +85,14 @@ export const RATE_LIMITER_PATTERNS = [
   /RateLimit/gi,
   /slowDown\s*\(/gi,
   /express-slow-down/gi,
+  // Python patterns - FastAPI, Flask, Django
+  /slowapi/gi,
+  /Limiter\s*\(/gi,
+  /@limiter\.limit\s*\(/gi,
+  /RateLimitMiddleware/gi,
+  /flask_limiter/gi,
+  /django_ratelimit/gi,
+  /@ratelimit\s*\(/gi,
 ] as const;
 
 export const THROTTLE_PATTERNS = [
@@ -183,11 +192,19 @@ export const HARDCODED_LIMIT_PATTERNS = [
 ] as const;
 
 export const API_ENDPOINT_PATTERNS = [
+  // TypeScript/JavaScript patterns
   /app\.(?:get|post|put|patch|delete)\s*\(/gi,
   /router\.(?:get|post|put|patch|delete)\s*\(/gi,
   /@(?:Get|Post|Put|Patch|Delete)\s*\(/gi,
   /\.route\s*\(/gi,
   /fastify\.(?:get|post|put|patch|delete)\s*\(/gi,
+  // Python patterns - FastAPI, Flask, Django
+  /@app\.(?:get|post|put|patch|delete)\s*\(/gi,
+  /@router\.(?:get|post|put|patch|delete)\s*\(/gi,
+  /@api_view\s*\(\s*\[/gi,
+  /path\s*\(\s*['"`]/gi,
+  /url\s*\(\s*r?['"`]/gi,
+  /def\s+\w+\s*\(\s*request/gi,
 ] as const;
 
 // ============================================================================
@@ -642,7 +659,7 @@ export class RateLimitingDetector extends RegexDetector {
     'Detects rate limiting patterns and identifies missing or weak rate limits';
   readonly category: PatternCategory = 'security';
   readonly subcategory = 'rate-limiting';
-  readonly supportedLanguages: Language[] = ['typescript', 'javascript'];
+  readonly supportedLanguages: Language[] = ['typescript', 'javascript', 'python'];
 
   async detect(context: DetectionContext): Promise<DetectionResult> {
     if (!this.supportsLanguage(context.language)) {
@@ -655,10 +672,21 @@ export class RateLimitingDetector extends RegexDetector {
       return this.createEmptyResult();
     }
 
-    return this.createResult([], [], analysis.confidence, {
+    // Convert internal violations to standard Violation format
+    // Map severity: high -> error, medium -> warning, low -> info
+    const violations = analysis.violations.map(v => this.convertViolationInfo({
+      file: v.file,
+      line: v.line,
+      column: v.column,
+      value: v.matchedText,
+      issue: v.issue,
+      suggestedFix: v.suggestedFix,
+      severity: v.severity === 'high' ? 'error' : v.severity === 'medium' ? 'warning' : 'info',
+    }));
+
+    return this.createResult([], violations, analysis.confidence, {
       custom: {
         patterns: analysis.patterns,
-        violations: analysis.violations,
         hasRateLimiting: analysis.hasRateLimiting,
         usesRedis: analysis.usesRedis,
         algorithm: analysis.algorithm,

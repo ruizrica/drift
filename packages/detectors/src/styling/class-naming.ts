@@ -16,7 +16,7 @@
  * @requirements 9.5 - THE Styling_Detector SHALL detect CSS class naming conventions (BEM, utility-first)
  */
 
-import type { PatternMatch, Violation, QuickFix, Language } from '@drift/core';
+import type { PatternMatch, Violation, QuickFix, Language } from 'driftdetect-core';
 import { RegexDetector, type DetectionContext, type DetectionResult } from '../base/index.js';
 
 // ============================================================================
@@ -779,12 +779,17 @@ export function analyzeClassNaming(content: string, file: string): ClassNamingAn
   ];
 
   // Detect violations
+  // NOTE: We've disabled mixed convention detection because:
+  // 1. Modern projects often mix Tailwind utilities with component library classes (btn-primary, etc.)
+  // 2. This is intentional and not a violation - component libraries have their own naming conventions
+  // 3. The detector should focus on detecting patterns, not enforcing arbitrary rules
   const invalidBEMViolations = detectInvalidBEMPatterns(content, file);
-  const mixedConventionViolations = detectMixedConventions(allPatterns, file);
+  // Disabled: mixedConventionViolations - mixing Tailwind with component library classes is normal
+  // const mixedConventionViolations = detectMixedConventions(allPatterns, file);
 
   const allViolations = [
     ...invalidBEMViolations,
-    ...mixedConventionViolations,
+    // ...mixedConventionViolations, // Disabled - mixing conventions is normal in modern projects
   ];
 
   // Calculate confidence

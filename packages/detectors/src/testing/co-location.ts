@@ -9,7 +9,7 @@
  * @requirements 14.2 - Test co-location patterns
  */
 
-import type { Violation, QuickFix, PatternCategory, Language } from '@drift/core';
+import type { Violation, QuickFix, PatternCategory, Language } from 'driftdetect-core';
 import { RegexDetector } from '../base/regex-detector.js';
 import type { DetectionContext, DetectionResult } from '../base/base-detector.js';
 
@@ -42,7 +42,15 @@ export interface CoLocationAnalysis {
 // ============================================================================
 
 export function isTestFile(filePath: string): boolean {
-  return /\.(test|spec)\.[jt]sx?$/.test(filePath) || /__tests__\//.test(filePath);
+  // JavaScript/TypeScript
+  if (/\.(test|spec)\.[jt]sx?$/.test(filePath) || /__tests__\//.test(filePath)) {
+    return true;
+  }
+  // Python
+  if (/test_\w+\.py$/.test(filePath) || /\w+_test\.py$/.test(filePath) || /\/tests?\//.test(filePath)) {
+    return true;
+  }
+  return false;
 }
 
 export function getSourceFileForTest(testFile: string): string | null {
@@ -148,7 +156,7 @@ export class TestCoLocationDetector extends RegexDetector {
   readonly description = 'Detects test file co-location patterns and consistency';
   readonly category: PatternCategory = 'testing';
   readonly subcategory = 'co-location';
-  readonly supportedLanguages: Language[] = ['typescript', 'javascript'];
+  readonly supportedLanguages: Language[] = ['typescript', 'javascript', 'python'];
 
   async detect(context: DetectionContext): Promise<DetectionResult> {
     if (!this.supportsLanguage(context.language)) {

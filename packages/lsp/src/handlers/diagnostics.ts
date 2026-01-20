@@ -3,7 +3,7 @@
  *
  * Publishes diagnostics (squiggly lines) for pattern violations.
  * Manages diagnostic state and provides incremental updates.
- * Integrates with @drift/core scanner for pattern detection.
+ * Integrates with driftdetect-core scanner for pattern detection.
  *
  * @requirements 27.3 - THE LSP_Server SHALL publish diagnostics for violations
  * @requirements 27.7 - THE LSP_Server SHALL respond to diagnostics within 200ms of file change
@@ -12,7 +12,7 @@
 import type { Connection, Diagnostic, TextDocuments } from 'vscode-languageserver';
 import { DiagnosticSeverity } from 'vscode-languageserver';
 import type { TextDocument } from 'vscode-languageserver-textdocument';
-import type { Violation, Severity } from '@drift/core';
+import type { Violation, Severity } from 'driftdetect-core';
 import type { ViolationInfo } from '../types/lsp-types.js';
 import { CoreScanner, PatternStoreAdapter, type CoreIntegrationConfig } from '../integration/index.js';
 

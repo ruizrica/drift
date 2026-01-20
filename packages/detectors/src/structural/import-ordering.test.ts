@@ -51,7 +51,7 @@ describe('getImportType', () => {
     expect(getImportType('@/components/Button')).toBe('internal');
     expect(getImportType('~/utils/helpers')).toBe('internal');
     expect(getImportType('@app/services')).toBe('internal');
-    expect(getImportType('@drift/core')).toBe('internal');
+    expect(getImportType('driftdetect-core')).toBe('internal');
     expect(getImportType('#utils')).toBe('internal');
   });
 

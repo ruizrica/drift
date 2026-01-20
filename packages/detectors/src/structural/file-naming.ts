@@ -7,7 +7,7 @@
  * @requirements 7.1 - THE Structural_Detector SHALL detect file naming conventions
  */
 
-import type { PatternMatch, Violation, QuickFix, Language, Range } from '@drift/core';
+import type { PatternMatch, Violation, QuickFix, Language, Range } from 'driftdetect-core';
 import { StructuralDetector, type DetectionContext, type DetectionResult } from '../base/index.js';
 
 // ============================================================================
@@ -201,6 +201,17 @@ export class FileNamingDetector extends StructuralDetector {
   private createViolation(file: string, analysis: FileNamingAnalysis, dominant: NamingConvention): Violation | null {
     const fileName = file.split(/[/\\]/).pop() ?? '';
     if (this.isSpecialFile(fileName)) return null;
+    
+    // PascalCase is the standard convention for React components (.tsx/.jsx files)
+    // Don't flag PascalCase as a violation for these file types
+    if (analysis.convention === 'PascalCase' && this.isReactComponentFile(file)) {
+      return null;
+    }
+    
+    // camelCase is standard for React hooks (useXxx pattern)
+    if (analysis.convention === 'camelCase' && this.isReactHookFile(fileName)) {
+      return null;
+    }
     const suggested = analysis.suggestedName ?? convertToConvention(analysis.baseName, dominant) + (analysis.suffix ?? '') + analysis.extension;
     const range: Range = { start: { line: 1, character: 1 }, end: { line: 1, character: 1 } };
     return {
@@ -217,6 +228,17 @@ export class FileNamingDetector extends StructuralDetector {
       firstSeen: new Date(),
       occurrences: 1,
     };
+  }
+  
+  private isReactComponentFile(file: string): boolean {
+    // React components are typically .tsx or .jsx files
+    return /\.(tsx|jsx)$/.test(file);
+  }
+  
+  private isReactHookFile(fileName: string): boolean {
+    // React hooks follow the useXxx naming convention
+    const baseName = fileName.replace(/\.[^.]+$/, '');
+    return /^use[A-Z]/.test(baseName);
   }
 
   private checkSuffixPattern(file: string, analysis: FileNamingAnalysis): Violation | null {
@@ -258,4 +280,3 @@ export class FileNamingDetector extends StructuralDetector {
 }
 
 export function createFileNamingDetector(): FileNamingDetector { return new FileNamingDetector(); }
-export default FileNamingDetector;

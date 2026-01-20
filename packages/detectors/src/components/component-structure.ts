@@ -8,7 +8,7 @@
  * @requirements 8.1 - THE Component_Detector SHALL detect component file structure patterns (single file vs split)
  */
 
-import type { PatternMatch, Violation, QuickFix, Language, Range } from '@drift/core';
+import type { PatternMatch, Violation, QuickFix, Language, Range } from 'driftdetect-core';
 import { StructuralDetector, type DetectionContext, type DetectionResult } from '../base/index.js';
 
 // ============================================================================
@@ -687,5 +687,3 @@ export class ComponentStructureDetector extends StructuralDetector {
 export function createComponentStructureDetector(): ComponentStructureDetector {
   return new ComponentStructureDetector();
 }
-
-export default ComponentStructureDetector;

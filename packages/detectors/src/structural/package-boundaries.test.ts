@@ -104,8 +104,8 @@ function createMockPackage(
 
 describe('extractPackageName', () => {
   it('should extract scoped package names', () => {
-    expect(extractPackageName('@drift/core')).toBe('@drift/core');
-    expect(extractPackageName('@drift/core/utils')).toBe('@drift/core');
+    expect(extractPackageName('driftdetect-core')).toBe('driftdetect-core');
+    expect(extractPackageName('driftdetect-core/utils')).toBe('driftdetect-core');
     expect(extractPackageName('@org/package/deep/path')).toBe('@org/package');
   });
 
@@ -133,38 +133,38 @@ describe('extractPackageName', () => {
 
 describe('isInternalImport', () => {
   it('should detect /src/ path imports', () => {
-    expect(isInternalImport('@drift/core/src/utils')).toBe(true);
+    expect(isInternalImport('driftdetect-core/src/utils')).toBe(true);
     expect(isInternalImport('package-name/src/internal')).toBe(true);
   });
 
   it('should detect /lib/ path imports', () => {
-    expect(isInternalImport('@drift/core/lib/utils')).toBe(true);
+    expect(isInternalImport('driftdetect-core/lib/utils')).toBe(true);
     expect(isInternalImport('package-name/lib/internal')).toBe(true);
   });
 
   it('should detect /dist/ path imports', () => {
-    expect(isInternalImport('@drift/core/dist/utils')).toBe(true);
+    expect(isInternalImport('driftdetect-core/dist/utils')).toBe(true);
   });
 
   it('should detect /internal/ path imports', () => {
-    expect(isInternalImport('@drift/core/internal/utils')).toBe(true);
+    expect(isInternalImport('driftdetect-core/internal/utils')).toBe(true);
     expect(isInternalImport('package/path/internal/module')).toBe(true);
   });
 
   it('should detect /private/ path imports', () => {
-    expect(isInternalImport('@drift/core/private/utils')).toBe(true);
+    expect(isInternalImport('driftdetect-core/private/utils')).toBe(true);
     expect(isInternalImport('package/_private/module')).toBe(true);
   });
 
   it('should not flag public API imports', () => {
-    expect(isInternalImport('@drift/core')).toBe(false);
-    expect(isInternalImport('@drift/core/utils')).toBe(false);
+    expect(isInternalImport('driftdetect-core')).toBe(false);
+    expect(isInternalImport('driftdetect-core/utils')).toBe(false);
     expect(isInternalImport('lodash')).toBe(false);
     expect(isInternalImport('lodash/fp')).toBe(false);
   });
 
   it('should handle Windows-style paths', () => {
-    expect(isInternalImport('@drift/core\\src\\utils')).toBe(true);
+    expect(isInternalImport('driftdetect-core\\src\\utils')).toBe(true);
   });
 });
 
@@ -174,27 +174,27 @@ describe('isInternalImport', () => {
 
 describe('bypassesPublicApi', () => {
   it('should return false for direct package imports', () => {
-    expect(bypassesPublicApi('@drift/core', '@drift/core')).toBe(false);
+    expect(bypassesPublicApi('driftdetect-core', 'driftdetect-core')).toBe(false);
     expect(bypassesPublicApi('lodash', 'lodash')).toBe(false);
   });
 
   it('should detect src/ path bypasses', () => {
-    expect(bypassesPublicApi('@drift/core/src/utils', '@drift/core')).toBe(true);
+    expect(bypassesPublicApi('driftdetect-core/src/utils', 'driftdetect-core')).toBe(true);
     expect(bypassesPublicApi('package/src/internal', 'package')).toBe(true);
   });
 
   it('should detect lib/ path bypasses', () => {
-    expect(bypassesPublicApi('@drift/core/lib/utils', '@drift/core')).toBe(true);
+    expect(bypassesPublicApi('driftdetect-core/lib/utils', 'driftdetect-core')).toBe(true);
   });
 
   it('should detect internal/ path bypasses', () => {
-    expect(bypassesPublicApi('@drift/core/internal/utils', '@drift/core')).toBe(true);
-    expect(bypassesPublicApi('@drift/core/some/internal/path', '@drift/core')).toBe(true);
+    expect(bypassesPublicApi('driftdetect-core/internal/utils', 'driftdetect-core')).toBe(true);
+    expect(bypassesPublicApi('driftdetect-core/some/internal/path', 'driftdetect-core')).toBe(true);
   });
 
   it('should allow explicit subpath exports', () => {
     // Subpaths like /utils are allowed (they could be explicit exports)
-    expect(bypassesPublicApi('@drift/core/utils', '@drift/core')).toBe(false);
+    expect(bypassesPublicApi('driftdetect-core/utils', 'driftdetect-core')).toBe(false);
     expect(bypassesPublicApi('lodash/fp', 'lodash')).toBe(false);
   });
 });
@@ -279,14 +279,14 @@ describe('detectMonorepoPackages', () => {
 
 describe('findPackageForFile', () => {
   const packages: PackageInfo[] = [
-    createMockPackage('@drift/core', 'packages/core'),
+    createMockPackage('driftdetect-core', 'packages/core'),
     createMockPackage('@drift/cli', 'packages/cli'),
     createMockPackage('@drift/utils', 'packages/utils'),
   ];
 
   it('should find the correct package for a file', () => {
     const result = findPackageForFile('packages/core/src/index.ts', packages);
-    expect(result?.name).toBe('@drift/core');
+    expect(result?.name).toBe('driftdetect-core');
   });
 
   it('should find package for deeply nested files', () => {
@@ -301,17 +301,17 @@ describe('findPackageForFile', () => {
 
   it('should handle Windows-style paths', () => {
     const result = findPackageForFile('packages\\core\\src\\index.ts', packages);
-    expect(result?.name).toBe('@drift/core');
+    expect(result?.name).toBe('driftdetect-core');
   });
 
   it('should find the most specific package match', () => {
     const nestedPackages: PackageInfo[] = [
-      createMockPackage('@drift/core', 'packages/core'),
-      createMockPackage('@drift/core-utils', 'packages/core/utils'),
+      createMockPackage('driftdetect-core', 'packages/core'),
+      createMockPackage('driftdetect-core-utils', 'packages/core/utils'),
     ];
 
     const result = findPackageForFile('packages/core/utils/src/index.ts', nestedPackages);
-    expect(result?.name).toBe('@drift/core-utils');
+    expect(result?.name).toBe('driftdetect-core-utils');
   });
 });
 
@@ -321,17 +321,17 @@ describe('findPackageForFile', () => {
 
 describe('resolveImportToPackage', () => {
   const packages: PackageInfo[] = [
-    createMockPackage('@drift/core', 'packages/core'),
+    createMockPackage('driftdetect-core', 'packages/core'),
     createMockPackage('@drift/cli', 'packages/cli'),
   ];
 
   it('should resolve package imports by name', () => {
     const result = resolveImportToPackage(
-      '@drift/core',
+      'driftdetect-core',
       'packages/cli/src/index.ts',
       packages
     );
-    expect(result?.name).toBe('@drift/core');
+    expect(result?.name).toBe('driftdetect-core');
   });
 
   it('should resolve relative imports to packages', () => {
@@ -340,7 +340,7 @@ describe('resolveImportToPackage', () => {
       'packages/cli/src/index.ts',
       packages
     );
-    expect(result?.name).toBe('@drift/core');
+    expect(result?.name).toBe('driftdetect-core');
   });
 
   it('should return null for external packages', () => {
@@ -354,11 +354,11 @@ describe('resolveImportToPackage', () => {
 
   it('should handle package imports with subpaths', () => {
     const result = resolveImportToPackage(
-      '@drift/core/utils',
+      'driftdetect-core/utils',
       'packages/cli/src/index.ts',
       packages
     );
-    expect(result?.name).toBe('@drift/core');
+    expect(result?.name).toBe('driftdetect-core');
   });
 });
 
@@ -368,8 +368,8 @@ describe('resolveImportToPackage', () => {
 
 describe('isDeclaredDependency', () => {
   it('should return true for declared dependencies', () => {
-    const pkg = createMockPackage('@drift/cli', 'packages/cli', ['@drift/core']);
-    expect(isDeclaredDependency('@drift/core', pkg)).toBe(true);
+    const pkg = createMockPackage('@drift/cli', 'packages/cli', ['driftdetect-core']);
+    expect(isDeclaredDependency('driftdetect-core', pkg)).toBe(true);
   });
 
   it('should return true for declared devDependencies', () => {
@@ -386,7 +386,7 @@ describe('isDeclaredDependency', () => {
   });
 
   it('should return false for undeclared dependencies', () => {
-    const pkg = createMockPackage('@drift/cli', 'packages/cli', ['@drift/core']);
+    const pkg = createMockPackage('@drift/cli', 'packages/cli', ['driftdetect-core']);
     expect(isDeclaredDependency('@drift/utils', pkg)).toBe(false);
   });
 });
@@ -428,7 +428,7 @@ describe('analyzePackageBoundaries', () => {
     ];
 
     const imports = [
-      { source: '@drift/core/src/internal/utils', line: 1 },
+      { source: 'driftdetect-core/src/internal/utils', line: 1 },
     ];
 
     const result = analyzePackageBoundaries(
@@ -451,7 +451,7 @@ describe('analyzePackageBoundaries', () => {
     ];
 
     const imports = [
-      { source: '@drift/core/src/utils', line: 1 },
+      { source: 'driftdetect-core/src/utils', line: 1 },
     ];
 
     const result = analyzePackageBoundaries(
@@ -476,7 +476,7 @@ describe('analyzePackageBoundaries', () => {
     ];
 
     const imports = [
-      { source: '@drift/core', line: 1 },
+      { source: 'driftdetect-core', line: 1 },
     ];
 
     const result = analyzePackageBoundaries(
@@ -623,7 +623,7 @@ describe('PackageBoundariesDetector', () => {
       ];
 
       const content = `
-import { internalUtil } from '@drift/core/src/internal/utils';
+import { internalUtil } from 'driftdetect-core/src/internal/utils';
 
 export function main() {
   internalUtil();
@@ -634,7 +634,7 @@ export function main() {
         'packages/cli/src/index.ts',
         content,
         projectFiles,
-        [{ source: '@drift/core/src/internal/utils', line: 2 }]
+        [{ source: 'driftdetect-core/src/internal/utils', line: 2 }]
       );
 
       const result = await detector.detect(context);
@@ -652,7 +652,7 @@ export function main() {
       ];
 
       const content = `
-import { util } from '@drift/core';
+import { util } from 'driftdetect-core';
 
 export function main() {
   util();
@@ -663,7 +663,7 @@ export function main() {
         'packages/cli/src/index.ts',
         content,
         projectFiles,
-        [{ source: '@drift/core', line: 2 }]
+        [{ source: 'driftdetect-core', line: 2 }]
       );
 
       const result = await detector.detect(context);
@@ -733,8 +733,8 @@ export function main() {
       ];
 
       const content = `
-import { util } from '@drift/core/src/internal';
-import type { Type } from '@drift/core';
+import { util } from 'driftdetect-core/src/internal';
+import type { Type } from 'driftdetect-core';
 
 export function main() {
   util();
@@ -767,8 +767,8 @@ export function main() {
           end: { line: 1, character: 50 },
         },
         message: 'Import from internal path',
-        expected: "Use public API: import from '@drift/core'",
-        actual: "Import from '@drift/core/src/internal'",
+        expected: "Use public API: import from 'driftdetect-core'",
+        actual: "Import from 'driftdetect-core/src/internal'",
         aiExplainAvailable: true,
         aiFixAvailable: true,
         firstSeen: new Date(),

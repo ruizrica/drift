@@ -20,7 +20,7 @@
  * @requirements 10.4 - THE API_Detector SHALL detect error response format consistency
  */
 
-import type { Language } from '@drift/core';
+import type { Language } from 'driftdetect-core';
 import { RegexDetector, type DetectionContext, type DetectionResult } from '../base/index.js';
 
 // ============================================================================
@@ -747,7 +747,7 @@ export class ErrorFormatDetector extends RegexDetector {
   readonly description = 'Detects error response format patterns and consistency';
   readonly category = 'api';
   readonly subcategory = 'errors';
-  readonly supportedLanguages: Language[] = ['typescript', 'javascript'];
+  readonly supportedLanguages: Language[] = ['typescript', 'javascript', 'python'];
   
   async detect(context: DetectionContext): Promise<DetectionResult> {
     const { content, file } = context;
@@ -757,7 +757,17 @@ export class ErrorFormatDetector extends RegexDetector {
     }
     
     const analysis = analyzeErrorFormat(content, file);
-    return this.createResult([], [], analysis.patternAdherenceConfidence);
+    
+    // Convert internal violations to standard Violation format
+    const violations = this.convertViolationInfos(analysis.violations);
+    
+    return this.createResult([], violations, analysis.patternAdherenceConfidence, {
+      custom: {
+        errorPatterns: analysis.errorPatterns,
+        dominantFormat: analysis.dominantFormat,
+        usesConsistentFormat: analysis.usesConsistentFormat,
+      },
+    });
   }
   
   generateQuickFix(): null {

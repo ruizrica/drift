@@ -10,7 +10,7 @@
  * @requirements 14.7 - Setup/teardown patterns
  */
 
-import type { Violation, QuickFix, PatternCategory, Language } from '@drift/core';
+import type { Violation, QuickFix, PatternCategory, Language } from 'driftdetect-core';
 import { RegexDetector } from '../base/regex-detector.js';
 import type { DetectionContext, DetectionResult } from '../base/base-detector.js';
 
@@ -67,15 +67,29 @@ export const AFTER_ALL_PATTERNS = [
 ];
 
 export const SETUP_FUNCTION_PATTERNS = [
+  // JavaScript/TypeScript
   /(?:const|function)\s+setup\w*\s*[=:]/gi,
   /(?:const|function)\s+init\w*\s*[=:]/gi,
   /(?:const|function)\s+prepare\w*\s*[=:]/gi,
+  // Python pytest
+  /def\s+setup\s*\(/gi,
+  /def\s+setup_method\s*\(/gi,
+  /def\s+setup_class\s*\(/gi,
+  /def\s+setup_module\s*\(/gi,
+  /@pytest\.fixture.*\s+def\s+\w+/gi,
 ];
 
 export const CLEANUP_FUNCTION_PATTERNS = [
+  // JavaScript/TypeScript
   /(?:const|function)\s+cleanup\w*\s*[=:]/gi,
   /(?:const|function)\s+teardown\w*\s*[=:]/gi,
   /(?:const|function)\s+reset\w*\s*[=:]/gi,
+  // Python pytest
+  /def\s+teardown\s*\(/gi,
+  /def\s+teardown_method\s*\(/gi,
+  /def\s+teardown_class\s*\(/gi,
+  /def\s+teardown_module\s*\(/gi,
+  /yield\s+\w+/gi, // pytest fixture cleanup after yield
 ];
 
 // ============================================================================
@@ -83,7 +97,15 @@ export const CLEANUP_FUNCTION_PATTERNS = [
 // ============================================================================
 
 export function shouldExcludeFile(filePath: string): boolean {
-  return !/\.(test|spec)\.[jt]sx?$/.test(filePath) && !/__tests__\//.test(filePath);
+  // JavaScript/TypeScript test files
+  if (/\.(test|spec)\.[jt]sx?$/.test(filePath) || /__tests__\//.test(filePath)) {
+    return false;
+  }
+  // Python test files
+  if (/test_\w+\.py$/.test(filePath) || /\w+_test\.py$/.test(filePath) || /conftest\.py$/.test(filePath)) {
+    return false;
+  }
+  return true;
 }
 
 export function detectBeforeEach(content: string): SetupTeardownPatternInfo[] {
@@ -275,7 +297,7 @@ export class SetupTeardownDetector extends RegexDetector {
   readonly description = 'Detects test setup and teardown patterns';
   readonly category: PatternCategory = 'testing';
   readonly subcategory = 'setup-teardown';
-  readonly supportedLanguages: Language[] = ['typescript', 'javascript'];
+  readonly supportedLanguages: Language[] = ['typescript', 'javascript', 'python'];
 
   async detect(context: DetectionContext): Promise<DetectionResult> {
     if (!this.supportsLanguage(context.language)) {

@@ -9,7 +9,7 @@
  * @requirements 11.2 - Token handling patterns
  */
 
-import type { Language } from '@drift/core';
+import type { Language } from 'driftdetect-core';
 import { RegexDetector, type DetectionContext, type DetectionResult } from '../base/index.js';
 
 export type TokenPatternType = 'jwt-storage' | 'refresh-token' | 'token-validation' | 'token-extraction' | 'secure-cookie';
@@ -189,7 +189,7 @@ export class TokenHandlingDetector extends RegexDetector {
   readonly description = 'Detects token handling patterns and security issues';
   readonly category = 'auth';
   readonly subcategory = 'tokens';
-  readonly supportedLanguages: Language[] = ['typescript', 'javascript'];
+  readonly supportedLanguages: Language[] = ['typescript', 'javascript', 'python'];
   
   async detect(context: DetectionContext): Promise<DetectionResult> {
     const { content, file } = context;
@@ -198,7 +198,16 @@ export class TokenHandlingDetector extends RegexDetector {
     const analysis = analyzeTokenHandling(content, file);
     const confidence = analysis.usesSecureStorage ? 0.9 : 0.75;
     
-    return this.createResult([], [], confidence);
+    // Convert internal violations to standard Violation format
+    const violations = this.convertViolationInfos(analysis.violations);
+    
+    return this.createResult([], violations, confidence, {
+      custom: {
+        patterns: analysis.patterns,
+        usesSecureStorage: analysis.usesSecureStorage,
+        hasRefreshLogic: analysis.hasRefreshLogic,
+      },
+    });
   }
   
   generateQuickFix(): null {

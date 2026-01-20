@@ -16,7 +16,7 @@
  * @requirements 11.6 - Auth audit logging patterns
  */
 
-import type { Language } from '@drift/core';
+import type { Language } from 'driftdetect-core';
 import { RegexDetector, type DetectionContext, type DetectionResult } from '../base/index.js';
 
 // ============================================================================
@@ -74,11 +74,19 @@ export interface AuditAnalysis {
 // ============================================================================
 
 export const LOGIN_AUDIT_PATTERNS = [
+  // TypeScript/JavaScript patterns
   /audit(?:Log)?\.(?:login|signIn|authenticate)/gi,
   /log(?:ger)?\.(?:info|audit)\s*\([^)]*(?:login|sign[_-]?in|authenticated)/gi,
   /(?:login|auth)(?:Event|Audit|Log)/gi,
   /trackLogin/gi,
   /recordLogin/gi,
+  // Python patterns - snake_case, logging module
+  /audit_log\.(?:login|sign_in|authenticate)/gi,
+  /logger\.(?:info|audit)\s*\([^)]*(?:login|sign_in|authenticated)/gi,
+  /(?:login|auth)_(?:event|audit|log)/gi,
+  /track_login/gi,
+  /record_login/gi,
+  /log_authentication/gi,
 ] as const;
 
 export const LOGOUT_AUDIT_PATTERNS = [
@@ -106,20 +114,37 @@ export const ACCESS_AUDIT_PATTERNS = [
 ] as const;
 
 export const SECURITY_AUDIT_PATTERNS = [
+  // TypeScript/JavaScript patterns
   /audit(?:Log)?\.(?:security|breach|suspicious)/gi,
   /log(?:ger)?\.(?:warn|error|audit)\s*\([^)]*(?:security|breach|suspicious|threat)/gi,
   /(?:security)(?:Event|Alert|Audit|Log)/gi,
   /trackSecurityEvent/gi,
   /recordSecurityIncident/gi,
+  // Python patterns - snake_case
+  /audit_log\.(?:security|breach|suspicious)/gi,
+  /logger\.(?:warning|error|audit)\s*\([^)]*(?:security|breach|suspicious|threat)/gi,
+  /security_(?:event|alert|audit|log)/gi,
+  /track_security_event/gi,
+  /record_security_incident/gi,
+  /log_security_event/gi,
 ] as const;
 
 export const ACTION_AUDIT_PATTERNS = [
+  // TypeScript/JavaScript patterns
   /audit(?:Log)?\.(?:action|activity|event)/gi,
   /log(?:ger)?\.(?:info|audit)\s*\([^)]*(?:user\s*action|activity)/gi,
   /(?:user)?(?:Action|Activity)(?:Log|Audit)/gi,
   /trackUserAction/gi,
   /recordActivity/gi,
   /auditTrail/gi,
+  // Python patterns - snake_case
+  /audit_log\.(?:action|activity|event)/gi,
+  /logger\.(?:info|audit)\s*\([^)]*(?:user_action|activity)/gi,
+  /(?:user_)?(?:action|activity)_(?:log|audit)/gi,
+  /track_user_action/gi,
+  /record_activity/gi,
+  /audit_trail/gi,
+  /log_user_action/gi,
 ] as const;
 
 export const AUDIT_LIBRARY_PATTERNS = [
@@ -131,9 +156,15 @@ export const AUDIT_LIBRARY_PATTERNS = [
 ] as const;
 
 export const AUTH_EVENT_PATTERNS = [
+  // TypeScript/JavaScript patterns
   /(?:async\s+)?function\s+(?:login|signIn|authenticate)\s*\(/gi,
   /\.(?:login|signIn|authenticate)\s*=\s*(?:async\s*)?\(/gi,
   /export\s+(?:async\s+)?function\s+(?:login|signIn)/gi,
+  // Python patterns - def functions, async def
+  /(?:async\s+)?def\s+(?:login|sign_in|authenticate)\s*\(/gi,
+  /(?:async\s+)?def\s+(?:handle_login|process_login)\s*\(/gi,
+  /@router\.post\s*\(\s*['"`].*(?:login|auth|signin)/gi,
+  /@app\.post\s*\(\s*['"`].*(?:login|auth|signin)/gi,
 ] as const;
 
 export const EXCLUDED_FILE_PATTERNS = [
@@ -141,6 +172,9 @@ export const EXCLUDED_FILE_PATTERNS = [
   /\.spec\.[jt]sx?$/,
   /node_modules\//,
   /\.d\.ts$/,
+  /_test\.py$/,
+  /test_.*\.py$/,
+  /conftest\.py$/,
 ];
 
 // ============================================================================
@@ -407,14 +441,24 @@ export class AuditLoggingDetector extends RegexDetector {
   readonly description = 'Detects audit logging patterns for auth events';
   readonly category = 'auth';
   readonly subcategory = 'audit';
-  readonly supportedLanguages: Language[] = ['typescript', 'javascript'];
+  readonly supportedLanguages: Language[] = ['typescript', 'javascript', 'python'];
   
   async detect(context: DetectionContext): Promise<DetectionResult> {
     const { content, file } = context;
     if (shouldExcludeFile(file)) return this.createEmptyResult();
     
     const analysis = analyzeAuditLogging(content, file);
-    return this.createResult([], [], analysis.confidence);
+    
+    // Convert internal violations to standard Violation format
+    const violations = this.convertViolationInfos(analysis.violations);
+    
+    return this.createResult([], violations, analysis.confidence, {
+      custom: {
+        patterns: analysis.patterns,
+        hasAuditLogging: analysis.hasAuditLogging,
+        auditTypes: analysis.auditTypes,
+      },
+    });
   }
   
   generateQuickFix(): null {

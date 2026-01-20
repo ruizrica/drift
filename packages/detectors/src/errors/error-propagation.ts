@@ -15,7 +15,7 @@
  * @requirements 12.4 - Error propagation patterns
  */
 
-import type { Language } from '@drift/core';
+import type { Language } from 'driftdetect-core';
 import { RegexDetector, type DetectionContext, type DetectionResult } from '../base/index.js';
 
 // ============================================================================
@@ -69,33 +69,52 @@ export interface PropagationAnalysis {
 // ============================================================================
 
 export const RETHROW_PATTERNS = [
+  // JavaScript/TypeScript
   /throw\s+\w+;/gi,
   /throw\s+error;/gi,
   /throw\s+err;/gi,
   /throw\s+e;/gi,
+  // Python
+  /raise\s+\w+\s*$/gim,
+  /raise\s+e\s*$/gim,
+  /raise\s*$/gim,  // bare raise
 ] as const;
 
 export const WRAP_RETHROW_PATTERNS = [
+  // JavaScript/TypeScript
   /throw\s+new\s+\w+Error\s*\([^)]*,\s*\{\s*cause/gi,
   /throw\s+new\s+\w+\s*\([^)]*,\s*\{\s*cause/gi,
   /throw\s+new\s+Error\s*\([^)]*,\s*\{\s*cause/gi,
+  // Python - raise from
+  /raise\s+\w+\s*\([^)]*\)\s+from\s+\w+/gi,
 ] as const;
 
 export const TRANSFORM_PATTERNS = [
+  // JavaScript/TypeScript
   /throw\s+new\s+\w+Error\s*\(\s*\w+\.message/gi,
   /throw\s+new\s+\w+\s*\(\s*\w+\.message/gi,
   /throw\s+\w+Error\.from\s*\(/gi,
+  // Python
+  /raise\s+\w+\s*\(\s*str\s*\(\s*\w+\s*\)/gi,
 ] as const;
 
 export const CHAIN_PRESERVE_PATTERNS = [
+  // JavaScript/TypeScript
   /cause\s*:\s*\w+/gi,
   /\.cause\s*=\s*\w+/gi,
   /originalError\s*:\s*\w+/gi,
   /innerException\s*:\s*\w+/gi,
+  // Python
+  /from\s+\w+\s*$/gim,
+  /__cause__\s*=/gi,
+  /original_error\s*=/gi,
 ] as const;
 
 export const LOST_CONTEXT_PATTERNS = [
+  // JavaScript/TypeScript
   /catch\s*\([^)]*\)\s*\{[^}]*throw\s+new\s+Error\s*\(\s*['"`][^'"]+['"`]\s*\)/gi,
+  // Python - raise without from
+  /except[^:]*:\s*\n[^r]*raise\s+\w+\s*\([^)]*\)\s*(?!from)/gi,
 ] as const;
 
 export const EXCLUDED_FILE_PATTERNS = [
@@ -279,14 +298,24 @@ export class ErrorPropagationDetector extends RegexDetector {
   readonly description = 'Detects error propagation and bubbling patterns';
   readonly category = 'errors';
   readonly subcategory = 'propagation';
-  readonly supportedLanguages: Language[] = ['typescript', 'javascript'];
+  readonly supportedLanguages: Language[] = ['typescript', 'javascript', 'python'];
   
   async detect(context: DetectionContext): Promise<DetectionResult> {
     const { content, file } = context;
     if (shouldExcludeFile(file)) return this.createEmptyResult();
     
     const analysis = analyzeErrorPropagation(content, file);
-    return this.createResult([], [], analysis.confidence);
+    
+    // Convert internal violations to standard Violation format
+    const violations = this.convertViolationInfos(analysis.violations);
+    
+    return this.createResult([], violations, analysis.confidence, {
+      custom: {
+        patterns: analysis.patterns,
+        hasRethrow: analysis.hasRethrow,
+        preservesCause: analysis.preservesCause,
+      },
+    });
   }
   
   generateQuickFix(): null {

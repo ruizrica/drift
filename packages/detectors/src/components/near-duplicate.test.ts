@@ -46,7 +46,7 @@ import {
   type SimilarityBreakdown,
 } from './near-duplicate.js';
 import type { DetectionContext, ProjectContext } from '../base/index.js';
-import type { ASTNode } from '@drift/core';
+import type { ASTNode } from 'driftdetect-core';
 
 // ============================================================================
 // Test Helpers

@@ -10,7 +10,7 @@
  * @requirements 13.4 - Validation pattern detection
  */
 
-import type { Violation, QuickFix, PatternCategory, Language } from '@drift/core';
+import type { Violation, QuickFix, PatternCategory, Language } from 'driftdetect-core';
 import { RegexDetector } from '../base/regex-detector.js';
 import type { DetectionContext, DetectionResult } from '../base/base-detector.js';
 
@@ -84,6 +84,7 @@ export const JOI_PATTERNS = [
 ];
 
 export const CLASS_VALIDATOR_PATTERNS = [
+  // JavaScript/TypeScript
   /@IsString\s*\(/gi,
   /@IsNumber\s*\(/gi,
   /@IsEmail\s*\(/gi,
@@ -92,14 +93,30 @@ export const CLASS_VALIDATOR_PATTERNS = [
   /@IsOptional\s*\(/gi,
   /@Min\s*\(/gi,
   /@Max\s*\(/gi,
+  // Python Pydantic
+  /Field\s*\(/gi,
+  /validator\s*\(/gi,
+  /@validator\s*\(/gi,
+  /@field_validator\s*\(/gi,
+  /constr\s*\(/gi,
+  /conint\s*\(/gi,
+  /confloat\s*\(/gi,
+  /EmailStr/gi,
+  /HttpUrl/gi,
 ];
 
 export const MANUAL_VALIDATION_PATTERNS = [
+  // JavaScript/TypeScript
   /if\s*\(\s*!?\w+\s*(?:===?|!==?)\s*(?:undefined|null|''|"")\s*\)/gi,
   /typeof\s+\w+\s*(?:===?|!==?)\s*['"`](?:string|number|boolean)['"`]/gi,
   /Array\.isArray\s*\(/gi,
   /Number\.isNaN\s*\(/gi,
   /Number\.isFinite\s*\(/gi,
+  // Python
+  /isinstance\s*\(\s*\w+\s*,\s*(?:str|int|float|bool|list|dict)/gi,
+  /if\s+\w+\s+is\s+(?:None|not\s+None)/gi,
+  /if\s+not\s+\w+\s*:/gi,
+  /type\s*\(\s*\w+\s*\)\s*(?:==|is)/gi,
 ];
 
 export const VALIDATION_MIDDLEWARE_PATTERNS = [
@@ -334,7 +351,7 @@ export class ValidationPatternsDetector extends RegexDetector {
   readonly description = 'Detects input validation patterns and identifies inconsistencies';
   readonly category: PatternCategory = 'data-access';
   readonly subcategory = 'validation-patterns';
-  readonly supportedLanguages: Language[] = ['typescript', 'javascript'];
+  readonly supportedLanguages: Language[] = ['typescript', 'javascript', 'python'];
 
   async detect(context: DetectionContext): Promise<DetectionResult> {
     if (!this.supportsLanguage(context.language)) {
@@ -347,11 +364,21 @@ export class ValidationPatternsDetector extends RegexDetector {
       return this.createEmptyResult();
     }
 
+    // Convert internal violations to standard Violation format
+    const violations = analysis.violations.map(v => this.convertViolationInfo({
+      file: context.file,
+      line: v.line,
+      column: v.column,
+      type: v.type,
+      value: v.match,
+      issue: v.message,
+      severity: 'warning',
+    }));
+
     const confidence = analysis.hasValidation ? 0.9 : 0.7;
-    return this.createResult([], [], confidence, {
+    return this.createResult([], violations, confidence, {
       custom: {
         patterns: analysis.patterns,
-        violations: analysis.violations,
         dominantLibrary: analysis.dominantLibrary,
         hasValidation: analysis.hasValidation,
       },

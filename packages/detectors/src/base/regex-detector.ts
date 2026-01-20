@@ -7,7 +7,7 @@
  * @requirements 6.4 - THE Detector_System SHALL support detection methods: ast, regex, semantic, structural, and custom
  */
 
-import type { Location } from '@drift/core';
+import type { Location } from 'driftdetect-core';
 
 import { BaseDetector } from './base-detector.js';
 

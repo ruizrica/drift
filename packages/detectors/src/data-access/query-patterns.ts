@@ -10,7 +10,7 @@
  * @requirements 13.1 - Query builder vs raw SQL patterns
  */
 
-import type { Violation, QuickFix, PatternCategory, Language } from '@drift/core';
+import type { Violation, QuickFix, PatternCategory, Language } from 'driftdetect-core';
 import { RegexDetector } from '../base/regex-detector.js';
 import type { DetectionContext, DetectionResult } from '../base/base-detector.js';
 
@@ -78,23 +78,57 @@ export const KNEX_PATTERNS = [
 ];
 
 export const TYPEORM_PATTERNS = [
+  // JavaScript/TypeScript
   /getRepository\s*\(\s*\w+\s*\)/gi,
   /\.createQueryBuilder\s*\(/gi,
   /\.find\s*\(\s*\{/gi,
   /\.findOne\s*\(\s*\{/gi,
+  // Python SQLAlchemy (similar patterns)
+  /session\.query\s*\(/gi,
+  /Session\.query\s*\(/gi,
+  /\.filter\s*\(/gi,
+  /\.filter_by\s*\(/gi,
+  /\.all\s*\(\s*\)/gi,
+  /\.first\s*\(\s*\)/gi,
+  /\.one\s*\(\s*\)/gi,
+  /\.scalar\s*\(\s*\)/gi,
 ];
 
 export const SEQUELIZE_PATTERNS = [
+  // JavaScript/TypeScript
   /\w+\.findAll\s*\(\s*\{/gi,
   /\w+\.findOne\s*\(\s*\{/gi,
   /sequelize\.query\s*\(/gi,
+  // Python Django ORM
+  /\.objects\.all\s*\(/gi,
+  /\.objects\.filter\s*\(/gi,
+  /\.objects\.get\s*\(/gi,
+  /\.objects\.create\s*\(/gi,
+  /\.objects\.update\s*\(/gi,
+  /\.objects\.delete\s*\(/gi,
+  /\.objects\.exclude\s*\(/gi,
+  /\.objects\.annotate\s*\(/gi,
+  // Python Supabase
+  /supabase\.table\s*\(/gi,
+  /\.select\s*\(\s*['"][*'"]\s*\)/gi,
+  /\.insert\s*\(\s*\{/gi,
+  /\.update\s*\(\s*\{/gi,
+  /\.delete\s*\(\s*\)/gi,
+  /\.eq\s*\(/gi,
 ];
 
 export const RAW_SQL_PATTERNS = [
+  // JavaScript/TypeScript and Python (SQL is universal)
   /\bSELECT\s+.+\s+FROM\s+/gi,
   /\bINSERT\s+INTO\s+/gi,
   /\bUPDATE\s+\w+\s+SET\s+/gi,
   /\bDELETE\s+FROM\s+/gi,
+  // Python raw SQL execution
+  /cursor\.execute\s*\(/gi,
+  /connection\.execute\s*\(/gi,
+  /\.execute\s*\(\s*['"](?:SELECT|INSERT|UPDATE|DELETE)/gi,
+  /\.executemany\s*\(/gi,
+  /text\s*\(\s*['"](?:SELECT|INSERT|UPDATE|DELETE)/gi, // SQLAlchemy text()
 ];
 
 export const PARAMETERIZED_PATTERNS = [
@@ -104,9 +138,14 @@ export const PARAMETERIZED_PATTERNS = [
 ];
 
 export const STRING_CONCAT_PATTERNS = [
+  // JavaScript/TypeScript
   /['"`]\s*\+\s*\w+\s*\+\s*['"`].*(?:SELECT|INSERT|UPDATE|DELETE)/gi,
   /(?:SELECT|INSERT|UPDATE|DELETE).*['"`]\s*\+\s*\w+/gi,
   /`\$\{[^}]+\}`.*(?:SELECT|INSERT|UPDATE|DELETE)/gi,
+  // Python f-strings and format strings in SQL (dangerous!)
+  /f['"].*(?:SELECT|INSERT|UPDATE|DELETE).*\{[^}]+\}/gi,
+  /['"].*(?:SELECT|INSERT|UPDATE|DELETE).*['"]\.format\s*\(/gi,
+  /['"].*(?:SELECT|INSERT|UPDATE|DELETE).*['"].*%\s*\(/gi,
 ];
 
 // ============================================================================
@@ -329,7 +368,7 @@ export class QueryPatternsDetector extends RegexDetector {
   readonly description = 'Detects query builder vs raw SQL patterns and identifies unsafe query construction';
   readonly category: PatternCategory = 'data-access';
   readonly subcategory = 'query-patterns';
-  readonly supportedLanguages: Language[] = ['typescript', 'javascript'];
+  readonly supportedLanguages: Language[] = ['typescript', 'javascript', 'python'];
 
   async detect(context: DetectionContext): Promise<DetectionResult> {
     if (!this.supportsLanguage(context.language)) {
@@ -342,11 +381,21 @@ export class QueryPatternsDetector extends RegexDetector {
       return this.createEmptyResult();
     }
 
+    // Convert internal violations to standard Violation format
+    const violations = analysis.violations.map(v => this.convertViolationInfo({
+      file: context.file,
+      line: v.line,
+      column: v.column,
+      type: v.type,
+      value: v.match,
+      issue: v.message,
+      severity: v.type === 'string-concatenation' ? 'error' : 'warning',
+    }));
+
     const confidence = analysis.violations.length > 0 ? 0.9 : 0.85;
-    return this.createResult([], [], confidence, {
+    return this.createResult([], violations, confidence, {
       custom: {
         patterns: analysis.patterns,
-        violations: analysis.violations,
         dominantStyle: analysis.dominantStyle,
         usesMultipleStyles: analysis.usesMultipleStyles,
       },

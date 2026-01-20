@@ -11,7 +11,7 @@
  * @requirements 19.4 - Caching patterns
  */
 
-import type { Violation, QuickFix, PatternCategory, Language } from '@drift/core';
+import type { Violation, QuickFix, PatternCategory, Language } from 'driftdetect-core';
 import { RegexDetector } from '../base/regex-detector.js';
 import type { DetectionContext, DetectionResult } from '../base/base-detector.js';
 
@@ -119,6 +119,7 @@ export const SWR_PATTERNS = [
 ] as const;
 
 export const REDIS_CACHE_PATTERNS = [
+  // JavaScript/TypeScript
   /redis/gi,
   /ioredis/g,
   /createClient/g,
@@ -126,14 +127,31 @@ export const REDIS_CACHE_PATTERNS = [
   /\.set\s*\(/g,
   /\.setex\s*\(/g,
   /EXPIRE/g,
+  // Python
+  /redis\.Redis/gi,
+  /redis\.StrictRedis/gi,
+  /aioredis/gi,
+  /redis_client/gi,
+  /\.get\s*\(/g,
+  /\.set\s*\(/g,
+  /\.setex\s*\(/g,
 ] as const;
 
 export const MEMORY_CACHE_PATTERNS = [
+  // JavaScript/TypeScript
   /new\s+Map\s*\(/g,
   /new\s+WeakMap\s*\(/g,
   /lru-cache/g,
   /node-cache/g,
   /memory-cache/g,
+  // Python
+  /@lru_cache/g,
+  /@cache/g,
+  /functools\.lru_cache/g,
+  /functools\.cache/g,
+  /cachetools/gi,
+  /TTLCache/g,
+  /LRUCache/g,
 ] as const;
 
 export const LOCAL_STORAGE_PATTERNS = [
@@ -307,7 +325,7 @@ export class CachingPatternsDetector extends RegexDetector {
   readonly description = 'Detects caching patterns including HTTP, client, and server caching';
   readonly category: PatternCategory = 'performance';
   readonly subcategory = 'caching-patterns';
-  readonly supportedLanguages: Language[] = ['typescript', 'javascript'];
+  readonly supportedLanguages: Language[] = ['typescript', 'javascript', 'python'];
 
   async detect(context: DetectionContext): Promise<DetectionResult> {
     if (!this.supportsLanguage(context.language)) {
@@ -320,10 +338,20 @@ export class CachingPatternsDetector extends RegexDetector {
       return this.createEmptyResult();
     }
 
-    return this.createResult([], [], analysis.confidence, {
+    // Convert internal violations to standard Violation format
+    const violations = this.convertViolationInfos(analysis.violations.map(v => ({
+      file: v.file,
+      line: v.line,
+      column: v.column,
+      value: v.matchedText,
+      issue: v.issue,
+      suggestedFix: v.suggestedFix,
+      severity: v.severity === 'high' ? 'error' as const : v.severity === 'medium' ? 'warning' as const : 'info' as const,
+    })));
+
+    return this.createResult([], violations, analysis.confidence, {
       custom: {
         patterns: analysis.patterns,
-        violations: analysis.violations,
         httpCacheCount: analysis.httpCacheCount,
         clientCacheCount: analysis.clientCacheCount,
         usesReactQuery: analysis.usesReactQuery,

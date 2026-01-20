@@ -46,7 +46,7 @@ export async function executeCreateVariant(
     }
   }
 
-  // TODO: Integrate with @drift/core variant manager
+  // TODO: Integrate with driftdetect-core variant manager
   // For now, we'll create a variant with a generated name
 
   // Generate variant ID and name

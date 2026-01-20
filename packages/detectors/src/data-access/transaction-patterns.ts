@@ -10,7 +10,7 @@
  * @requirements 13.3 - Transaction pattern detection
  */
 
-import type { Violation, QuickFix, PatternCategory, Language } from '@drift/core';
+import type { Violation, QuickFix, PatternCategory, Language } from 'driftdetect-core';
 import { RegexDetector } from '../base/regex-detector.js';
 import type { DetectionContext, DetectionResult } from '../base/base-detector.js';
 
@@ -58,11 +58,19 @@ export interface TransactionAnalysis {
 // ============================================================================
 
 export const TRANSACTION_BLOCK_PATTERNS = [
+  // JavaScript/TypeScript
   /\$transaction\s*\(\s*(?:async\s*)?\(/gi,
   /\.transaction\s*\(\s*(?:async\s*)?\(/gi,
   /beginTransaction\s*\(/gi,
   /startTransaction\s*\(/gi,
   /withTransaction\s*\(/gi,
+  // Python
+  /with\s+\w+\.begin\s*\(\s*\)/gi, // SQLAlchemy context manager
+  /session\.begin\s*\(/gi,
+  /connection\.begin\s*\(/gi,
+  /@transaction\.atomic/gi, // Django decorator
+  /transaction\.atomic\s*\(/gi, // Django context manager
+  /with\s+transaction\.atomic/gi,
 ];
 
 export const TRANSACTION_DECORATOR_PATTERNS = [
@@ -71,15 +79,26 @@ export const TRANSACTION_DECORATOR_PATTERNS = [
 ];
 
 export const COMMIT_PATTERNS = [
+  // JavaScript/TypeScript
   /\.commit\s*\(/gi,
   /commitTransaction\s*\(/gi,
   /COMMIT/gi,
+  // Python
+  /session\.commit\s*\(/gi,
+  /connection\.commit\s*\(/gi,
+  /db\.commit\s*\(/gi,
 ];
 
 export const ROLLBACK_PATTERNS = [
+  // JavaScript/TypeScript
   /\.rollback\s*\(/gi,
   /rollbackTransaction\s*\(/gi,
   /ROLLBACK/gi,
+  // Python
+  /session\.rollback\s*\(/gi,
+  /connection\.rollback\s*\(/gi,
+  /db\.rollback\s*\(/gi,
+  /transaction\.rollback\s*\(/gi,
 ];
 
 export const SAVEPOINT_PATTERNS = [
@@ -89,9 +108,14 @@ export const SAVEPOINT_PATTERNS = [
 ];
 
 export const ISOLATION_LEVEL_PATTERNS = [
+  // JavaScript/TypeScript
   /isolationLevel\s*:\s*['"`]?\w+['"`]?/gi,
   /SET\s+TRANSACTION\s+ISOLATION\s+LEVEL/gi,
   /ReadCommitted|ReadUncommitted|RepeatableRead|Serializable/g,
+  // Python
+  /isolation_level\s*=/gi,
+  /ISOLATION_LEVEL_/gi,
+  /set_isolation_level\s*\(/gi,
 ];
 
 // ============================================================================
@@ -302,7 +326,7 @@ export class TransactionPatternsDetector extends RegexDetector {
   readonly description = 'Detects database transaction patterns and identifies potential issues';
   readonly category: PatternCategory = 'data-access';
   readonly subcategory = 'transaction-patterns';
-  readonly supportedLanguages: Language[] = ['typescript', 'javascript'];
+  readonly supportedLanguages: Language[] = ['typescript', 'javascript', 'python'];
 
   async detect(context: DetectionContext): Promise<DetectionResult> {
     if (!this.supportsLanguage(context.language)) {
@@ -315,11 +339,21 @@ export class TransactionPatternsDetector extends RegexDetector {
       return this.createEmptyResult();
     }
 
+    // Convert internal violations to standard Violation format
+    const violations = analysis.violations.map(v => this.convertViolationInfo({
+      file: context.file,
+      line: v.line,
+      column: v.column,
+      type: v.type,
+      value: v.match,
+      issue: v.message,
+      severity: 'warning',
+    }));
+
     const confidence = analysis.hasTransactions ? 0.9 : 0.7;
-    return this.createResult([], [], confidence, {
+    return this.createResult([], violations, confidence, {
       custom: {
         patterns: analysis.patterns,
-        violations: analysis.violations,
         hasTransactions: analysis.hasTransactions,
         transactionCount: analysis.transactionCount,
       },

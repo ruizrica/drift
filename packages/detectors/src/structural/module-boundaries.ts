@@ -8,7 +8,7 @@
  * @requirements 7.6 - THE Structural_Detector SHALL detect module boundary violations
  */
 
-import type { PatternMatch, Violation, QuickFix, Language, Range } from '@drift/core';
+import type { PatternMatch, Violation, QuickFix, Language, Range } from 'driftdetect-core';
 import { StructuralDetector, type DetectionContext, type DetectionResult } from '../base/index.js';
 
 // ============================================================================
@@ -816,5 +816,3 @@ export class ModuleBoundariesDetector extends StructuralDetector {
 export function createModuleBoundariesDetector(): ModuleBoundariesDetector {
   return new ModuleBoundariesDetector();
 }
-
-export default ModuleBoundariesDetector;

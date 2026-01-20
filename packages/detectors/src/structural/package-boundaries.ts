@@ -10,7 +10,7 @@
  * @requirements 7.8 - THE Structural_Detector SHALL detect package boundary violations in monorepos
  */
 
-import type { PatternMatch, Violation, QuickFix, Language, Range } from '@drift/core';
+import type { PatternMatch, Violation, QuickFix, Language, Range } from 'driftdetect-core';
 import { StructuralDetector, type DetectionContext, type DetectionResult } from '../base/index.js';
 
 // ============================================================================
@@ -35,7 +35,7 @@ export type PackageBoundarySeverity = 'error' | 'warning' | 'info';
  * Information about a detected package
  */
 export interface PackageInfo {
-  /** Package name (e.g., @drift/core) */
+  /** Package name (e.g., driftdetect-core) */
   name: string;
   /** Package directory path */
   path: string;
@@ -184,7 +184,7 @@ export function isInternalImport(importPath: string): boolean {
   }
 
   // Check for direct src/ access after package name
-  // e.g., @drift/core/src/internal or package-name/src/utils
+  // e.g., driftdetect-core/src/internal or package-name/src/utils
   const packageName = extractPackageName(importPath);
   if (packageName) {
     const afterPackage = importPath.slice(packageName.length);
@@ -211,8 +211,8 @@ export function bypassesPublicApi(importPath: string, packageName: string): bool
   // If the import has a subpath, check if it's accessing internal paths
   const subpath = importPath.slice(packageName.length);
   
-  // Allow explicit exports like @drift/core/utils (if exported)
-  // But flag internal paths like @drift/core/src/utils
+  // Allow explicit exports like driftdetect-core/utils (if exported)
+  // But flag internal paths like driftdetect-core/src/utils
   if (subpath.startsWith('/src/') || 
       subpath.startsWith('/lib/') ||
       subpath.startsWith('/dist/') ||
@@ -807,5 +807,3 @@ export class PackageBoundariesDetector extends StructuralDetector {
 export function createPackageBoundariesDetector(): PackageBoundariesDetector {
   return new PackageBoundariesDetector();
 }
-
-export default PackageBoundariesDetector;

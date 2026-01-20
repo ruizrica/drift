@@ -3,7 +3,7 @@
  * @requirements 20.4 - Focus management patterns
  */
 
-import type { Violation, QuickFix, PatternCategory, Language } from '@drift/core';
+import type { Violation, QuickFix, PatternCategory, Language } from 'driftdetect-core';
 import { RegexDetector } from '../base/regex-detector.js';
 import type { DetectionContext, DetectionResult } from '../base/base-detector.js';
 
@@ -89,7 +89,19 @@ export class FocusManagementDetector extends RegexDetector {
     if (!this.supportsLanguage(context.language)) return this.createEmptyResult();
     const analysis = analyzeFocusManagement(context.content, context.file);
     if (analysis.patterns.length === 0 && analysis.violations.length === 0) return this.createEmptyResult();
-    return this.createResult([], [], analysis.confidence, { custom: { patterns: analysis.patterns, violations: analysis.violations, focusPatternCount: analysis.focusPatternCount, hasFocusVisible: analysis.hasFocusVisible } });
+    
+    // Convert internal violations to standard Violation format
+    const violations = this.convertViolationInfos(analysis.violations.map(v => ({
+      file: v.file,
+      line: v.line,
+      column: v.column,
+      value: v.matchedText,
+      issue: v.issue,
+      suggestedFix: v.suggestedFix,
+      severity: v.severity === 'high' ? 'error' as const : v.severity === 'medium' ? 'warning' as const : 'info' as const,
+    })));
+    
+    return this.createResult([], violations, analysis.confidence, { custom: { patterns: analysis.patterns, focusPatternCount: analysis.focusPatternCount, hasFocusVisible: analysis.hasFocusVisible } });
   }
 
   generateQuickFix(_violation: Violation): QuickFix | null { return null; }

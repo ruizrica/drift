@@ -20,7 +20,7 @@
  * @requirements 10.3 - THE API_Detector SHALL detect response envelope patterns ({ data, error, meta })
  */
 
-import type { PatternMatch, Violation, QuickFix, Language } from '@drift/core';
+import type { PatternMatch, Violation, QuickFix, Language } from 'driftdetect-core';
 import { RegexDetector, type DetectionContext, type DetectionResult } from '../base/index.js';
 
 // ============================================================================
@@ -1145,7 +1145,7 @@ export class ResponseEnvelopeDetector extends RegexDetector {
   readonly subcategory = 'response-envelope';
   readonly name = 'Response Envelope Detector';
   readonly description = 'Detects response envelope patterns and flags inconsistencies';
-  readonly supportedLanguages: Language[] = ['typescript', 'javascript'];
+  readonly supportedLanguages: Language[] = ['typescript', 'javascript', 'python'];
 
   /**
    * Detect response envelope patterns and violations

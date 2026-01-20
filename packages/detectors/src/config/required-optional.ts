@@ -10,7 +10,7 @@
  * @requirements 17.2 - Required vs optional configuration patterns
  */
 
-import type { Violation, QuickFix, PatternCategory, Language } from '@drift/core';
+import type { Violation, QuickFix, PatternCategory, Language } from 'driftdetect-core';
 import { RegexDetector } from '../base/regex-detector.js';
 import type { DetectionContext, DetectionResult } from '../base/base-detector.js';
 
@@ -67,6 +67,7 @@ export interface RequiredOptionalAnalysis {
 // ============================================================================
 
 export const REQUIRED_ENV_PATTERNS = [
+  // JavaScript/TypeScript
   /process\.env\.[A-Z_]+\s*!\s*$/gm,
   /process\.env\.[A-Z_]+\s+as\s+string/gi,
   /if\s*\(\s*!process\.env\.[A-Z_]+\s*\)/gi,
@@ -75,18 +76,31 @@ export const REQUIRED_ENV_PATTERNS = [
   /\.required\s*\(\s*\)/gi,
   /assertEnv\s*\(/gi,
   /requireEnv\s*\(/gi,
+  // Python
+  /os\.environ\[['"]\w+['"]\]/gi, // Direct access without .get() is required
+  /if\s+not\s+os\.environ\.get\s*\(/gi,
+  /raise.*os\.environ/gi,
+  /assert\s+os\.environ/gi,
+  /assert_env\s*\(/gi,
+  /require_env\s*\(/gi,
 ] as const;
 
 export const OPTIONAL_ENV_PATTERNS = [
+  // JavaScript/TypeScript
   /process\.env\.[A-Z_]+\s*\?\?/gi,
   /process\.env\.[A-Z_]+\s*\|\|/gi,
   /process\.env\.[A-Z_]+\s*\?\./gi,
   /optional\s*:\s*true/gi,
   /\.optional\s*\(\s*\)/gi,
   /\.default\s*\(/gi,
+  // Python
+  /os\.environ\.get\s*\(/gi, // .get() with default is optional
+  /os\.getenv\s*\(/gi,
+  /\.get\s*\(\s*['"][A-Z_]+['"]\s*,/gi, // dict.get with default
 ] as const;
 
 export const DEFAULT_FALLBACK_PATTERNS = [
+  // JavaScript/TypeScript
   /process\.env\.[A-Z_]+\s*\?\?\s*['"`][^'"`]*['"`]/gi,
   /process\.env\.[A-Z_]+\s*\|\|\s*['"`][^'"`]*['"`]/gi,
   /process\.env\.[A-Z_]+\s*\?\?\s*\d+/gi,
@@ -94,6 +108,11 @@ export const DEFAULT_FALLBACK_PATTERNS = [
   /process\.env\.[A-Z_]+\s*\?\?\s*(?:true|false)/gi,
   /\.default\s*\(\s*['"`][^'"`]*['"`]\s*\)/gi,
   /\.default\s*\(\s*\d+\s*\)/gi,
+  // Python
+  /os\.environ\.get\s*\(\s*['"][A-Z_]+['"]\s*,\s*['"][^'"]*['"]\s*\)/gi,
+  /os\.getenv\s*\(\s*['"][A-Z_]+['"]\s*,\s*['"][^'"]*['"]\s*\)/gi,
+  /os\.getenv\s*\(\s*['"][A-Z_]+['"]\s*,\s*\d+\s*\)/gi,
+  /os\.getenv\s*\(\s*['"][A-Z_]+['"]\s*\)\s*or\s*['"][^'"]*['"]/gi,
 ] as const;
 
 export const NULLISH_COALESCING_PATTERNS = [
@@ -109,6 +128,7 @@ export const OR_OPERATOR_PATTERNS = [
 ] as const;
 
 export const TYPE_COERCION_PATTERNS = [
+  // JavaScript/TypeScript
   /parseInt\s*\(\s*process\.env\.[A-Z_]+/gi,
   /parseFloat\s*\(\s*process\.env\.[A-Z_]+/gi,
   /Number\s*\(\s*process\.env\.[A-Z_]+/gi,
@@ -118,6 +138,15 @@ export const TYPE_COERCION_PATTERNS = [
   /process\.env\.[A-Z_]+\s*===\s*['"`]1['"`]/gi,
   /\.transform\s*\(/gi,
   /\.coerce\s*\(/gi,
+  // Python
+  /int\s*\(\s*os\.environ/gi,
+  /int\s*\(\s*os\.getenv/gi,
+  /float\s*\(\s*os\.environ/gi,
+  /float\s*\(\s*os\.getenv/gi,
+  /bool\s*\(\s*os\.environ/gi,
+  /json\.loads\s*\(\s*os\.environ/gi,
+  /json\.loads\s*\(\s*os\.getenv/gi,
+  /\.lower\s*\(\s*\)\s*(?:==|in)\s*\(?['"]true['"]/gi,
 ] as const;
 
 export const VALIDATION_CHECK_PATTERNS = [
@@ -394,7 +423,7 @@ export class RequiredOptionalDetector extends RegexDetector {
     'Detects required vs optional configuration patterns';
   readonly category: PatternCategory = 'config';
   readonly subcategory = 'required-optional';
-  readonly supportedLanguages: Language[] = ['typescript', 'javascript'];
+  readonly supportedLanguages: Language[] = ['typescript', 'javascript', 'python'];
 
   async detect(context: DetectionContext): Promise<DetectionResult> {
     if (!this.supportsLanguage(context.language)) {
@@ -407,10 +436,20 @@ export class RequiredOptionalDetector extends RegexDetector {
       return this.createEmptyResult();
     }
 
-    return this.createResult([], [], analysis.confidence, {
+    // Convert internal violations to standard Violation format
+    const violations = this.convertViolationInfos(analysis.violations.map(v => ({
+      file: v.file,
+      line: v.line,
+      column: v.column,
+      value: v.matchedText,
+      issue: v.issue,
+      suggestedFix: v.suggestedFix,
+      severity: v.severity === 'high' ? 'error' as const : v.severity === 'medium' ? 'warning' as const : 'info' as const,
+    })));
+
+    return this.createResult([], violations, analysis.confidence, {
       custom: {
         patterns: analysis.patterns,
-        violations: analysis.violations,
         hasRequiredChecks: analysis.hasRequiredChecks,
         hasDefaults: analysis.hasDefaults,
       },

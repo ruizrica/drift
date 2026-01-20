@@ -18,7 +18,7 @@
  * @requirements 10.5 - THE API_Detector SHALL detect pagination patterns (cursor vs offset)
  */
 
-import type { Language } from '@drift/core';
+import type { Language } from 'driftdetect-core';
 import { RegexDetector, type DetectionContext, type DetectionResult } from '../base/index.js';
 
 // ============================================================================
@@ -643,7 +643,7 @@ export class PaginationDetector extends RegexDetector {
   readonly description = 'Detects pagination patterns (cursor vs offset)';
   readonly category = 'api';
   readonly subcategory = 'pagination';
-  readonly supportedLanguages: Language[] = ['typescript', 'javascript'];
+  readonly supportedLanguages: Language[] = ['typescript', 'javascript', 'python'];
   
   async detect(context: DetectionContext): Promise<DetectionResult> {
     const { content, file } = context;
@@ -653,7 +653,18 @@ export class PaginationDetector extends RegexDetector {
     }
     
     const analysis = analyzePagination(content, file);
-    return this.createResult([], [], analysis.patternAdherenceConfidence);
+    
+    // Convert internal violations to standard Violation format
+    const violations = this.convertViolationInfos(analysis.violations);
+    
+    return this.createResult([], violations, analysis.patternAdherenceConfidence, {
+      custom: {
+        paginationPatterns: analysis.paginationPatterns,
+        dominantFormat: analysis.dominantFormat,
+        usesConsistentFormat: analysis.usesConsistentFormat,
+        hasListEndpoints: analysis.hasListEndpoints,
+      },
+    });
   }
   
   generateQuickFix(): null {

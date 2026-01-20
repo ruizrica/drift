@@ -10,7 +10,7 @@
  * @requirements 14.4 - Mock patterns
  */
 
-import type { Violation, QuickFix, PatternCategory, Language } from '@drift/core';
+import type { Violation, QuickFix, PatternCategory, Language } from 'driftdetect-core';
 import { RegexDetector } from '../base/regex-detector.js';
 import type { DetectionContext, DetectionResult } from '../base/base-detector.js';
 
@@ -78,10 +78,19 @@ export const SINON_SPY_PATTERNS = [
 ];
 
 export const MANUAL_MOCK_PATTERNS = [
+  // JavaScript/TypeScript
   /__mocks__\//gi,
   /\.mock\.[jt]sx?$/gi,
   /createMock\s*\(/gi,
   /mockFactory\s*\(/gi,
+  // Python
+  /from\s+unittest\.mock\s+import/gi,
+  /from\s+unittest\s+import\s+mock/gi,
+  /@patch\s*\(/gi,
+  /patch\s*\(/gi,
+  /MagicMock\s*\(/gi,
+  /Mock\s*\(/gi,
+  /create_autospec\s*\(/gi,
 ];
 
 export const MOCK_IMPLEMENTATION_PATTERNS = [
@@ -95,7 +104,15 @@ export const MOCK_IMPLEMENTATION_PATTERNS = [
 // ============================================================================
 
 export function shouldExcludeFile(filePath: string): boolean {
-  return !/\.(test|spec)\.[jt]sx?$/.test(filePath) && !/__tests__\//.test(filePath);
+  // JavaScript/TypeScript test files
+  if (/\.(test|spec)\.[jt]sx?$/.test(filePath) || /__tests__\//.test(filePath)) {
+    return false;
+  }
+  // Python test files
+  if (/test_\w+\.py$/.test(filePath) || /\w+_test\.py$/.test(filePath) || /conftest\.py$/.test(filePath)) {
+    return false;
+  }
+  return true;
 }
 
 export function detectJestMocks(content: string): MockPatternInfo[] {
@@ -281,7 +298,7 @@ export class MockPatternsDetector extends RegexDetector {
   readonly description = 'Detects test mocking patterns and libraries';
   readonly category: PatternCategory = 'testing';
   readonly subcategory = 'mock-patterns';
-  readonly supportedLanguages: Language[] = ['typescript', 'javascript'];
+  readonly supportedLanguages: Language[] = ['typescript', 'javascript', 'python'];
 
   async detect(context: DetectionContext): Promise<DetectionResult> {
     if (!this.supportsLanguage(context.language)) {

@@ -1,10 +1,10 @@
 /**
  * Integration Types
  *
- * Types for the integration between @drift/lsp and @drift/core.
+ * Types for the integration between @drift/lsp and driftdetect-core.
  */
 
-import type { Pattern, PatternCategory } from '@drift/core';
+import type { Pattern, PatternCategory } from 'driftdetect-core';
 import type { ViolationInfo, PatternInfo } from '../types/lsp-types.js';
 
 /**
@@ -177,7 +177,7 @@ export interface CreateVariantInput {
 }
 
 /**
- * Convert a @drift/core Pattern to LSP PatternInfo
+ * Convert a driftdetect-core Pattern to LSP PatternInfo
  */
 export function patternToInfo(pattern: Pattern): PatternInfo {
   const info: PatternInfo = {

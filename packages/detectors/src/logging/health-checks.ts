@@ -9,7 +9,7 @@
  * @requirements 15.7 - Health check patterns
  */
 
-import type { Violation, QuickFix, PatternCategory, Language } from '@drift/core';
+import type { Violation, QuickFix, PatternCategory, Language } from 'driftdetect-core';
 import { RegexDetector } from '../base/regex-detector.js';
 import type { DetectionContext, DetectionResult } from '../base/base-detector.js';
 
@@ -39,43 +39,68 @@ export interface HealthCheckAnalysis {
 }
 
 // ============================================================================
-// Patterns
+// Patterns (JavaScript/TypeScript + Python)
 // ============================================================================
 
 export const HEALTH_ENDPOINT_PATTERNS = [
+  // Both languages - URL patterns
   /['"`]\/health['"`]/gi,
   /['"`]\/healthz['"`]/gi,
   /['"`]\/health\/live['"`]/gi,
   /['"`]\/health\/ready['"`]/gi,
   /['"`]\/_health['"`]/gi,
+  // Python FastAPI
+  /@(?:app|router)\.get\s*\(\s*['"`]\/health/gi,
 ];
 
 export const LIVENESS_PROBE_PATTERNS = [
+  // Both languages
   /liveness/gi,
   /\/live/gi,
   /isAlive/gi,
   /livenessProbe/gi,
+  // Python
+  /is_alive/gi,
+  /liveness_probe/gi,
 ];
 
 export const READINESS_PROBE_PATTERNS = [
+  // Both languages
   /readiness/gi,
   /\/ready/gi,
   /isReady/gi,
   /readinessProbe/gi,
+  // Python
+  /is_ready/gi,
+  /readiness_probe/gi,
 ];
 
 export const HEALTH_CHECK_FUNCTION_PATTERNS = [
+  // JavaScript/TypeScript
   /healthCheck\s*\(/gi,
   /checkHealth\s*\(/gi,
   /getHealth\s*\(/gi,
   /healthStatus\s*\(/gi,
+  // Python
+  /health_check\s*\(/gi,
+  /check_health\s*\(/gi,
+  /get_health\s*\(/gi,
+  /health_status\s*\(/gi,
+  /async def health/gi,
 ];
 
 export const DEPENDENCY_CHECK_PATTERNS = [
+  // JavaScript/TypeScript
   /checkDatabase\s*\(/gi,
   /checkRedis\s*\(/gi,
   /checkDependencies\s*\(/gi,
   /pingDatabase\s*\(/gi,
+  // Python
+  /check_database\s*\(/gi,
+  /check_redis\s*\(/gi,
+  /check_dependencies\s*\(/gi,
+  /ping_database\s*\(/gi,
+  /\.ping\s*\(/gi,
 ];
 
 // ============================================================================
@@ -160,7 +185,7 @@ export class HealthChecksDetector extends RegexDetector {
   readonly description = 'Detects health check patterns';
   readonly category: PatternCategory = 'logging';
   readonly subcategory = 'health-checks';
-  readonly supportedLanguages: Language[] = ['typescript', 'javascript'];
+  readonly supportedLanguages: Language[] = ['typescript', 'javascript', 'python'];
 
   async detect(context: DetectionContext): Promise<DetectionResult> {
     if (!this.supportsLanguage(context.language)) {
