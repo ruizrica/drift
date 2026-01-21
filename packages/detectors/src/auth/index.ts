@@ -269,3 +269,10 @@ export {
   TokenHandlingSemanticDetector,
   createTokenHandlingSemanticDetector,
 } from './token-handling-semantic.js';
+
+
+// ============================================================================
+// ASP.NET Core Auth Detectors (C#-specific)
+// ============================================================================
+
+export * from './aspnet/index.js';
