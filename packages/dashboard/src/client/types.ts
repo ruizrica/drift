@@ -241,3 +241,68 @@ export type WebSocketMessage =
   | { type: 'stats_updated'; payload: DashboardStats }
   | { type: 'ping' }
   | { type: 'pong' };
+
+// Trend types (pattern regression detection)
+export interface PatternSnapshot {
+  patternId: string;
+  patternName: string;
+  category: PatternCategory;
+  confidence: number;
+  locationCount: number;
+  outlierCount: number;
+  complianceRate: number;
+  status: PatternStatus;
+}
+
+export interface CategorySummary {
+  patternCount: number;
+  avgConfidence: number;
+  totalLocations: number;
+  totalOutliers: number;
+  complianceRate: number;
+}
+
+export interface HistorySnapshot {
+  timestamp: string;
+  date: string;
+  patterns: PatternSnapshot[];
+  summary: {
+    totalPatterns: number;
+    avgConfidence: number;
+    totalLocations: number;
+    totalOutliers: number;
+    overallComplianceRate: number;
+    byCategory: Record<string, CategorySummary>;
+  };
+}
+
+export interface PatternTrend {
+  patternId: string;
+  patternName: string;
+  category: PatternCategory;
+  type: 'regression' | 'improvement' | 'stable';
+  metric: 'confidence' | 'compliance' | 'outliers';
+  previousValue: number;
+  currentValue: number;
+  change: number;
+  changePercent: number;
+  severity: 'critical' | 'warning' | 'info';
+  firstSeen: string;
+  details: string;
+}
+
+export interface TrendSummary {
+  period: '7d' | '30d' | '90d';
+  startDate: string;
+  endDate: string;
+  regressions: PatternTrend[];
+  improvements: PatternTrend[];
+  stable: number;
+  overallTrend: 'improving' | 'declining' | 'stable';
+  healthDelta: number;
+  categoryTrends: Record<string, {
+    trend: 'improving' | 'declining' | 'stable';
+    avgConfidenceChange: number;
+    complianceChange: number;
+  }>;
+}

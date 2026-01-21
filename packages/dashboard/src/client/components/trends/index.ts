@@ -1,0 +1,1 @@
+export { TrendsPanel } from './TrendsPanel';

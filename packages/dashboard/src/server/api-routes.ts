@@ -496,6 +496,58 @@ export function createApiRoutes(reader: DriftDataReader): Router {
     }
   });
 
+  // ==========================================================================
+  // Trend / History Routes
+  // ==========================================================================
+
+  /**
+   * GET /api/trends - Get pattern trend summary
+   * Query params: period (7d, 30d, 90d)
+   */
+  router.get('/trends', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const period = (req.query['period'] as '7d' | '30d' | '90d') || '7d';
+      
+      if (!['7d', '30d', '90d'].includes(period)) {
+        throw new BadRequestError('Invalid period. Use 7d, 30d, or 90d');
+      }
+
+      const trends = await reader.getTrends(period);
+      
+      if (!trends) {
+        res.json({
+          message: 'Not enough history data. Run more scans to see trends.',
+          period,
+          regressions: [],
+          improvements: [],
+          stable: 0,
+          overallTrend: 'stable',
+          healthDelta: 0,
+          categoryTrends: {},
+        });
+        return;
+      }
+
+      res.json(trends);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  /**
+   * GET /api/trends/snapshots - Get historical snapshots for charting
+   * Query params: limit (default 30)
+   */
+  router.get('/trends/snapshots', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const limit = parseInt(req.query['limit'] as string, 10) || 30;
+      const snapshots = await reader.getSnapshots(limit);
+      res.json(snapshots);
+    } catch (error) {
+      next(error);
+    }
+  });
+
   return router;
 }
 

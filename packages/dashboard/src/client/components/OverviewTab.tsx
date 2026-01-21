@@ -7,6 +7,7 @@
 import React from 'react';
 import { useStats, useViolations } from '../hooks';
 import { useDashboardStore } from '../store';
+import { TrendsPanel } from './trends';
 import type { Severity, PatternStatus } from '../types';
 
 function StatCard({
@@ -174,6 +175,11 @@ export function OverviewTab(): React.ReactElement {
         <SeverityBreakdown bySeverity={stats.violations.bySeverity} />
         <StatusBreakdown byStatus={stats.patterns.byStatus} />
         <RecentViolations />
+      </div>
+
+      {/* Third row: Trends */}
+      <div className="grid grid-cols-1 gap-4">
+        <TrendsPanel />
       </div>
 
       {/* Last scan info */}

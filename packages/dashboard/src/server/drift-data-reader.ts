@@ -246,6 +246,89 @@ export interface DashboardContractStats {
 }
 
 // ============================================================================
+// Trend / History Types
+// ============================================================================
+
+/**
+ * A snapshot of a single pattern's state at a point in time
+ */
+export interface PatternSnapshot {
+  patternId: string;
+  patternName: string;
+  category: PatternCategory;
+  confidence: number;
+  locationCount: number;
+  outlierCount: number;
+  complianceRate: number;
+  status: PatternStatus;
+}
+
+/**
+ * Category summary in a snapshot
+ */
+export interface CategorySummary {
+  patternCount: number;
+  avgConfidence: number;
+  totalLocations: number;
+  totalOutliers: number;
+  complianceRate: number;
+}
+
+/**
+ * A full snapshot of all patterns at a point in time
+ */
+export interface HistorySnapshot {
+  timestamp: string;
+  date: string;
+  patterns: PatternSnapshot[];
+  summary: {
+    totalPatterns: number;
+    avgConfidence: number;
+    totalLocations: number;
+    totalOutliers: number;
+    overallComplianceRate: number;
+    byCategory: Record<string, CategorySummary>;
+  };
+}
+
+/**
+ * A detected regression or improvement
+ */
+export interface PatternTrend {
+  patternId: string;
+  patternName: string;
+  category: PatternCategory;
+  type: 'regression' | 'improvement' | 'stable';
+  metric: 'confidence' | 'compliance' | 'outliers';
+  previousValue: number;
+  currentValue: number;
+  change: number;
+  changePercent: number;
+  severity: 'critical' | 'warning' | 'info';
+  firstSeen: string;
+  details: string;
+}
+
+/**
+ * Aggregated trends for the dashboard
+ */
+export interface TrendSummary {
+  period: '7d' | '30d' | '90d';
+  startDate: string;
+  endDate: string;
+  regressions: PatternTrend[];
+  improvements: PatternTrend[];
+  stable: number;
+  overallTrend: 'improving' | 'declining' | 'stable';
+  healthDelta: number;
+  categoryTrends: Record<string, {
+    trend: 'improving' | 'declining' | 'stable';
+    avgConfidenceChange: number;
+    complianceChange: number;
+  }>;
+}
+
+// ============================================================================
 // Constants
 // ============================================================================
 
@@ -1560,5 +1643,221 @@ export class DriftDataReader {
       }
       return true;
     });
+  }
+
+  // ==========================================================================
+  // Trend / History Methods
+  // ==========================================================================
+
+  /**
+   * Get trend summary for pattern regressions and improvements
+   */
+  async getTrends(period: '7d' | '30d' | '90d' = '7d'): Promise<TrendSummary | null> {
+    const historyDir = path.join(this.driftDir, 'history', 'snapshots');
+    
+    if (!(await fileExists(historyDir))) {
+      return null;
+    }
+
+    const days = period === '7d' ? 7 : period === '30d' ? 30 : 90;
+    const now = new Date();
+    const startDate = new Date(now);
+    startDate.setDate(startDate.getDate() - days);
+
+    // Get snapshots
+    const files = await fs.readdir(historyDir);
+    const jsonFiles = files.filter(f => f.endsWith('.json')).sort();
+
+    if (jsonFiles.length < 2) {
+      return null; // Need at least 2 snapshots to calculate trends
+    }
+
+    // Get latest and comparison snapshot
+    const latestFile = jsonFiles[jsonFiles.length - 1]!;
+    const latestContent = await fs.readFile(path.join(historyDir, latestFile), 'utf-8');
+    const latestSnapshot = JSON.parse(latestContent) as HistorySnapshot;
+
+    // Find snapshot closest to start date
+    const startDateStr = startDate.toISOString().split('T')[0]!;
+    let comparisonFile = jsonFiles[0]!;
+    for (const file of jsonFiles) {
+      const fileDate = file.replace('.json', '');
+      if (fileDate <= startDateStr) {
+        comparisonFile = file;
+      } else {
+        break;
+      }
+    }
+
+    const comparisonContent = await fs.readFile(path.join(historyDir, comparisonFile), 'utf-8');
+    const comparisonSnapshot = JSON.parse(comparisonContent) as HistorySnapshot;
+
+    // Calculate trends
+    return this.calculateTrendSummary(latestSnapshot, comparisonSnapshot, period);
+  }
+
+  /**
+   * Get historical snapshots for charting
+   */
+  async getSnapshots(limit: number = 30): Promise<HistorySnapshot[]> {
+    const historyDir = path.join(this.driftDir, 'history', 'snapshots');
+    
+    if (!(await fileExists(historyDir))) {
+      return [];
+    }
+
+    const files = await fs.readdir(historyDir);
+    const jsonFiles = files.filter(f => f.endsWith('.json')).sort().slice(-limit);
+
+    const snapshots: HistorySnapshot[] = [];
+    for (const file of jsonFiles) {
+      try {
+        const content = await fs.readFile(path.join(historyDir, file), 'utf-8');
+        snapshots.push(JSON.parse(content) as HistorySnapshot);
+      } catch (error) {
+        console.error(`Error reading snapshot ${file}:`, error);
+      }
+    }
+
+    return snapshots;
+  }
+
+  /**
+   * Calculate trend summary between two snapshots
+   */
+  private calculateTrendSummary(
+    current: HistorySnapshot,
+    previous: HistorySnapshot,
+    period: '7d' | '30d' | '90d'
+  ): TrendSummary {
+    const regressions: PatternTrend[] = [];
+    const improvements: PatternTrend[] = [];
+    const previousMap = new Map(previous.patterns.map(p => [p.patternId, p]));
+
+    // Thresholds
+    const CONFIDENCE_THRESHOLD = 0.05;
+    const COMPLIANCE_THRESHOLD = 0.10;
+    const OUTLIER_THRESHOLD = 3;
+
+    for (const currentPattern of current.patterns) {
+      const prevPattern = previousMap.get(currentPattern.patternId);
+      if (!prevPattern) continue;
+
+      // Check confidence change
+      const confidenceChange = currentPattern.confidence - prevPattern.confidence;
+      if (Math.abs(confidenceChange) >= CONFIDENCE_THRESHOLD) {
+        const trend: PatternTrend = {
+          patternId: currentPattern.patternId,
+          patternName: currentPattern.patternName,
+          category: currentPattern.category,
+          type: confidenceChange < 0 ? 'regression' : 'improvement',
+          metric: 'confidence',
+          previousValue: prevPattern.confidence,
+          currentValue: currentPattern.confidence,
+          change: confidenceChange,
+          changePercent: (confidenceChange / prevPattern.confidence) * 100,
+          severity: confidenceChange <= -0.15 ? 'critical' : confidenceChange < 0 ? 'warning' : 'info',
+          firstSeen: previous.timestamp,
+          details: `Confidence ${confidenceChange < 0 ? 'dropped' : 'improved'} from ${(prevPattern.confidence * 100).toFixed(0)}% to ${(currentPattern.confidence * 100).toFixed(0)}%`,
+        };
+        
+        if (trend.type === 'regression') {
+          regressions.push(trend);
+        } else {
+          improvements.push(trend);
+        }
+      }
+
+      // Check compliance change
+      const complianceChange = currentPattern.complianceRate - prevPattern.complianceRate;
+      if (Math.abs(complianceChange) >= COMPLIANCE_THRESHOLD) {
+        const trend: PatternTrend = {
+          patternId: currentPattern.patternId,
+          patternName: currentPattern.patternName,
+          category: currentPattern.category,
+          type: complianceChange < 0 ? 'regression' : 'improvement',
+          metric: 'compliance',
+          previousValue: prevPattern.complianceRate,
+          currentValue: currentPattern.complianceRate,
+          change: complianceChange,
+          changePercent: prevPattern.complianceRate > 0 ? (complianceChange / prevPattern.complianceRate) * 100 : 0,
+          severity: complianceChange <= -0.20 ? 'critical' : complianceChange < 0 ? 'warning' : 'info',
+          firstSeen: previous.timestamp,
+          details: `Compliance ${complianceChange < 0 ? 'dropped' : 'improved'} from ${(prevPattern.complianceRate * 100).toFixed(0)}% to ${(currentPattern.complianceRate * 100).toFixed(0)}%`,
+        };
+        
+        if (trend.type === 'regression') {
+          regressions.push(trend);
+        } else {
+          improvements.push(trend);
+        }
+      }
+
+      // Check outlier increase
+      const outlierChange = currentPattern.outlierCount - prevPattern.outlierCount;
+      if (outlierChange >= OUTLIER_THRESHOLD) {
+        regressions.push({
+          patternId: currentPattern.patternId,
+          patternName: currentPattern.patternName,
+          category: currentPattern.category,
+          type: 'regression',
+          metric: 'outliers',
+          previousValue: prevPattern.outlierCount,
+          currentValue: currentPattern.outlierCount,
+          change: outlierChange,
+          changePercent: prevPattern.outlierCount > 0 ? (outlierChange / prevPattern.outlierCount) * 100 : 100,
+          severity: outlierChange >= 10 ? 'critical' : 'warning',
+          firstSeen: previous.timestamp,
+          details: `${outlierChange} new outliers (${prevPattern.outlierCount} → ${currentPattern.outlierCount})`,
+        });
+      }
+    }
+
+    // Calculate category trends
+    const categoryTrends: TrendSummary['categoryTrends'] = {};
+    const categories = new Set([
+      ...Object.keys(current.summary.byCategory),
+      ...Object.keys(previous.summary.byCategory),
+    ]);
+
+    for (const category of categories) {
+      const currentCat = current.summary.byCategory[category];
+      const prevCat = previous.summary.byCategory[category];
+
+      if (currentCat && prevCat) {
+        const avgConfidenceChange = currentCat.avgConfidence - prevCat.avgConfidence;
+        const complianceChange = currentCat.complianceRate - prevCat.complianceRate;
+
+        categoryTrends[category] = {
+          trend: avgConfidenceChange > 0.02 ? 'improving' 
+               : avgConfidenceChange < -0.02 ? 'declining' 
+               : 'stable',
+          avgConfidenceChange,
+          complianceChange,
+        };
+      }
+    }
+
+    // Calculate overall trend
+    const healthDelta = current.summary.overallComplianceRate - previous.summary.overallComplianceRate;
+    const overallTrend = healthDelta > 0.02 ? 'improving' 
+                       : healthDelta < -0.02 ? 'declining' 
+                       : 'stable';
+
+    // Count stable patterns
+    const changedPatternIds = new Set([...regressions, ...improvements].map(t => t.patternId));
+    const stableCount = current.patterns.filter(p => !changedPatternIds.has(p.patternId)).length;
+
+    return {
+      period,
+      startDate: previous.date,
+      endDate: current.date,
+      regressions,
+      improvements,
+      stable: stableCount,
+      overallTrend,
+      healthDelta,
+      categoryTrends,
+    };
   }
 }

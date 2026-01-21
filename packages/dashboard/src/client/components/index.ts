@@ -20,3 +20,6 @@ export * from './violations';
 
 // Contract sub-components for advanced usage
 export * from './contracts';
+
+// Trend sub-components
+export * from './trends';

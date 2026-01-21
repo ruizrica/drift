@@ -260,3 +260,21 @@ export function useIgnoreContract() {
     },
   });
 }
+
+// Trend hooks (pattern regression detection)
+import type { TrendSummary, HistorySnapshot } from '../types';
+
+export function useTrends(period: '7d' | '30d' | '90d' = '7d') {
+  return useQuery({
+    queryKey: ['trends', period],
+    queryFn: () => fetchJson<TrendSummary>(`/trends?period=${period}`),
+    refetchInterval: 60_000, // Refresh every minute
+  });
+}
+
+export function useSnapshots(limit: number = 30) {
+  return useQuery({
+    queryKey: ['trends', 'snapshots', limit],
+    queryFn: () => fetchJson<HistorySnapshot[]>(`/trends/snapshots?limit=${limit}`),
+  });
+}
