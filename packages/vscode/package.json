@@ -1,7 +1,7 @@
 {
   "name": "driftdetect-vscode",
   "displayName": "Drift - Architectural Drift Detection",
-  "description": "Detect and prevent architectural drift in your codebase. Pattern detection, call graph analysis, and security visualization for TypeScript, Python, C#, Java, and PHP.",
+  "description": "Learn your codebase patterns and enforce consistency. Pattern detection, call graph analysis, security visualization, and MCP integration for AI agents. Supports TypeScript, Python, C#, Java, PHP.",
   "version": "0.5.0",
   "publisher": "driftdetect",
   "license": "MIT",
@@ -23,11 +23,16 @@
     "Other"
   ],
   "keywords": [
-    "drift",
+    "pattern-detection",
+    "code-analysis",
     "architecture",
-    "patterns",
     "linting",
-    "code quality",
+    "code-quality",
+    "static-analysis",
+    "call-graph",
+    "security",
+    "mcp",
+    "ai-agent",
     "typescript",
     "python",
     "csharp",
