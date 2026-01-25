@@ -260,6 +260,64 @@ Subcommands:
   analyze <func>     Analyze specific function
 ```
 
+### `drift gate`
+
+Run quality gates on code changes.
+
+```bash
+drift gate [files...] [options]
+
+Options:
+  -p, --policy <policy>   Policy to use: default, strict, relaxed, ci-fast, or custom ID
+  -g, --gates <gates>     Specific gates to run (comma-separated)
+  -f, --format <format>   Output format: text, json, github, gitlab, sarif
+  --ci                    Run in CI mode (implies --format json)
+  -v, --verbose           Verbose output with details
+  --dry-run               Show what would be checked without running
+  --staged                Check only staged files
+  -o, --output <file>     Write report to file
+  --fail-on <level>       Fail threshold: error (default), warning, or none
+```
+
+**Available Gates:**
+- `pattern-compliance` - Check if code follows established patterns
+- `constraint-verification` - Verify architectural constraints
+- `regression-detection` - Detect pattern regressions
+- `impact-simulation` - Analyze blast radius of changes
+- `security-boundary` - Validate data access boundaries
+- `custom-rules` - Run user-defined rules
+
+**Available Policies:**
+- `default` - Balanced settings for most projects
+- `strict` - Strict settings for main/release branches
+- `relaxed` - Relaxed settings for feature branches
+- `ci-fast` - Minimal checks for fast CI feedback
+
+**Examples:**
+
+```bash
+# Run with default policy
+drift gate
+
+# Run on specific files
+drift gate src/routes/users.ts src/services/user-service.ts
+
+# Run with strict policy
+drift gate --policy strict
+
+# Run specific gates only
+drift gate --gates pattern-compliance,security-boundary
+
+# CI mode with GitHub annotations
+drift gate --ci --format github
+
+# Generate SARIF report for security tools
+drift gate --format sarif --output report.sarif
+
+# Check only staged files before commit
+drift gate --staged --fail-on warning
+```
+
 ### `drift wrappers`
 
 Framework wrapper detection.

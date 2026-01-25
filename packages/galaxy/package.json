@@ -2,7 +2,7 @@
   "name": "driftdetect-galaxy",
   "version": "0.7.1",
   "description": "3D database galaxy visualization for Drift",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "author": "Geoffrey Fernald",
   "repository": {
     "type": "git",

@@ -162,7 +162,7 @@ export interface ViolationFilters {
 }
 
 // Tab types
-export type TabId = 'overview' | 'patterns' | 'violations' | 'files' | 'contracts' | 'galaxy' | 'settings';
+export type TabId = 'overview' | 'patterns' | 'violations' | 'files' | 'contracts' | 'quality-gates' | 'galaxy' | 'settings';
 
 // Connection status
 export type ConnectionStatus = 'connected' | 'disconnected' | 'connecting';

@@ -7,7 +7,7 @@
 import React, { Suspense, lazy } from 'react';
 import { useDashboardStore } from './store';
 import { useWebSocket } from './hooks';
-import { OverviewTab, PatternsTab, ViolationsTab, FilesTab, SettingsTab, ContractsTab } from './components';
+import { OverviewTab, PatternsTab, ViolationsTab, FilesTab, SettingsTab, ContractsTab, QualityGatesTab } from './components';
 import type { TabId, ConnectionStatus } from './types';
 
 // Lazy load Galaxy tab since it includes heavy Three.js dependencies
@@ -19,6 +19,7 @@ const TABS: { id: TabId; label: string }[] = [
   { id: 'contracts', label: 'Contracts' },
   { id: 'violations', label: 'Violations' },
   { id: 'files', label: 'Files' },
+  { id: 'quality-gates', label: '🚦 Quality Gates' },
   { id: 'galaxy', label: '🌌 Galaxy' },
   { id: 'settings', label: 'Settings' },
 ];
@@ -59,6 +60,8 @@ function TabContent({ tab }: { tab: TabId }) {
       return <ViolationsTab />;
     case 'files':
       return <FilesTab />;
+    case 'quality-gates':
+      return <QualityGatesTab />;
     case 'galaxy':
       return (
         <Suspense fallback={<GalaxyLoadingFallback />}>

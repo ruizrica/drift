@@ -766,8 +766,8 @@
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-22T19:32:37.422Z",
-        "lastSeen": "2026-01-22T19:32:37.422Z",
+        "firstSeen": "2026-01-25T03:50:12.725Z",
+        "lastSeen": "2026-01-25T03:50:12.725Z",
         "source": "auto-detected",
         "tags": [
           "components",
@@ -891,8 +891,8 @@
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-22T19:32:37.422Z",
-        "lastSeen": "2026-01-22T19:32:37.422Z",
+        "firstSeen": "2026-01-25T03:50:12.725Z",
+        "lastSeen": "2026-01-25T03:50:12.725Z",
         "source": "auto-detected",
         "tags": [
           "components",
@@ -1426,8 +1426,8 @@
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-22T19:32:37.422Z",
-        "lastSeen": "2026-01-22T19:32:37.422Z",
+        "firstSeen": "2026-01-25T03:50:12.725Z",
+        "lastSeen": "2026-01-25T03:50:12.725Z",
         "source": "auto-detected",
         "tags": [
           "components",
@@ -1711,8 +1711,8 @@
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-22T19:32:37.422Z",
-        "lastSeen": "2026-01-22T19:32:37.422Z",
+        "firstSeen": "2026-01-25T03:50:12.725Z",
+        "lastSeen": "2026-01-25T03:50:12.725Z",
         "source": "auto-detected",
         "tags": [
           "components",
@@ -1816,8 +1816,8 @@
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-22T19:32:37.425Z",
-        "lastSeen": "2026-01-22T19:32:37.425Z",
+        "firstSeen": "2026-01-25T03:50:12.728Z",
+        "lastSeen": "2026-01-25T03:50:12.728Z",
         "source": "auto-detected",
         "tags": [
           "components",
@@ -1840,14 +1840,19 @@
         }
       },
       "confidence": {
-        "frequency": 0.03,
+        "frequency": 0.04,
         "consistency": 0.9,
         "age": 0,
-        "spread": 3,
+        "spread": 4,
         "score": 0.8999999999999999,
         "level": "high"
       },
       "locations": [
+        {
+          "file": "backend/.drift/error-handling/topology.json",
+          "line": 1262,
+          "column": 31
+        },
         {
           "file": "backend/src/routes/orders.ts",
           "line": 13,
@@ -1866,8 +1871,8 @@
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-22T19:32:37.425Z",
-        "lastSeen": "2026-01-22T19:32:37.425Z",
+        "firstSeen": "2026-01-25T03:50:12.727Z",
+        "lastSeen": "2026-01-25T03:50:12.727Z",
         "source": "auto-detected",
         "tags": [
           "components",
@@ -1966,8 +1971,8 @@
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-22T19:32:37.425Z",
-        "lastSeen": "2026-01-22T19:32:37.425Z",
+        "firstSeen": "2026-01-25T03:50:12.728Z",
+        "lastSeen": "2026-01-25T03:50:12.728Z",
         "source": "auto-detected",
         "tags": [
           "components",
@@ -2086,8 +2091,8 @@
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-22T19:32:37.425Z",
-        "lastSeen": "2026-01-22T19:32:37.425Z",
+        "firstSeen": "2026-01-25T03:50:12.728Z",
+        "lastSeen": "2026-01-25T03:50:12.728Z",
         "source": "auto-detected",
         "tags": [
           "components",
@@ -2156,8 +2161,8 @@
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-22T19:32:37.425Z",
-        "lastSeen": "2026-01-22T19:32:37.425Z",
+        "firstSeen": "2026-01-25T03:50:12.728Z",
+        "lastSeen": "2026-01-25T03:50:12.728Z",
         "source": "auto-detected",
         "tags": [
           "components",
@@ -2211,8 +2216,8 @@
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-22T19:32:37.425Z",
-        "lastSeen": "2026-01-22T19:32:37.425Z",
+        "firstSeen": "2026-01-25T03:50:12.728Z",
+        "lastSeen": "2026-01-25T03:50:12.728Z",
         "source": "auto-detected",
         "tags": [
           "components",
@@ -2251,8 +2256,8 @@
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-22T19:32:37.425Z",
-        "lastSeen": "2026-01-22T19:32:37.425Z",
+        "firstSeen": "2026-01-25T03:50:12.728Z",
+        "lastSeen": "2026-01-25T03:50:12.728Z",
         "source": "auto-detected",
         "tags": [
           "components",
@@ -2361,8 +2366,8 @@
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-22T19:32:37.426Z",
-        "lastSeen": "2026-01-22T19:32:37.426Z",
+        "firstSeen": "2026-01-25T03:50:12.729Z",
+        "lastSeen": "2026-01-25T03:50:12.729Z",
         "source": "auto-detected",
         "tags": [
           "components",
@@ -2471,8 +2476,8 @@
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-22T19:32:37.426Z",
-        "lastSeen": "2026-01-22T19:32:37.426Z",
+        "firstSeen": "2026-01-25T03:50:12.729Z",
+        "lastSeen": "2026-01-25T03:50:12.729Z",
         "source": "auto-detected",
         "tags": [
           "components",
@@ -2801,8 +2806,8 @@
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-22T19:32:37.426Z",
-        "lastSeen": "2026-01-22T19:32:37.426Z",
+        "firstSeen": "2026-01-25T03:50:12.729Z",
+        "lastSeen": "2026-01-25T03:50:12.729Z",
         "source": "auto-detected",
         "tags": [
           "components",
@@ -2911,8 +2916,8 @@
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-22T19:32:37.426Z",
-        "lastSeen": "2026-01-22T19:32:37.426Z",
+        "firstSeen": "2026-01-25T03:50:12.729Z",
+        "lastSeen": "2026-01-25T03:50:12.729Z",
         "source": "auto-detected",
         "tags": [
           "components",
@@ -2981,8 +2986,8 @@
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-22T19:32:37.426Z",
-        "lastSeen": "2026-01-22T19:32:37.426Z",
+        "firstSeen": "2026-01-25T03:50:12.730Z",
+        "lastSeen": "2026-01-25T03:50:12.730Z",
         "source": "auto-detected",
         "tags": [
           "components",
@@ -3076,8 +3081,8 @@
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-22T19:32:37.426Z",
-        "lastSeen": "2026-01-22T19:32:37.426Z",
+        "firstSeen": "2026-01-25T03:50:12.730Z",
+        "lastSeen": "2026-01-25T03:50:12.730Z",
         "source": "auto-detected",
         "tags": [
           "components",
@@ -3116,8 +3121,8 @@
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-22T19:32:37.426Z",
-        "lastSeen": "2026-01-22T19:32:37.426Z",
+        "firstSeen": "2026-01-25T03:50:12.730Z",
+        "lastSeen": "2026-01-25T03:50:12.730Z",
         "source": "auto-detected",
         "tags": [
           "components",
@@ -3156,8 +3161,8 @@
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-22T19:32:37.426Z",
-        "lastSeen": "2026-01-22T19:32:37.426Z",
+        "firstSeen": "2026-01-25T03:50:12.730Z",
+        "lastSeen": "2026-01-25T03:50:12.730Z",
         "source": "auto-detected",
         "tags": [
           "components",
@@ -3246,8 +3251,8 @@
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-22T19:32:37.426Z",
-        "lastSeen": "2026-01-22T19:32:37.426Z",
+        "firstSeen": "2026-01-25T03:50:12.730Z",
+        "lastSeen": "2026-01-25T03:50:12.730Z",
         "source": "auto-detected",
         "tags": [
           "components",
@@ -3273,7 +3278,7 @@
         "frequency": 1,
         "consistency": 0.9,
         "age": 0,
-        "spread": 49,
+        "spread": 95,
         "score": 0.95,
         "level": "high"
       },
@@ -3364,425 +3369,425 @@
           "column": 47
         },
         {
-          "file": "frontend/.drift/patterns/discovered/.backups/accessibility-2026-01-21T14-37-06-937Z.json",
-          "line": 37,
-          "column": 41
+          "file": "frontend/.drift/indexes/by-file.json",
+          "line": 45,
+          "column": 28
         },
         {
-          "file": "frontend/.drift/patterns/discovered/.backups/accessibility-2026-01-21T14-37-06-937Z.json",
-          "line": 92,
+          "file": "frontend/.drift/indexes/by-file.json",
+          "line": 91,
+          "column": 38
+        },
+        {
+          "file": "frontend/.drift/indexes/by-file.json",
+          "line": 131,
+          "column": 37
+        },
+        {
+          "file": "frontend/.drift/indexes/by-file.json",
+          "line": 540,
+          "column": 26
+        },
+        {
+          "file": "frontend/.drift/indexes/by-file.json",
+          "line": 564,
+          "column": 27
+        },
+        {
+          "file": "frontend/.drift/indexes/by-file.json",
+          "line": 623,
+          "column": 27
+        },
+        {
+          "file": "frontend/.drift/indexes/by-file.json",
+          "line": 693,
           "column": 40
         },
         {
-          "file": "frontend/.drift/patterns/discovered/.backups/accessibility-2026-01-21T14-37-06-937Z.json",
-          "line": 97,
+          "file": "frontend/.drift/lake/patterns/accessibility.json",
+          "line": 30,
+          "column": 41
+        },
+        {
+          "file": "frontend/.drift/lake/patterns/accessibility.json",
+          "line": 73,
           "column": 40
         },
         {
-          "file": "frontend/.drift/patterns/discovered/.backups/accessibility-2026-01-21T14-37-06-937Z.json",
-          "line": 137,
+          "file": "frontend/.drift/lake/patterns/accessibility.json",
+          "line": 78,
+          "column": 40
+        },
+        {
+          "file": "frontend/.drift/lake/patterns/accessibility.json",
+          "line": 106,
           "column": 42
         },
         {
-          "file": "frontend/.drift/patterns/discovered/.backups/accessibility-2026-01-21T14-37-06-937Z.json",
-          "line": 142,
+          "file": "frontend/.drift/lake/patterns/accessibility.json",
+          "line": 111,
           "column": 42
         },
         {
-          "file": "frontend/.drift/patterns/discovered/.backups/accessibility-2026-01-21T14-37-06-937Z.json",
-          "line": 147,
+          "file": "frontend/.drift/lake/patterns/accessibility.json",
+          "line": 116,
           "column": 42
         },
         {
-          "file": "frontend/.drift/patterns/discovered/.backups/accessibility-2026-01-21T14-37-06-937Z.json",
-          "line": 152,
+          "file": "frontend/.drift/lake/patterns/accessibility.json",
+          "line": 121,
           "column": 42
         },
         {
-          "file": "frontend/.drift/patterns/discovered/.backups/accessibility-2026-01-21T14-37-06-937Z.json",
-          "line": 157,
+          "file": "frontend/.drift/lake/patterns/accessibility.json",
+          "line": 126,
           "column": 42
         },
         {
-          "file": "frontend/.drift/patterns/discovered/.backups/accessibility-2026-01-21T14-37-06-937Z.json",
-          "line": 162,
+          "file": "frontend/.drift/lake/patterns/accessibility.json",
+          "line": 131,
           "column": 41
         },
         {
-          "file": "frontend/.drift/patterns/discovered/.backups/accessibility-2026-01-21T14-37-06-937Z.json",
-          "line": 167,
+          "file": "frontend/.drift/lake/patterns/accessibility.json",
+          "line": 136,
           "column": 41
         },
         {
-          "file": "frontend/.drift/patterns/discovered/.backups/accessibility-2026-01-21T14-37-06-937Z.json",
-          "line": 172,
+          "file": "frontend/.drift/lake/patterns/accessibility.json",
+          "line": 141,
           "column": 41
         },
         {
-          "file": "frontend/.drift/patterns/discovered/.backups/accessibility-2026-01-21T14-37-06-937Z.json",
-          "line": 177,
+          "file": "frontend/.drift/lake/patterns/accessibility.json",
+          "line": 146,
           "column": 41
         },
         {
-          "file": "frontend/.drift/patterns/discovered/.backups/accessibility-2026-01-21T14-37-06-937Z.json",
-          "line": 217,
+          "file": "frontend/.drift/lake/patterns/accessibility.json",
+          "line": 174,
           "column": 42
         },
         {
-          "file": "frontend/.drift/patterns/discovered/.backups/accessibility-2026-01-21T14-37-06-937Z.json",
-          "line": 222,
+          "file": "frontend/.drift/lake/patterns/accessibility.json",
+          "line": 179,
           "column": 42
         },
         {
-          "file": "frontend/.drift/patterns/discovered/.backups/accessibility-2026-01-21T14-37-06-937Z.json",
-          "line": 227,
+          "file": "frontend/.drift/lake/patterns/accessibility.json",
+          "line": 184,
           "column": 42
         },
         {
-          "file": "frontend/.drift/patterns/discovered/.backups/accessibility-2026-01-21T14-37-06-937Z.json",
-          "line": 232,
+          "file": "frontend/.drift/lake/patterns/accessibility.json",
+          "line": 189,
           "column": 42
         },
         {
-          "file": "frontend/.drift/patterns/discovered/.backups/accessibility-2026-01-21T14-37-06-937Z.json",
-          "line": 237,
+          "file": "frontend/.drift/lake/patterns/accessibility.json",
+          "line": 194,
           "column": 42
         },
         {
-          "file": "frontend/.drift/patterns/discovered/.backups/accessibility-2026-01-21T14-37-06-937Z.json",
+          "file": "frontend/.drift/lake/patterns/accessibility.json",
+          "line": 199,
+          "column": 41
+        },
+        {
+          "file": "frontend/.drift/lake/patterns/accessibility.json",
+          "line": 204,
+          "column": 41
+        },
+        {
+          "file": "frontend/.drift/lake/patterns/accessibility.json",
+          "line": 209,
+          "column": 41
+        },
+        {
+          "file": "frontend/.drift/lake/patterns/accessibility.json",
+          "line": 214,
+          "column": 41
+        },
+        {
+          "file": "frontend/.drift/lake/patterns/accessibility.json",
           "line": 242,
           "column": 41
         },
         {
-          "file": "frontend/.drift/patterns/discovered/.backups/accessibility-2026-01-21T14-37-06-937Z.json",
+          "file": "frontend/.drift/lake/patterns/accessibility.json",
           "line": 247,
           "column": 41
         },
         {
-          "file": "frontend/.drift/patterns/discovered/.backups/accessibility-2026-01-21T14-37-06-937Z.json",
+          "file": "frontend/.drift/lake/patterns/accessibility.json",
           "line": 252,
           "column": 41
         },
         {
-          "file": "frontend/.drift/patterns/discovered/.backups/accessibility-2026-01-21T14-37-06-937Z.json",
+          "file": "frontend/.drift/lake/patterns/accessibility.json",
           "line": 257,
           "column": 41
         },
         {
-          "file": "frontend/.drift/patterns/discovered/.backups/accessibility-2026-01-21T14-37-06-937Z.json",
-          "line": 297,
+          "file": "frontend/.drift/lake/patterns/accessibility.json",
+          "line": 262,
           "column": 41
         },
         {
-          "file": "frontend/.drift/patterns/discovered/.backups/accessibility-2026-01-21T14-37-06-937Z.json",
-          "line": 302,
+          "file": "frontend/.drift/lake/patterns/accessibility.json",
+          "line": 267,
           "column": 41
         },
         {
-          "file": "frontend/.drift/patterns/discovered/.backups/accessibility-2026-01-21T14-37-06-937Z.json",
-          "line": 307,
+          "file": "frontend/.drift/lake/patterns/accessibility.json",
+          "line": 272,
           "column": 41
         },
         {
-          "file": "frontend/.drift/patterns/discovered/.backups/accessibility-2026-01-21T14-37-06-937Z.json",
-          "line": 312,
+          "file": "frontend/.drift/lake/patterns/accessibility.json",
+          "line": 277,
           "column": 41
         },
         {
-          "file": "frontend/.drift/patterns/discovered/.backups/accessibility-2026-01-21T14-37-06-937Z.json",
-          "line": 317,
+          "file": "frontend/.drift/lake/patterns/accessibility.json",
+          "line": 282,
           "column": 41
         },
         {
-          "file": "frontend/.drift/patterns/discovered/.backups/accessibility-2026-01-21T14-37-06-937Z.json",
-          "line": 322,
+          "file": "frontend/.drift/lake/patterns/accessibility.json",
+          "line": 310,
           "column": 41
         },
         {
-          "file": "frontend/.drift/patterns/discovered/.backups/accessibility-2026-01-21T14-37-06-937Z.json",
-          "line": 327,
-          "column": 41
-        },
-        {
-          "file": "frontend/.drift/patterns/discovered/.backups/accessibility-2026-01-21T14-37-06-937Z.json",
-          "line": 332,
-          "column": 41
-        },
-        {
-          "file": "frontend/.drift/patterns/discovered/.backups/accessibility-2026-01-21T14-37-06-937Z.json",
-          "line": 337,
-          "column": 41
-        },
-        {
-          "file": "frontend/.drift/patterns/discovered/.backups/accessibility-2026-01-21T14-37-06-937Z.json",
-          "line": 377,
-          "column": 41
-        },
-        {
-          "file": "frontend/.drift/patterns/discovered/.backups/accessibility-2026-01-21T14-37-06-937Z.json",
-          "line": 417,
+          "file": "frontend/.drift/lake/patterns/accessibility.json",
+          "line": 338,
           "column": 51
         },
         {
-          "file": "frontend/.drift/patterns/discovered/.backups/accessibility-2026-01-21T14-37-06-937Z.json",
-          "line": 422,
+          "file": "frontend/.drift/lake/patterns/accessibility.json",
+          "line": 343,
           "column": 51
         },
         {
-          "file": "frontend/.drift/patterns/discovered/.backups/accessibility-2026-01-21T15-20-36-397Z.json",
-          "line": 37,
+          "file": "frontend/.drift/lake/patterns/api.json",
+          "line": 112,
           "column": 41
         },
         {
-          "file": "frontend/.drift/patterns/discovered/.backups/accessibility-2026-01-21T15-20-36-397Z.json",
-          "line": 92,
+          "file": "frontend/.drift/lake/patterns/api.json",
+          "line": 166,
+          "column": 41
+        },
+        {
+          "file": "frontend/.drift/lake/patterns/auth.json",
+          "line": 218,
+          "column": 41
+        },
+        {
+          "file": "frontend/.drift/lake/patterns/components.json",
+          "line": 165,
+          "column": 42
+        },
+        {
+          "file": "frontend/.drift/lake/patterns/components.json",
+          "line": 170,
+          "column": 42
+        },
+        {
+          "file": "frontend/.drift/lake/patterns/components.json",
+          "line": 175,
+          "column": 42
+        },
+        {
+          "file": "frontend/.drift/lake/patterns/components.json",
+          "line": 180,
+          "column": 42
+        },
+        {
+          "file": "frontend/.drift/lake/patterns/components.json",
+          "line": 185,
           "column": 40
         },
         {
-          "file": "frontend/.drift/patterns/discovered/.backups/accessibility-2026-01-21T15-20-36-397Z.json",
-          "line": 97,
+          "file": "frontend/.drift/lake/patterns/components.json",
+          "line": 190,
           "column": 40
         },
         {
-          "file": "frontend/.drift/patterns/discovered/.backups/accessibility-2026-01-21T15-20-36-397Z.json",
-          "line": 137,
-          "column": 42
+          "file": "frontend/.drift/lake/patterns/components.json",
+          "line": 195,
+          "column": 40
         },
         {
-          "file": "frontend/.drift/patterns/discovered/.backups/accessibility-2026-01-21T15-20-36-397Z.json",
-          "line": 142,
-          "column": 42
+          "file": "frontend/.drift/lake/patterns/components.json",
+          "line": 200,
+          "column": 40
         },
         {
-          "file": "frontend/.drift/patterns/discovered/.backups/accessibility-2026-01-21T15-20-36-397Z.json",
-          "line": 147,
-          "column": 42
+          "file": "frontend/.drift/lake/patterns/components.json",
+          "line": 205,
+          "column": 40
         },
         {
-          "file": "frontend/.drift/patterns/discovered/.backups/accessibility-2026-01-21T15-20-36-397Z.json",
-          "line": 152,
-          "column": 42
+          "file": "frontend/.drift/lake/patterns/components.json",
+          "line": 210,
+          "column": 40
         },
         {
-          "file": "frontend/.drift/patterns/discovered/.backups/accessibility-2026-01-21T15-20-36-397Z.json",
-          "line": 157,
-          "column": 42
+          "file": "frontend/.drift/lake/patterns/components.json",
+          "line": 215,
+          "column": 40
         },
         {
-          "file": "frontend/.drift/patterns/discovered/.backups/accessibility-2026-01-21T15-20-36-397Z.json",
-          "line": 162,
+          "file": "frontend/.drift/lake/patterns/components.json",
+          "line": 220,
+          "column": 40
+        },
+        {
+          "file": "frontend/.drift/lake/patterns/components.json",
+          "line": 225,
+          "column": 40
+        },
+        {
+          "file": "frontend/.drift/lake/patterns/components.json",
+          "line": 230,
+          "column": 40
+        },
+        {
+          "file": "frontend/.drift/lake/patterns/components.json",
+          "line": 235,
           "column": 41
         },
         {
-          "file": "frontend/.drift/patterns/discovered/.backups/accessibility-2026-01-21T15-20-36-397Z.json",
-          "line": 167,
+          "file": "frontend/.drift/lake/patterns/components.json",
+          "line": 240,
           "column": 41
         },
         {
-          "file": "frontend/.drift/patterns/discovered/.backups/accessibility-2026-01-21T15-20-36-397Z.json",
-          "line": 172,
+          "file": "frontend/.drift/lake/patterns/components.json",
+          "line": 245,
           "column": 41
         },
         {
-          "file": "frontend/.drift/patterns/discovered/.backups/accessibility-2026-01-21T15-20-36-397Z.json",
-          "line": 177,
+          "file": "frontend/.drift/lake/patterns/components.json",
+          "line": 250,
           "column": 41
         },
         {
-          "file": "frontend/.drift/patterns/discovered/.backups/accessibility-2026-01-21T15-20-36-397Z.json",
-          "line": 217,
-          "column": 42
-        },
-        {
-          "file": "frontend/.drift/patterns/discovered/.backups/accessibility-2026-01-21T15-20-36-397Z.json",
-          "line": 222,
-          "column": 42
-        },
-        {
-          "file": "frontend/.drift/patterns/discovered/.backups/accessibility-2026-01-21T15-20-36-397Z.json",
-          "line": 227,
-          "column": 42
-        },
-        {
-          "file": "frontend/.drift/patterns/discovered/.backups/accessibility-2026-01-21T15-20-36-397Z.json",
-          "line": 232,
-          "column": 42
-        },
-        {
-          "file": "frontend/.drift/patterns/discovered/.backups/accessibility-2026-01-21T15-20-36-397Z.json",
-          "line": 237,
-          "column": 42
-        },
-        {
-          "file": "frontend/.drift/patterns/discovered/.backups/accessibility-2026-01-21T15-20-36-397Z.json",
-          "line": 242,
+          "file": "frontend/.drift/lake/patterns/components.json",
+          "line": 255,
           "column": 41
         },
         {
-          "file": "frontend/.drift/patterns/discovered/.backups/accessibility-2026-01-21T15-20-36-397Z.json",
-          "line": 247,
+          "file": "frontend/.drift/lake/patterns/components.json",
+          "line": 260,
           "column": 41
         },
         {
-          "file": "frontend/.drift/patterns/discovered/.backups/accessibility-2026-01-21T15-20-36-397Z.json",
-          "line": 252,
+          "file": "frontend/.drift/lake/patterns/components.json",
+          "line": 265,
           "column": 41
         },
         {
-          "file": "frontend/.drift/patterns/discovered/.backups/accessibility-2026-01-21T15-20-36-397Z.json",
-          "line": 257,
+          "file": "frontend/.drift/lake/patterns/components.json",
+          "line": 270,
           "column": 41
         },
         {
-          "file": "frontend/.drift/patterns/discovered/.backups/accessibility-2026-01-21T15-20-36-397Z.json",
-          "line": 297,
-          "column": 41
+          "file": "frontend/.drift/lake/patterns/components.json",
+          "line": 275,
+          "column": 54
         },
         {
-          "file": "frontend/.drift/patterns/discovered/.backups/accessibility-2026-01-21T15-20-36-397Z.json",
-          "line": 302,
-          "column": 41
+          "file": "frontend/.drift/lake/patterns/components.json",
+          "line": 280,
+          "column": 54
         },
         {
-          "file": "frontend/.drift/patterns/discovered/.backups/accessibility-2026-01-21T15-20-36-397Z.json",
-          "line": 307,
-          "column": 41
+          "file": "frontend/.drift/lake/patterns/components.json",
+          "line": 285,
+          "column": 54
         },
         {
-          "file": "frontend/.drift/patterns/discovered/.backups/accessibility-2026-01-21T15-20-36-397Z.json",
-          "line": 312,
-          "column": 41
+          "file": "frontend/.drift/lake/patterns/components.json",
+          "line": 290,
+          "column": 52
         },
         {
-          "file": "frontend/.drift/patterns/discovered/.backups/accessibility-2026-01-21T15-20-36-397Z.json",
-          "line": 317,
-          "column": 41
+          "file": "frontend/.drift/lake/patterns/components.json",
+          "line": 295,
+          "column": 52
         },
         {
-          "file": "frontend/.drift/patterns/discovered/.backups/accessibility-2026-01-21T15-20-36-397Z.json",
-          "line": 322,
-          "column": 41
+          "file": "frontend/.drift/lake/patterns/components.json",
+          "line": 300,
+          "column": 52
         },
         {
-          "file": "frontend/.drift/patterns/discovered/.backups/accessibility-2026-01-21T15-20-36-397Z.json",
-          "line": 327,
-          "column": 41
-        },
-        {
-          "file": "frontend/.drift/patterns/discovered/.backups/accessibility-2026-01-21T15-20-36-397Z.json",
-          "line": 332,
-          "column": 41
-        },
-        {
-          "file": "frontend/.drift/patterns/discovered/.backups/accessibility-2026-01-21T15-20-36-397Z.json",
-          "line": 337,
-          "column": 41
-        },
-        {
-          "file": "frontend/.drift/patterns/discovered/.backups/accessibility-2026-01-21T15-20-36-397Z.json",
-          "line": 377,
-          "column": 41
-        },
-        {
-          "file": "frontend/.drift/patterns/discovered/.backups/accessibility-2026-01-21T15-20-36-397Z.json",
-          "line": 417,
+          "file": "frontend/.drift/lake/patterns/components.json",
+          "line": 305,
           "column": 51
         },
         {
-          "file": "frontend/.drift/patterns/discovered/.backups/accessibility-2026-01-21T15-20-36-397Z.json",
-          "line": 422,
-          "column": 51
-        },
-        {
-          "file": "frontend/.drift/patterns/discovered/.backups/api-2026-01-21T14-37-06-933Z.json",
-          "line": 145,
-          "column": 41
-        },
-        {
-          "file": "frontend/.drift/patterns/discovered/.backups/api-2026-01-21T14-37-06-933Z.json",
-          "line": 217,
-          "column": 41
-        },
-        {
-          "file": "frontend/.drift/patterns/discovered/.backups/api-2026-01-21T15-20-36-392Z.json",
-          "line": 145,
-          "column": 41
-        },
-        {
-          "file": "frontend/.drift/patterns/discovered/.backups/api-2026-01-21T15-20-36-392Z.json",
-          "line": 217,
-          "column": 41
-        },
-        {
-          "file": "frontend/.drift/patterns/discovered/.backups/auth-2026-01-21T14-37-06-933Z.json",
-          "line": 297,
-          "column": 41
-        },
-        {
-          "file": "frontend/.drift/patterns/discovered/.backups/auth-2026-01-21T14-37-06-933Z.json",
-          "line": 302,
-          "column": 41
-        },
-        {
-          "file": "frontend/.drift/patterns/discovered/.backups/auth-2026-01-21T15-20-36-392Z.json",
-          "line": 297,
-          "column": 41
-        },
-        {
-          "file": "frontend/.drift/patterns/discovered/.backups/components-2026-01-21T14-37-06-931Z.json",
-          "line": 292,
+          "file": "frontend/.drift/lake/patterns/components.json",
+          "line": 403,
           "column": 42
         },
         {
-          "file": "frontend/.drift/patterns/discovered/.backups/components-2026-01-21T14-37-06-931Z.json",
-          "line": 297,
+          "file": "frontend/.drift/lake/patterns/components.json",
+          "line": 408,
           "column": 42
         },
         {
-          "file": "frontend/.drift/patterns/discovered/.backups/components-2026-01-21T14-37-06-931Z.json",
-          "line": 302,
-          "column": 42
-        },
-        {
-          "file": "frontend/.drift/patterns/discovered/.backups/components-2026-01-21T14-37-06-931Z.json",
-          "line": 307,
-          "column": 42
-        },
-        {
-          "file": "frontend/.drift/patterns/discovered/.backups/components-2026-01-21T14-37-06-931Z.json",
-          "line": 312,
-          "column": 42
-        },
-        {
-          "file": "frontend/.drift/patterns/discovered/.backups/components-2026-01-21T14-37-06-931Z.json",
-          "line": 317,
-          "column": 42
-        },
-        {
-          "file": "frontend/.drift/patterns/discovered/.backups/components-2026-01-21T14-37-06-931Z.json",
-          "line": 322,
-          "column": 42
-        },
-        {
-          "file": "frontend/.drift/patterns/discovered/.backups/components-2026-01-21T14-37-06-931Z.json",
-          "line": 327,
-          "column": 42
-        },
-        {
-          "file": "frontend/.drift/patterns/discovered/.backups/components-2026-01-21T14-37-06-931Z.json",
-          "line": 332,
+          "file": "frontend/.drift/lake/patterns/components.json",
+          "line": 413,
           "column": 40
         },
         {
-          "file": "frontend/.drift/patterns/discovered/.backups/components-2026-01-21T14-37-06-931Z.json",
-          "line": 337,
+          "file": "frontend/.drift/lake/patterns/components.json",
+          "line": 418,
           "column": 40
+        },
+        {
+          "file": "frontend/.drift/lake/patterns/components.json",
+          "line": 423,
+          "column": 41
+        },
+        {
+          "file": "frontend/.drift/lake/patterns/components.json",
+          "line": 428,
+          "column": 41
+        },
+        {
+          "file": "frontend/.drift/lake/patterns/components.json",
+          "line": 433,
+          "column": 41
+        },
+        {
+          "file": "frontend/.drift/lake/patterns/components.json",
+          "line": 438,
+          "column": 54
+        },
+        {
+          "file": "frontend/.drift/lake/patterns/components.json",
+          "line": 443,
+          "column": 54
+        },
+        {
+          "file": "frontend/.drift/lake/patterns/components.json",
+          "line": 448,
+          "column": 52
+        },
+        {
+          "file": "frontend/.drift/lake/patterns/components.json",
+          "line": 526,
+          "column": 42
         }
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-22T19:32:37.426Z",
-        "lastSeen": "2026-01-22T19:32:37.426Z",
+        "firstSeen": "2026-01-25T03:50:12.729Z",
+        "lastSeen": "2026-01-25T03:50:12.729Z",
         "source": "auto-detected",
         "tags": [
           "components",
@@ -3951,8 +3956,8 @@
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-22T19:32:37.426Z",
-        "lastSeen": "2026-01-22T19:32:37.426Z",
+        "firstSeen": "2026-01-25T03:50:12.730Z",
+        "lastSeen": "2026-01-25T03:50:12.730Z",
         "source": "auto-detected",
         "tags": [
           "components",
@@ -4056,8 +4061,8 @@
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-22T19:32:37.426Z",
-        "lastSeen": "2026-01-22T19:32:37.426Z",
+        "firstSeen": "2026-01-25T03:50:12.730Z",
+        "lastSeen": "2026-01-25T03:50:12.730Z",
         "source": "auto-detected",
         "tags": [
           "components",
@@ -4161,8 +4166,8 @@
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-22T19:32:37.426Z",
-        "lastSeen": "2026-01-22T19:32:37.426Z",
+        "firstSeen": "2026-01-25T03:50:12.730Z",
+        "lastSeen": "2026-01-25T03:50:12.730Z",
         "source": "auto-detected",
         "tags": [
           "components",
@@ -4211,8 +4216,8 @@
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-22T19:32:37.426Z",
-        "lastSeen": "2026-01-22T19:32:37.426Z",
+        "firstSeen": "2026-01-25T03:50:12.730Z",
+        "lastSeen": "2026-01-25T03:50:12.730Z",
         "source": "auto-detected",
         "tags": [
           "components",
@@ -4296,8 +4301,8 @@
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-22T19:32:37.426Z",
-        "lastSeen": "2026-01-22T19:32:37.426Z",
+        "firstSeen": "2026-01-25T03:50:12.730Z",
+        "lastSeen": "2026-01-25T03:50:12.730Z",
         "source": "auto-detected",
         "tags": [
           "components",
@@ -4336,8 +4341,8 @@
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-22T19:32:37.426Z",
-        "lastSeen": "2026-01-22T19:32:37.426Z",
+        "firstSeen": "2026-01-25T03:50:12.730Z",
+        "lastSeen": "2026-01-25T03:50:12.730Z",
         "source": "auto-detected",
         "tags": [
           "components",
@@ -4376,8 +4381,8 @@
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-22T19:32:37.426Z",
-        "lastSeen": "2026-01-22T19:32:37.426Z",
+        "firstSeen": "2026-01-25T03:50:12.730Z",
+        "lastSeen": "2026-01-25T03:50:12.730Z",
         "source": "auto-detected",
         "tags": [
           "components",
@@ -4416,8 +4421,8 @@
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-22T19:32:37.426Z",
-        "lastSeen": "2026-01-22T19:32:37.426Z",
+        "firstSeen": "2026-01-25T03:50:12.730Z",
+        "lastSeen": "2026-01-25T03:50:12.730Z",
         "source": "auto-detected",
         "tags": [
           "components",
@@ -4456,8 +4461,8 @@
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-22T19:32:37.426Z",
-        "lastSeen": "2026-01-22T19:32:37.426Z",
+        "firstSeen": "2026-01-25T03:50:12.730Z",
+        "lastSeen": "2026-01-25T03:50:12.730Z",
         "source": "auto-detected",
         "tags": [
           "components",
@@ -4496,8 +4501,8 @@
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-22T19:32:37.426Z",
-        "lastSeen": "2026-01-22T19:32:37.426Z",
+        "firstSeen": "2026-01-25T03:50:12.730Z",
+        "lastSeen": "2026-01-25T03:50:12.730Z",
         "source": "auto-detected",
         "tags": [
           "components",
@@ -4726,8 +4731,8 @@
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-22T19:32:37.425Z",
-        "lastSeen": "2026-01-22T19:32:37.425Z",
+        "firstSeen": "2026-01-25T03:50:12.729Z",
+        "lastSeen": "2026-01-25T03:50:12.729Z",
         "source": "auto-detected",
         "tags": [
           "components",
@@ -4766,8 +4771,8 @@
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-22T19:32:37.426Z",
-        "lastSeen": "2026-01-22T19:32:37.426Z",
+        "firstSeen": "2026-01-25T03:50:12.730Z",
+        "lastSeen": "2026-01-25T03:50:12.730Z",
         "source": "auto-detected",
         "tags": [
           "components",
@@ -4806,8 +4811,8 @@
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-22T19:32:37.426Z",
-        "lastSeen": "2026-01-22T19:32:37.426Z",
+        "firstSeen": "2026-01-25T03:50:12.730Z",
+        "lastSeen": "2026-01-25T03:50:12.730Z",
         "source": "auto-detected",
         "tags": [
           "components",
@@ -5191,8 +5196,8 @@
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-22T19:32:37.426Z",
-        "lastSeen": "2026-01-22T19:32:37.426Z",
+        "firstSeen": "2026-01-25T03:50:12.730Z",
+        "lastSeen": "2026-01-25T03:50:12.730Z",
         "source": "auto-detected",
         "tags": [
           "components",
@@ -5486,8 +5491,8 @@
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-22T19:32:37.425Z",
-        "lastSeen": "2026-01-22T19:32:37.425Z",
+        "firstSeen": "2026-01-25T03:50:12.729Z",
+        "lastSeen": "2026-01-25T03:50:12.729Z",
         "source": "auto-detected",
         "tags": [
           "components",
@@ -5606,8 +5611,8 @@
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-22T19:32:37.426Z",
-        "lastSeen": "2026-01-22T19:32:37.426Z",
+        "firstSeen": "2026-01-25T03:50:12.730Z",
+        "lastSeen": "2026-01-25T03:50:12.730Z",
         "source": "auto-detected",
         "tags": [
           "components",
@@ -5646,8 +5651,8 @@
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-22T19:32:37.426Z",
-        "lastSeen": "2026-01-22T19:32:37.426Z",
+        "firstSeen": "2026-01-25T03:50:12.730Z",
+        "lastSeen": "2026-01-25T03:50:12.730Z",
         "source": "auto-detected",
         "tags": [
           "components",
@@ -5670,10 +5675,10 @@
         }
       },
       "confidence": {
-        "frequency": 0.08,
+        "frequency": 0.09,
         "consistency": 0.9,
         "age": 0,
-        "spread": 4,
+        "spread": 5,
         "score": 0.95,
         "level": "high"
       },
@@ -5687,6 +5692,11 @@
           "file": "backend/.drift/callgraph/graph.json",
           "line": 6748,
           "column": 25
+        },
+        {
+          "file": "backend/.drift/error-handling/topology.json",
+          "line": 773,
+          "column": 27
         },
         {
           "file": "csharp-backend/.drift/call-graph/graph.json",
@@ -5721,8 +5731,8 @@
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-22T19:32:37.424Z",
-        "lastSeen": "2026-01-22T19:32:37.424Z",
+        "firstSeen": "2026-01-25T03:50:12.727Z",
+        "lastSeen": "2026-01-25T03:50:12.727Z",
         "source": "auto-detected",
         "tags": [
           "components",
@@ -5916,8 +5926,8 @@
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-22T19:32:37.425Z",
-        "lastSeen": "2026-01-22T19:32:37.425Z",
+        "firstSeen": "2026-01-25T03:50:12.729Z",
+        "lastSeen": "2026-01-25T03:50:12.729Z",
         "source": "auto-detected",
         "tags": [
           "components",
@@ -6111,8 +6121,8 @@
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-22T19:32:37.425Z",
-        "lastSeen": "2026-01-22T19:32:37.425Z",
+        "firstSeen": "2026-01-25T03:50:12.729Z",
+        "lastSeen": "2026-01-25T03:50:12.729Z",
         "source": "auto-detected",
         "tags": [
           "components",
@@ -6156,8 +6166,8 @@
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-22T19:32:37.425Z",
-        "lastSeen": "2026-01-22T19:32:37.425Z",
+        "firstSeen": "2026-01-25T03:50:12.729Z",
+        "lastSeen": "2026-01-25T03:50:12.729Z",
         "source": "auto-detected",
         "tags": [
           "components",
@@ -6251,8 +6261,8 @@
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-22T19:32:37.427Z",
-        "lastSeen": "2026-01-22T19:32:37.427Z",
+        "firstSeen": "2026-01-25T03:50:12.730Z",
+        "lastSeen": "2026-01-25T03:50:12.730Z",
         "source": "auto-detected",
         "tags": [
           "components",
@@ -6316,8 +6326,8 @@
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-22T19:32:37.427Z",
-        "lastSeen": "2026-01-22T19:32:37.427Z",
+        "firstSeen": "2026-01-25T03:50:12.730Z",
+        "lastSeen": "2026-01-25T03:50:12.730Z",
         "source": "auto-detected",
         "tags": [
           "components",
@@ -6366,8 +6376,8 @@
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-22T19:32:37.427Z",
-        "lastSeen": "2026-01-22T19:32:37.427Z",
+        "firstSeen": "2026-01-25T03:50:12.730Z",
+        "lastSeen": "2026-01-25T03:50:12.730Z",
         "source": "auto-detected",
         "tags": [
           "components",
@@ -6418,6 +6428,6 @@
       "autoFixable": false
     }
   ],
-  "lastUpdated": "2026-01-22T19:32:37.432Z",
-  "checksum": "6a796293e30bb0a8"
+  "lastUpdated": "2026-01-25T03:50:12.740Z",
+  "checksum": "2aeae782213bb8e4"
 }

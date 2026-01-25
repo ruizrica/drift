@@ -2,7 +2,7 @@
   "name": "driftdetect-dashboard",
   "version": "0.7.1",
   "description": "Local web dashboard for Drift architectural drift detection",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/dadbodgeoff/drift"

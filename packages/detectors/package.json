@@ -2,7 +2,7 @@
   "name": "driftdetect-detectors",
   "version": "0.7.1",
   "description": "Pattern detectors for Drift - 150+ detectors across 15 categories",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/dadbodgeoff/drift"

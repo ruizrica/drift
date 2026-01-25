@@ -21,6 +21,7 @@ import { Router, type Request, type Response, type NextFunction } from 'express'
 import { DriftDataReader, type PatternQuery, type ViolationQuery, type DriftConfig } from './drift-data-reader.js';
 import { createGalaxyDataTransformer } from './galaxy-data-transformer.js';
 import { getProjectRegistry } from 'driftdetect-core';
+import { handleQualityGatesRequest } from './quality-gates-api.js';
 
 // ============================================================================
 // Types
@@ -672,6 +673,26 @@ export function createApiRoutes(reader: DriftDataReader): Router {
     } catch (error) {
       next(error);
     }
+  });
+
+  // ==========================================================================
+  // Quality Gates Routes
+  // ==========================================================================
+
+  /**
+   * GET /api/quality-gates - Quality gates API
+   * Actions: latest, history, policies, policy
+   */
+  router.get('/quality-gates', (req: Request, res: Response) => {
+    handleQualityGatesRequest(req, res, reader.directory);
+  });
+
+  /**
+   * POST /api/quality-gates - Quality gates API (for run action)
+   * Actions: run
+   */
+  router.post('/quality-gates', (req: Request, res: Response) => {
+    handleQualityGatesRequest(req, res, reader.directory);
   });
 
   return router;

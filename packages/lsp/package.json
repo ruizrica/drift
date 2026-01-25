@@ -2,7 +2,7 @@
   "name": "driftdetect-lsp",
   "version": "0.7.1",
   "description": "Language Server Protocol implementation for Drift",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/dadbodgeoff/drift"

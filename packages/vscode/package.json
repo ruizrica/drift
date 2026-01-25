@@ -4,7 +4,7 @@
   "description": "Learn your codebase patterns and enforce consistency. Pattern detection, call graph analysis, security visualization, and MCP integration for AI agents. Supports TypeScript, Python, C#, Java, PHP.",
   "version": "0.7.1",
   "publisher": "driftdetect",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "icon": "resources/drift-icon.png",
   "repository": {
     "type": "git",

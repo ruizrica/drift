@@ -457,6 +457,71 @@ Analyze constants, enums, and exported values. Detects hardcoded secrets, incons
 }
 ```
 
+### `drift_quality_gate`
+
+Run quality gates on code changes. Enterprise CI/CD integration point.
+
+```json
+{
+  "files": ["src/routes/users.ts", "src/services/user-service.ts"],
+  "policy": "strict",
+  "gates": "pattern-compliance,security-boundary",
+  "format": "json",
+  "verbose": true,
+  "branch": "feature/new-auth",
+  "baseBranch": "main"
+}
+```
+
+**Parameters:**
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `files` | array | No | Files to check (defaults to all changed files) |
+| `policy` | string | No | Policy: `default`, `strict`, `relaxed`, `ci-fast`, or custom ID |
+| `gates` | string | No | Comma-separated gates to run |
+| `format` | enum | No | Output: `text`, `json`, `github`, `gitlab`, `sarif` |
+| `verbose` | boolean | No | Include detailed output |
+| `branch` | string | No | Current branch name |
+| `baseBranch` | string | No | Base branch for comparison |
+
+**Available Gates:**
+- `pattern-compliance` - Check if code follows established patterns
+- `constraint-verification` - Verify architectural constraints
+- `regression-detection` - Detect pattern regressions
+- `impact-simulation` - Analyze blast radius of changes
+- `security-boundary` - Validate data access boundaries
+- `custom-rules` - Run user-defined rules
+
+**Available Policies:**
+- `default` - Balanced settings for most projects
+- `strict` - Strict settings for main/release branches
+- `relaxed` - Relaxed settings for feature branches
+- `ci-fast` - Minimal checks for fast CI feedback
+
+**Example - Run all gates with strict policy:**
+```json
+{
+  "policy": "strict"
+}
+```
+
+**Example - Run specific gates only:**
+```json
+{
+  "gates": "pattern-compliance,security-boundary",
+  "verbose": true
+}
+```
+
+**Example - CI mode with GitHub annotations:**
+```json
+{
+  "format": "github",
+  "branch": "feature/auth",
+  "baseBranch": "main"
+}
+```
+
 ---
 
 ## Layer 6: Generation
