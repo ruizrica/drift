@@ -17,25 +17,34 @@ Drift uses an **Open Core** licensing model. This means:
 - CLI tools (`drift scan`, `drift check`, `drift status`, etc.)
 - Call graph analysis and data flow tracking
 - Pattern approval/ignore workflow
-- GitHub/GitLab CI reporters
+- **CI integration with all output formats** (JSON, GitHub, GitLab, SARIF)
+- Basic thresholds and fail conditions
 - Local dashboard
 
-This covers everything a solo developer or small team needs.
+This covers everything a solo developer or small team needs. **We believe individual developers should never hit a paywall.**
 
 ### Enterprise & Large Organizations 💼
 
-Enterprise features require a commercial license:
+Enterprise features require a commercial license. These are specifically for **managing patterns at scale across teams**:
+
+**Team Tier:**
+- Policy Engine (multiple policies, branch/path scoping)
+- Regression detection across time
+- Custom rules engine
+- Historical trend analysis
+- Report exports
+
+**Enterprise Tier:**
 - Multi-repo pattern governance
-- Team analytics and dashboards
-- CI quality gates with policy engine
+- Team analytics and dashboards  
+- Impact simulation
+- Security boundary analysis
 - Audit trails for compliance
-- Jira/Slack integrations
-- SARIF output for security tools
+- Jira/Slack/Webhook integrations
 - Self-hosted model support
+- REST API access
 
-These features are designed for organizations that need to enforce patterns at scale across multiple teams and repositories.
-
-**[Get Enterprise License →](https://driftscan.dev/pricing)**
+**[Get Enterprise License →](Coming soon)**
 
 ## License Details
 
@@ -131,6 +140,6 @@ This is the same model used by GitLab, Sentry, PostHog, and many other successfu
 
 ## Contact
 
-- **Enterprise Sales:** enterprise@driftscan.dev
+- **Enterprise Sales:** 
 - **General Questions:** hello@driftscan.dev
 - **GitHub Issues:** [github.com/drift/drift/issues](https://github.com/drift/drift/issues)

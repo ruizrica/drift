@@ -3,6 +3,12 @@
 - [Getting Started](Getting-Started)
 - [MCP Setup](MCP-Setup)
 
+## CI/CD Integration
+- [Quality Gates](Quality-Gates)
+- [CI Integration](CI-Integration)
+- [Git Hooks](Git-Hooks)
+- [Incremental Scans](Incremental-Scans)
+
 ## Reference
 - [CLI Reference](CLI-Reference)
 - [MCP Tools Reference](MCP-Tools-Reference)
