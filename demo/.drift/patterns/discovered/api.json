@@ -15,10 +15,10 @@
         }
       },
       "confidence": {
-        "frequency": 0.1,
+        "frequency": 0.06,
         "consistency": 0.9,
         "age": 0,
-        "spread": 10,
+        "spread": 6,
         "score": 0.95,
         "level": "high"
       },
@@ -52,26 +52,6 @@
           "file": "backend/src/routes/users.ts",
           "line": 20,
           "column": 1
-        },
-        {
-          "file": "frontend/src/api/admin.ts",
-          "line": 13,
-          "column": 52
-        },
-        {
-          "file": "frontend/src/api/orders.ts",
-          "line": 15,
-          "column": 46
-        },
-        {
-          "file": "frontend/src/api/products.ts",
-          "line": 15,
-          "column": 48
-        },
-        {
-          "file": "frontend/src/api/users.ts",
-          "line": 11,
-          "column": 45
         }
       ],
       "outliers": [
@@ -81,18 +61,11 @@
           "column": 1,
           "reason": "Resource 'dashboard' should use plural form for RESTful consistency",
           "deviationScore": 0.4
-        },
-        {
-          "file": "frontend/src/api/admin.ts",
-          "line": 13,
-          "column": 52,
-          "reason": "Resource 'dashboard' should use plural form for RESTful consistency",
-          "deviationScore": 0.4
         }
       ],
       "metadata": {
-        "firstSeen": "2026-01-25T03:50:12.728Z",
-        "lastSeen": "2026-01-25T03:50:12.728Z",
+        "firstSeen": "2026-01-26T05:14:32.364Z",
+        "lastSeen": "2026-01-26T05:14:32.365Z",
         "source": "auto-detected",
         "tags": [
           "api",
@@ -156,8 +129,8 @@
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-25T03:50:12.728Z",
-        "lastSeen": "2026-01-25T03:50:12.728Z",
+        "firstSeen": "2026-01-26T05:14:32.365Z",
+        "lastSeen": "2026-01-26T05:14:32.365Z",
         "source": "auto-detected",
         "tags": [
           "api",
@@ -180,10 +153,10 @@
         }
       },
       "confidence": {
-        "frequency": 0.07,
+        "frequency": 0.03,
         "consistency": 0.9,
         "age": 0,
-        "spread": 7,
+        "spread": 3,
         "score": 0.95,
         "level": "high"
       },
@@ -202,32 +175,12 @@
           "file": "backend/src/routes/legacy.ts",
           "line": 31,
           "column": 12
-        },
-        {
-          "file": "frontend/src/api/admin.ts",
-          "line": 13,
-          "column": 52
-        },
-        {
-          "file": "frontend/src/api/orders.ts",
-          "line": 15,
-          "column": 46
-        },
-        {
-          "file": "frontend/src/api/products.ts",
-          "line": 15,
-          "column": 48
-        },
-        {
-          "file": "frontend/src/api/users.ts",
-          "line": 11,
-          "column": 45
         }
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-25T03:50:12.728Z",
-        "lastSeen": "2026-01-25T03:50:12.728Z",
+        "firstSeen": "2026-01-26T05:14:32.365Z",
+        "lastSeen": "2026-01-26T05:14:32.365Z",
         "source": "auto-detected",
         "tags": [
           "api",
@@ -291,8 +244,8 @@
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-25T03:50:12.728Z",
-        "lastSeen": "2026-01-25T03:50:12.728Z",
+        "firstSeen": "2026-01-26T05:14:32.365Z",
+        "lastSeen": "2026-01-26T05:14:32.365Z",
         "source": "auto-detected",
         "tags": [
           "api",
@@ -356,8 +309,8 @@
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-25T03:50:12.728Z",
-        "lastSeen": "2026-01-25T03:50:12.728Z",
+        "firstSeen": "2026-01-26T05:14:32.365Z",
+        "lastSeen": "2026-01-26T05:14:32.365Z",
         "source": "auto-detected",
         "tags": [
           "api",
@@ -380,10 +333,10 @@
         }
       },
       "confidence": {
-        "frequency": 0.09,
+        "frequency": 0.06,
         "consistency": 0.9,
         "age": 0,
-        "spread": 9,
+        "spread": 6,
         "score": 0.95,
         "level": "high"
       },
@@ -417,21 +370,6 @@
           "file": "backend/src/utils/response.ts",
           "line": 34,
           "column": 3
-        },
-        {
-          "file": "frontend/src/components/Table.tsx",
-          "line": 17,
-          "column": 32
-        },
-        {
-          "file": "frontend/src/hooks/useApi.ts",
-          "line": 9,
-          "column": 26
-        },
-        {
-          "file": "frontend/src/types/api.ts",
-          "line": 10,
-          "column": 33
         }
       ],
       "outliers": [
@@ -455,32 +393,11 @@
           "column": 5,
           "reason": "Direct array/data return without envelope wrapper",
           "deviationScore": 0.4
-        },
-        {
-          "file": "frontend/src/types/api.ts",
-          "line": 10,
-          "column": 33,
-          "reason": "Response envelope is missing a data field",
-          "deviationScore": 0.4
-        },
-        {
-          "file": "frontend/src/types/api.ts",
-          "line": 21,
-          "column": 27,
-          "reason": "Response envelope is missing a data field",
-          "deviationScore": 0.4
-        },
-        {
-          "file": "frontend/src/types/api.ts",
-          "line": 13,
-          "column": 10,
-          "reason": "Response envelope is missing a data field",
-          "deviationScore": 0.4
         }
       ],
       "metadata": {
-        "firstSeen": "2026-01-25T03:50:12.728Z",
-        "lastSeen": "2026-01-25T03:50:12.728Z",
+        "firstSeen": "2026-01-26T05:14:32.365Z",
+        "lastSeen": "2026-01-26T05:14:32.365Z",
         "source": "auto-detected",
         "tags": [
           "api",
@@ -534,8 +451,8 @@
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-25T03:50:12.728Z",
-        "lastSeen": "2026-01-25T03:50:12.728Z",
+        "firstSeen": "2026-01-26T05:14:32.365Z",
+        "lastSeen": "2026-01-26T05:14:32.365Z",
         "source": "auto-detected",
         "tags": [
           "api",
@@ -558,10 +475,10 @@
         }
       },
       "confidence": {
-        "frequency": 0.06,
+        "frequency": 0.03,
         "consistency": 0.9,
         "age": 0,
-        "spread": 6,
+        "spread": 3,
         "score": 0.95,
         "level": "high"
       },
@@ -580,27 +497,12 @@
           "file": "backend/src/utils/response.ts",
           "line": 10,
           "column": 33
-        },
-        {
-          "file": "frontend/src/components/Table.tsx",
-          "line": 17,
-          "column": 32
-        },
-        {
-          "file": "frontend/src/hooks/useApi.ts",
-          "line": 9,
-          "column": 26
-        },
-        {
-          "file": "frontend/src/types/api.ts",
-          "line": 10,
-          "column": 33
         }
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-25T03:50:12.728Z",
-        "lastSeen": "2026-01-25T03:50:12.728Z",
+        "firstSeen": "2026-01-26T05:14:32.365Z",
+        "lastSeen": "2026-01-26T05:14:32.365Z",
         "source": "auto-detected",
         "tags": [
           "api",
@@ -659,8 +561,8 @@
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-25T03:50:12.728Z",
-        "lastSeen": "2026-01-25T03:50:12.728Z",
+        "firstSeen": "2026-01-26T05:14:32.365Z",
+        "lastSeen": "2026-01-26T05:14:32.366Z",
         "source": "auto-detected",
         "tags": [
           "api",
@@ -709,8 +611,8 @@
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-25T03:50:12.728Z",
-        "lastSeen": "2026-01-25T03:50:12.728Z",
+        "firstSeen": "2026-01-26T05:14:32.366Z",
+        "lastSeen": "2026-01-26T05:14:32.366Z",
         "source": "auto-detected",
         "tags": [
           "api",
@@ -733,10 +635,10 @@
         }
       },
       "confidence": {
-        "frequency": 0.04,
+        "frequency": 0.03,
         "consistency": 0.9,
         "age": 0,
-        "spread": 4,
+        "spread": 3,
         "score": 0.95,
         "level": "high"
       },
@@ -755,17 +657,12 @@
           "file": "backend/src/services/productService.ts",
           "line": 40,
           "column": 26
-        },
-        {
-          "file": "frontend/src/types/api.ts",
-          "line": 13,
-          "column": 10
         }
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-25T03:50:12.728Z",
-        "lastSeen": "2026-01-25T03:50:12.728Z",
+        "firstSeen": "2026-01-26T05:14:32.366Z",
+        "lastSeen": "2026-01-26T05:14:32.366Z",
         "source": "auto-detected",
         "tags": [
           "api",
@@ -814,8 +711,8 @@
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-25T03:50:12.728Z",
-        "lastSeen": "2026-01-25T03:50:12.728Z",
+        "firstSeen": "2026-01-26T05:14:32.366Z",
+        "lastSeen": "2026-01-26T05:14:32.366Z",
         "source": "auto-detected",
         "tags": [
           "api",
@@ -854,8 +751,8 @@
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-25T03:50:12.728Z",
-        "lastSeen": "2026-01-25T03:50:12.728Z",
+        "firstSeen": "2026-01-26T05:14:32.366Z",
+        "lastSeen": "2026-01-26T05:14:32.366Z",
         "source": "auto-detected",
         "tags": [
           "api",
@@ -878,10 +775,10 @@
         }
       },
       "confidence": {
-        "frequency": 0.03,
+        "frequency": 0.02,
         "consistency": 0.9,
         "age": 0,
-        "spread": 3,
+        "spread": 2,
         "score": 0.95,
         "level": "high"
       },
@@ -895,17 +792,12 @@
           "file": "backend/src/services/productService.ts",
           "line": 40,
           "column": 26
-        },
-        {
-          "file": "frontend/src/types/api.ts",
-          "line": 13,
-          "column": 10
         }
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-25T03:50:12.728Z",
-        "lastSeen": "2026-01-25T03:50:12.728Z",
+        "firstSeen": "2026-01-26T05:14:32.366Z",
+        "lastSeen": "2026-01-26T05:14:32.366Z",
         "source": "auto-detected",
         "tags": [
           "api",
@@ -944,8 +836,8 @@
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-25T03:50:12.728Z",
-        "lastSeen": "2026-01-25T03:50:12.728Z",
+        "firstSeen": "2026-01-26T05:14:32.366Z",
+        "lastSeen": "2026-01-26T05:14:32.366Z",
         "source": "auto-detected",
         "tags": [
           "api",
@@ -3226,6 +3118,6 @@
       "autoFixable": false
     }
   ],
-  "lastUpdated": "2026-01-25T03:50:12.749Z",
-  "checksum": "28506f0946fe077d"
+  "lastUpdated": "2026-01-26T05:14:32.371Z",
+  "checksum": "1eb7ed2e709df1f9"
 }

@@ -395,54 +395,24 @@
         }
       },
       "confidence": {
-        "frequency": 0.12,
+        "frequency": 0.02,
         "consistency": 0.9,
         "age": 0,
-        "spread": 4,
-        "score": 0.8533333333333333,
-        "level": "high"
+        "spread": 1,
+        "score": 0.7949999999999999,
+        "level": "medium"
       },
       "locations": [
         {
           "file": "backend/src/middleware/auth.ts",
           "line": 24,
           "column": 9
-        },
-        {
-          "file": "frontend/src/api/client.ts",
-          "line": 10,
-          "column": 11
-        },
-        {
-          "file": "frontend/src/api/client.ts",
-          "line": 12,
-          "column": 12
-        },
-        {
-          "file": "frontend/src/components/Button.tsx",
-          "line": 23,
-          "column": 3
-        },
-        {
-          "file": "frontend/src/components/Button.tsx",
-          "line": 33,
-          "column": 9
-        },
-        {
-          "file": "frontend/src/hooks/useAuth.ts",
-          "line": 46,
-          "column": 13
-        },
-        {
-          "file": "frontend/src/hooks/useAuth.ts",
-          "line": 46,
-          "column": 27
         }
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-25T03:50:12.728Z",
-        "lastSeen": "2026-01-25T03:50:12.728Z",
+        "firstSeen": "2026-01-26T05:14:32.365Z",
+        "lastSeen": "2026-01-26T05:14:32.365Z",
         "source": "auto-detected",
         "tags": [
           "styling",
@@ -481,8 +451,8 @@
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-25T03:50:12.728Z",
-        "lastSeen": "2026-01-25T03:50:12.728Z",
+        "firstSeen": "2026-01-26T05:14:32.365Z",
+        "lastSeen": "2026-01-26T05:14:32.365Z",
         "source": "auto-detected",
         "tags": [
           "styling",
@@ -505,10 +475,10 @@
         }
       },
       "confidence": {
-        "frequency": 0.66,
+        "frequency": 0.18,
         "consistency": 0.9,
         "age": 0,
-        "spread": 13,
+        "spread": 5,
         "score": 0.77,
         "level": "medium"
       },
@@ -557,87 +527,12 @@
           "file": "backend/src/utils/errors.ts",
           "line": 32,
           "column": 8
-        },
-        {
-          "file": "frontend/src/api/client.ts",
-          "line": 9,
-          "column": 8
-        },
-        {
-          "file": "frontend/src/components/Button.tsx",
-          "line": 18,
-          "column": 3
-        },
-        {
-          "file": "frontend/src/components/Card.tsx",
-          "line": 12,
-          "column": 3
-        },
-        {
-          "file": "frontend/src/components/Card.tsx",
-          "line": 25,
-          "column": 3
-        },
-        {
-          "file": "frontend/src/components/Card.tsx",
-          "line": 38,
-          "column": 3
-        },
-        {
-          "file": "frontend/src/components/Card.tsx",
-          "line": 51,
-          "column": 3
-        },
-        {
-          "file": "frontend/src/components/Input.tsx",
-          "line": 20,
-          "column": 3
-        },
-        {
-          "file": "frontend/src/components/Table.tsx",
-          "line": 14,
-          "column": 3
-        },
-        {
-          "file": "frontend/src/components/Table.tsx",
-          "line": 24,
-          "column": 3
-        },
-        {
-          "file": "frontend/src/components/legacy/OldButton.tsx",
-          "line": 5,
-          "column": 36
-        },
-        {
-          "file": "frontend/src/components/legacy/OldButton.tsx",
-          "line": 5,
-          "column": 18
-        },
-        {
-          "file": "frontend/src/components/legacy/UserCard.tsx",
-          "line": 6,
-          "column": 13
-        },
-        {
-          "file": "spring-backend/README.md",
-          "line": 8,
-          "column": 47
-        },
-        {
-          "file": "spring-backend/README.md",
-          "line": 10,
-          "column": 36
-        },
-        {
-          "file": "spring-backend/README.md",
-          "line": 75,
-          "column": 28
         }
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-25T03:50:12.728Z",
-        "lastSeen": "2026-01-25T03:50:12.728Z",
+        "firstSeen": "2026-01-26T05:14:32.366Z",
+        "lastSeen": "2026-01-26T05:14:32.366Z",
         "source": "auto-detected",
         "tags": [
           "styling",
@@ -660,10 +555,10 @@
         }
       },
       "confidence": {
-        "frequency": 0.15,
+        "frequency": 0.02,
         "consistency": 0.9,
         "age": 0,
-        "spread": 6,
+        "spread": 1,
         "score": 0.77,
         "level": "medium"
       },
@@ -672,52 +567,12 @@
           "file": "backend/src/utils/errors.ts",
           "line": 2,
           "column": 4
-        },
-        {
-          "file": "frontend/src/components/Button.tsx",
-          "line": 5,
-          "column": 15
-        },
-        {
-          "file": "frontend/src/components/Button.tsx",
-          "line": 12,
-          "column": 3
-        },
-        {
-          "file": "frontend/src/components/legacy/OldButton.tsx",
-          "line": 7,
-          "column": 9
-        },
-        {
-          "file": "frontend/src/hooks/useAuth.ts",
-          "line": 47,
-          "column": 26
-        },
-        {
-          "file": "laravel-backend/README.md",
-          "line": 10,
-          "column": 28
-        },
-        {
-          "file": "laravel-backend/README.md",
-          "line": 13,
-          "column": 23
-        },
-        {
-          "file": "spring-backend/README.md",
-          "line": 26,
-          "column": 14
-        },
-        {
-          "file": "spring-backend/README.md",
-          "line": 36,
-          "column": 3
         }
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-25T03:50:12.728Z",
-        "lastSeen": "2026-01-25T03:50:12.728Z",
+        "firstSeen": "2026-01-26T05:14:32.366Z",
+        "lastSeen": "2026-01-26T05:14:32.366Z",
         "source": "auto-detected",
         "tags": [
           "styling",
@@ -2968,6 +2823,6 @@
       "autoFixable": false
     }
   ],
-  "lastUpdated": "2026-01-25T03:50:12.744Z",
-  "checksum": "6139f2b43ba88de6"
+  "lastUpdated": "2026-01-26T05:14:32.370Z",
+  "checksum": "bdebbb3ad5957e3c"
 }

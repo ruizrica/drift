@@ -33,5 +33,13 @@
     "boundaries": true,
     "dna": true,
     "contracts": true
+  },
+  "telemetry": {
+    "enabled": true,
+    "sharePatternSignatures": true,
+    "shareAggregateStats": true,
+    "shareUserActions": true,
+    "enabledAt": "2026-01-26T05:13:41.508Z",
+    "installationId": "028e7da4-5d6b-4368-b7ac-2aa0923bed1c"
   }
 }

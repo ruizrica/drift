@@ -505,34 +505,14 @@
         }
       },
       "confidence": {
-        "frequency": 0.61,
+        "frequency": 0.25,
         "consistency": 0.9,
         "age": 0,
-        "spread": 17,
+        "spread": 6,
         "score": 0.77,
         "level": "medium"
       },
       "locations": [
-        {
-          "file": "README.md",
-          "line": 9,
-          "column": 5
-        },
-        {
-          "file": "README.md",
-          "line": 9,
-          "column": 33
-        },
-        {
-          "file": "README.md",
-          "line": 21,
-          "column": 40
-        },
-        {
-          "file": "README.md",
-          "line": 81,
-          "column": 9
-        },
         {
           "file": "backend/src/middleware/errorHandler.ts",
           "line": 26,
@@ -657,117 +637,12 @@
           "file": "backend/src/services/userService.ts",
           "line": 88,
           "column": 5
-        },
-        {
-          "file": "frontend/src/api/client.ts",
-          "line": 40,
-          "column": 5
-        },
-        {
-          "file": "frontend/src/api/client.ts",
-          "line": 44,
-          "column": 5
-        },
-        {
-          "file": "frontend/src/api/client.ts",
-          "line": 48,
-          "column": 5
-        },
-        {
-          "file": "frontend/src/api/client.ts",
-          "line": 55,
-          "column": 5
-        },
-        {
-          "file": "frontend/src/api/client.ts",
-          "line": 62,
-          "column": 5
-        },
-        {
-          "file": "frontend/src/components/Button.tsx",
-          "line": 2,
-          "column": 11
-        },
-        {
-          "file": "frontend/src/components/Button.tsx",
-          "line": 4,
-          "column": 26
-        },
-        {
-          "file": "frontend/src/components/Card.tsx",
-          "line": 2,
-          "column": 9
-        },
-        {
-          "file": "frontend/src/components/Card.tsx",
-          "line": 4,
-          "column": 26
-        },
-        {
-          "file": "frontend/src/components/Input.tsx",
-          "line": 2,
-          "column": 10
-        },
-        {
-          "file": "frontend/src/components/Table.tsx",
-          "line": 2,
-          "column": 10
-        },
-        {
-          "file": "frontend/src/components/Table.tsx",
-          "line": 13,
-          "column": 3
-        },
-        {
-          "file": "frontend/src/components/legacy/DataFetcher.tsx",
-          "line": 24,
-          "column": 9
-        },
-        {
-          "file": "frontend/src/components/legacy/DataFetcher.tsx",
-          "line": 46,
-          "column": 3
-        },
-        {
-          "file": "frontend/src/components/legacy/OldButton.tsx",
-          "line": 2,
-          "column": 15
-        },
-        {
-          "file": "frontend/src/hooks/useApi.ts",
-          "line": 43,
-          "column": 3
-        },
-        {
-          "file": "frontend/src/hooks/useApi.ts",
-          "line": 62,
-          "column": 7
-        },
-        {
-          "file": "frontend/src/hooks/useApi.ts",
-          "line": 70,
-          "column": 3
-        },
-        {
-          "file": "frontend/src/hooks/useAuth.ts",
-          "line": 29,
-          "column": 3
-        },
-        {
-          "file": "frontend/src/hooks/useAuth.ts",
-          "line": 69,
-          "column": 3
-        },
-        {
-          "file": "spring-backend/README.md",
-          "line": 67,
-          "column": 18
         }
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-25T03:50:12.725Z",
-        "lastSeen": "2026-01-25T03:50:12.725Z",
+        "firstSeen": "2026-01-26T05:14:32.365Z",
+        "lastSeen": "2026-01-26T05:14:32.365Z",
         "source": "auto-detected",
         "tags": [
           "components",
@@ -790,19 +665,14 @@
         }
       },
       "confidence": {
-        "frequency": 0.52,
+        "frequency": 0.04,
         "consistency": 0.9,
         "age": 0,
-        "spread": 7,
-        "score": 0.77,
+        "spread": 1,
+        "score": 0.6533333333333333,
         "level": "medium"
       },
       "locations": [
-        {
-          "file": "README.md",
-          "line": 9,
-          "column": 66
-        },
         {
           "file": "backend/src/services/userService.ts",
           "line": 61,
@@ -812,87 +682,12 @@
           "file": "backend/src/services/userService.ts",
           "line": 62,
           "column": 13
-        },
-        {
-          "file": "frontend/src/components/Button.tsx",
-          "line": 4,
-          "column": 62
-        },
-        {
-          "file": "frontend/src/components/Input.tsx",
-          "line": 2,
-          "column": 4
-        },
-        {
-          "file": "frontend/src/components/Input.tsx",
-          "line": 4,
-          "column": 31
-        },
-        {
-          "file": "frontend/src/components/Input.tsx",
-          "line": 34,
-          "column": 4
-        },
-        {
-          "file": "frontend/src/components/Input.tsx",
-          "line": 40,
-          "column": 25
-        },
-        {
-          "file": "frontend/src/components/Input.tsx",
-          "line": 45,
-          "column": 8
-        },
-        {
-          "file": "frontend/src/components/Input.tsx",
-          "line": 46,
-          "column": 13
-        },
-        {
-          "file": "frontend/src/components/legacy/DataFetcher.tsx",
-          "line": 8,
-          "column": 29
-        },
-        {
-          "file": "frontend/src/components/legacy/OldButton.tsx",
-          "line": 6,
-          "column": 34
-        },
-        {
-          "file": "frontend/src/components/legacy/OldButton.tsx",
-          "line": 21,
-          "column": 22
-        },
-        {
-          "file": "frontend/src/components/legacy/OldButton.tsx",
-          "line": 30,
-          "column": 36
-        },
-        {
-          "file": "frontend/src/components/legacy/OldButton.tsx",
-          "line": 31,
-          "column": 8
-        },
-        {
-          "file": "frontend/src/components/legacy/UserCard.tsx",
-          "line": 7,
-          "column": 20
-        },
-        {
-          "file": "frontend/src/components/legacy/UserCard.tsx",
-          "line": 37,
-          "column": 34
-        },
-        {
-          "file": "frontend/src/components/legacy/UserCard.tsx",
-          "line": 43,
-          "column": 18
         }
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-25T03:50:12.725Z",
-        "lastSeen": "2026-01-25T03:50:12.725Z",
+        "firstSeen": "2026-01-26T05:14:32.366Z",
+        "lastSeen": "2026-01-26T05:14:32.366Z",
         "source": "auto-detected",
         "tags": [
           "components",
@@ -915,34 +710,14 @@
         }
       },
       "confidence": {
-        "frequency": 1,
+        "frequency": 0.59,
         "consistency": 0.9,
         "age": 0,
-        "spread": 26,
+        "spread": 10,
         "score": 0.77,
         "level": "medium"
       },
       "locations": [
-        {
-          "file": "README.md",
-          "line": 9,
-          "column": 5
-        },
-        {
-          "file": "README.md",
-          "line": 9,
-          "column": 33
-        },
-        {
-          "file": "README.md",
-          "line": 21,
-          "column": 40
-        },
-        {
-          "file": "README.md",
-          "line": 81,
-          "column": 9
-        },
         {
           "file": "backend/src/middleware/auth.ts",
           "line": 19,
@@ -1152,282 +927,12 @@
           "file": "backend/src/utils/response.ts",
           "line": 50,
           "column": 8
-        },
-        {
-          "file": "frontend/src/api/admin.ts",
-          "line": 4,
-          "column": 25
-        },
-        {
-          "file": "frontend/src/api/admin.ts",
-          "line": 12,
-          "column": 14
-        },
-        {
-          "file": "frontend/src/api/admin.ts",
-          "line": 16,
-          "column": 14
-        },
-        {
-          "file": "frontend/src/api/admin.ts",
-          "line": 21,
-          "column": 14
-        },
-        {
-          "file": "frontend/src/api/admin.ts",
-          "line": 26,
-          "column": 14
-        },
-        {
-          "file": "frontend/src/api/admin.ts",
-          "line": 31,
-          "column": 14
-        },
-        {
-          "file": "frontend/src/api/client.ts",
-          "line": 40,
-          "column": 5
-        },
-        {
-          "file": "frontend/src/api/client.ts",
-          "line": 44,
-          "column": 5
-        },
-        {
-          "file": "frontend/src/api/client.ts",
-          "line": 48,
-          "column": 5
-        },
-        {
-          "file": "frontend/src/api/client.ts",
-          "line": 55,
-          "column": 5
-        },
-        {
-          "file": "frontend/src/api/client.ts",
-          "line": 62,
-          "column": 5
-        },
-        {
-          "file": "frontend/src/api/client.ts",
-          "line": 9,
-          "column": 8
-        },
-        {
-          "file": "frontend/src/api/orders.ts",
-          "line": 4,
-          "column": 25
-        },
-        {
-          "file": "frontend/src/api/orders.ts",
-          "line": 10,
-          "column": 14
-        },
-        {
-          "file": "frontend/src/api/orders.ts",
-          "line": 18,
-          "column": 14
-        },
-        {
-          "file": "frontend/src/api/orders.ts",
-          "line": 22,
-          "column": 14
-        },
-        {
-          "file": "frontend/src/api/orders.ts",
-          "line": 29,
-          "column": 14
-        },
-        {
-          "file": "frontend/src/api/products.ts",
-          "line": 4,
-          "column": 25
-        },
-        {
-          "file": "frontend/src/api/products.ts",
-          "line": 10,
-          "column": 14
-        },
-        {
-          "file": "frontend/src/api/products.ts",
-          "line": 18,
-          "column": 14
-        },
-        {
-          "file": "frontend/src/api/products.ts",
-          "line": 22,
-          "column": 14
-        },
-        {
-          "file": "frontend/src/api/products.ts",
-          "line": 26,
-          "column": 14
-        },
-        {
-          "file": "frontend/src/api/products.ts",
-          "line": 30,
-          "column": 14
-        },
-        {
-          "file": "frontend/src/api/users.ts",
-          "line": 4,
-          "column": 25
-        },
-        {
-          "file": "frontend/src/api/users.ts",
-          "line": 10,
-          "column": 14
-        },
-        {
-          "file": "frontend/src/api/users.ts",
-          "line": 14,
-          "column": 14
-        },
-        {
-          "file": "frontend/src/api/users.ts",
-          "line": 18,
-          "column": 14
-        },
-        {
-          "file": "frontend/src/api/users.ts",
-          "line": 22,
-          "column": 14
-        },
-        {
-          "file": "frontend/src/api/users.ts",
-          "line": 26,
-          "column": 14
-        },
-        {
-          "file": "frontend/src/components/Button.tsx",
-          "line": 2,
-          "column": 11
-        },
-        {
-          "file": "frontend/src/components/Button.tsx",
-          "line": 4,
-          "column": 26
-        },
-        {
-          "file": "frontend/src/components/Button.tsx",
-          "line": 21,
-          "column": 8
-        },
-        {
-          "file": "frontend/src/components/Button.tsx",
-          "line": 18,
-          "column": 3
-        },
-        {
-          "file": "frontend/src/components/Card.tsx",
-          "line": 2,
-          "column": 9
-        },
-        {
-          "file": "frontend/src/components/Card.tsx",
-          "line": 4,
-          "column": 26
-        },
-        {
-          "file": "frontend/src/components/Card.tsx",
-          "line": 15,
-          "column": 8
-        },
-        {
-          "file": "frontend/src/components/Card.tsx",
-          "line": 28,
-          "column": 8
-        },
-        {
-          "file": "frontend/src/components/Card.tsx",
-          "line": 41,
-          "column": 8
-        },
-        {
-          "file": "frontend/src/components/Card.tsx",
-          "line": 54,
-          "column": 8
-        },
-        {
-          "file": "frontend/src/components/Card.tsx",
-          "line": 12,
-          "column": 3
-        },
-        {
-          "file": "frontend/src/components/Card.tsx",
-          "line": 25,
-          "column": 3
-        },
-        {
-          "file": "frontend/src/components/Card.tsx",
-          "line": 38,
-          "column": 3
-        },
-        {
-          "file": "frontend/src/components/Card.tsx",
-          "line": 51,
-          "column": 3
-        },
-        {
-          "file": "frontend/src/components/Input.tsx",
-          "line": 2,
-          "column": 10
-        },
-        {
-          "file": "frontend/src/components/Input.tsx",
-          "line": 23,
-          "column": 8
-        },
-        {
-          "file": "frontend/src/components/Input.tsx",
-          "line": 20,
-          "column": 3
-        },
-        {
-          "file": "frontend/src/components/Table.tsx",
-          "line": 2,
-          "column": 10
-        },
-        {
-          "file": "frontend/src/components/Table.tsx",
-          "line": 13,
-          "column": 3
-        },
-        {
-          "file": "frontend/src/components/Table.tsx",
-          "line": 27,
-          "column": 8
-        },
-        {
-          "file": "frontend/src/components/Table.tsx",
-          "line": 14,
-          "column": 3
-        },
-        {
-          "file": "frontend/src/components/Table.tsx",
-          "line": 24,
-          "column": 3
-        },
-        {
-          "file": "frontend/src/components/legacy/DataFetcher.tsx",
-          "line": 24,
-          "column": 9
-        },
-        {
-          "file": "frontend/src/components/legacy/DataFetcher.tsx",
-          "line": 46,
-          "column": 3
-        },
-        {
-          "file": "frontend/src/components/legacy/DataFetcher.tsx",
-          "line": 14,
-          "column": 8
         }
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-25T03:50:12.725Z",
-        "lastSeen": "2026-01-25T03:50:12.725Z",
+        "firstSeen": "2026-01-26T05:14:32.365Z",
+        "lastSeen": "2026-01-26T05:14:32.365Z",
         "source": "auto-detected",
         "tags": [
           "components",
@@ -1450,34 +955,14 @@
         }
       },
       "confidence": {
-        "frequency": 0.61,
+        "frequency": 0.25,
         "consistency": 0.9,
         "age": 0,
-        "spread": 17,
+        "spread": 6,
         "score": 0.77,
         "level": "medium"
       },
       "locations": [
-        {
-          "file": "README.md",
-          "line": 9,
-          "column": 5
-        },
-        {
-          "file": "README.md",
-          "line": 9,
-          "column": 33
-        },
-        {
-          "file": "README.md",
-          "line": 21,
-          "column": 40
-        },
-        {
-          "file": "README.md",
-          "line": 81,
-          "column": 9
-        },
         {
           "file": "backend/src/middleware/errorHandler.ts",
           "line": 26,
@@ -1602,117 +1087,12 @@
           "file": "backend/src/services/userService.ts",
           "line": 88,
           "column": 5
-        },
-        {
-          "file": "frontend/src/api/client.ts",
-          "line": 40,
-          "column": 5
-        },
-        {
-          "file": "frontend/src/api/client.ts",
-          "line": 44,
-          "column": 5
-        },
-        {
-          "file": "frontend/src/api/client.ts",
-          "line": 48,
-          "column": 5
-        },
-        {
-          "file": "frontend/src/api/client.ts",
-          "line": 55,
-          "column": 5
-        },
-        {
-          "file": "frontend/src/api/client.ts",
-          "line": 62,
-          "column": 5
-        },
-        {
-          "file": "frontend/src/components/Button.tsx",
-          "line": 2,
-          "column": 11
-        },
-        {
-          "file": "frontend/src/components/Button.tsx",
-          "line": 4,
-          "column": 26
-        },
-        {
-          "file": "frontend/src/components/Card.tsx",
-          "line": 2,
-          "column": 9
-        },
-        {
-          "file": "frontend/src/components/Card.tsx",
-          "line": 4,
-          "column": 26
-        },
-        {
-          "file": "frontend/src/components/Input.tsx",
-          "line": 2,
-          "column": 10
-        },
-        {
-          "file": "frontend/src/components/Table.tsx",
-          "line": 2,
-          "column": 10
-        },
-        {
-          "file": "frontend/src/components/Table.tsx",
-          "line": 13,
-          "column": 3
-        },
-        {
-          "file": "frontend/src/components/legacy/DataFetcher.tsx",
-          "line": 24,
-          "column": 9
-        },
-        {
-          "file": "frontend/src/components/legacy/DataFetcher.tsx",
-          "line": 46,
-          "column": 3
-        },
-        {
-          "file": "frontend/src/components/legacy/OldButton.tsx",
-          "line": 2,
-          "column": 15
-        },
-        {
-          "file": "frontend/src/hooks/useApi.ts",
-          "line": 43,
-          "column": 3
-        },
-        {
-          "file": "frontend/src/hooks/useApi.ts",
-          "line": 62,
-          "column": 7
-        },
-        {
-          "file": "frontend/src/hooks/useApi.ts",
-          "line": 70,
-          "column": 3
-        },
-        {
-          "file": "frontend/src/hooks/useAuth.ts",
-          "line": 29,
-          "column": 3
-        },
-        {
-          "file": "frontend/src/hooks/useAuth.ts",
-          "line": 69,
-          "column": 3
-        },
-        {
-          "file": "spring-backend/README.md",
-          "line": 67,
-          "column": 18
         }
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-25T03:50:12.725Z",
-        "lastSeen": "2026-01-25T03:50:12.725Z",
+        "firstSeen": "2026-01-26T05:14:32.365Z",
+        "lastSeen": "2026-01-26T05:14:32.365Z",
         "source": "auto-detected",
         "tags": [
           "components",
@@ -1735,10 +1115,10 @@
         }
       },
       "confidence": {
-        "frequency": 0.14,
+        "frequency": 0.12,
         "consistency": 0.9,
         "age": 0,
-        "spread": 6,
+        "spread": 4,
         "score": 0.95,
         "level": "high"
       },
@@ -1802,22 +1182,12 @@
           "file": "backend/src/routes/users.ts",
           "line": 22,
           "column": 17
-        },
-        {
-          "file": "csharp-backend/.drift/call-graph/graph.json",
-          "line": 228,
-          "column": 36
-        },
-        {
-          "file": "csharp-backend/.drift/callgraph/graph.json",
-          "line": 306,
-          "column": 36
         }
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-25T03:50:12.728Z",
-        "lastSeen": "2026-01-25T03:50:12.728Z",
+        "firstSeen": "2026-01-26T05:14:32.366Z",
+        "lastSeen": "2026-01-26T05:14:32.366Z",
         "source": "auto-detected",
         "tags": [
           "components",
@@ -1840,19 +1210,14 @@
         }
       },
       "confidence": {
-        "frequency": 0.04,
+        "frequency": 0.03,
         "consistency": 0.9,
         "age": 0,
-        "spread": 4,
+        "spread": 3,
         "score": 0.8999999999999999,
         "level": "high"
       },
       "locations": [
-        {
-          "file": "backend/.drift/error-handling/topology.json",
-          "line": 1262,
-          "column": 31
-        },
         {
           "file": "backend/src/routes/orders.ts",
           "line": 13,
@@ -1871,8 +1236,8 @@
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-25T03:50:12.727Z",
-        "lastSeen": "2026-01-25T03:50:12.727Z",
+        "firstSeen": "2026-01-26T05:14:32.366Z",
+        "lastSeen": "2026-01-26T05:14:32.366Z",
         "source": "auto-detected",
         "tags": [
           "components",
@@ -1895,10 +1260,10 @@
         }
       },
       "confidence": {
-        "frequency": 0.19,
+        "frequency": 0.05,
         "consistency": 0.9,
         "age": 0,
-        "spread": 6,
+        "spread": 3,
         "score": 0.8999999999999999,
         "level": "high"
       },
@@ -1927,52 +1292,12 @@
           "file": "backend/src/services/userService.ts",
           "line": 85,
           "column": 23
-        },
-        {
-          "file": "frontend/src/components/legacy/DataFetcher.tsx",
-          "line": 41,
-          "column": 16
-        },
-        {
-          "file": "frontend/src/components/legacy/DataFetcher.tsx",
-          "line": 44,
-          "column": 14
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 4472,
-          "column": 37
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 5013,
-          "column": 39
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 5626,
-          "column": 36
-        },
-        {
-          "file": "laravel-backend/.drift/callgraph/graph.json",
-          "line": 4510,
-          "column": 37
-        },
-        {
-          "file": "laravel-backend/.drift/callgraph/graph.json",
-          "line": 5051,
-          "column": 39
-        },
-        {
-          "file": "laravel-backend/.drift/callgraph/graph.json",
-          "line": 5664,
-          "column": 36
         }
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-25T03:50:12.728Z",
-        "lastSeen": "2026-01-25T03:50:12.728Z",
+        "firstSeen": "2026-01-26T05:14:32.366Z",
+        "lastSeen": "2026-01-26T05:14:32.366Z",
         "source": "auto-detected",
         "tags": [
           "components",
@@ -1995,10 +1320,10 @@
         }
       },
       "confidence": {
-        "frequency": 0.27,
+        "frequency": 0.05,
         "consistency": 0.9,
         "age": 0,
-        "spread": 6,
+        "spread": 3,
         "score": 0.9199999999999999,
         "level": "high"
       },
@@ -2027,72 +1352,12 @@
           "file": "backend/src/services/userService.ts",
           "line": 85,
           "column": 23
-        },
-        {
-          "file": "frontend/.drift/dna/styling.json",
-          "line": 82,
-          "column": 68
-        },
-        {
-          "file": "frontend/.drift/dna/styling.json",
-          "line": 82,
-          "column": 136
-        },
-        {
-          "file": "frontend/.drift/dna/styling.json",
-          "line": 112,
-          "column": 70
-        },
-        {
-          "file": "frontend/.drift/dna/styling.json",
-          "line": 112,
-          "column": 138
-        },
-        {
-          "file": "frontend/.drift/dna/styling.json",
-          "line": 148,
-          "column": 50
-        },
-        {
-          "file": "frontend/.drift/dna/styling.json",
-          "line": 148,
-          "column": 118
-        },
-        {
-          "file": "frontend/.drift/dna/styling.json",
-          "line": 172,
-          "column": 52
-        },
-        {
-          "file": "frontend/.drift/dna/styling.json",
-          "line": 172,
-          "column": 120
-        },
-        {
-          "file": "frontend/src/components/Table.tsx",
-          "line": 60,
-          "column": 17
-        },
-        {
-          "file": "frontend/src/components/Table.tsx",
-          "line": 60,
-          "column": 117
-        },
-        {
-          "file": "frontend/src/components/legacy/DataFetcher.tsx",
-          "line": 41,
-          "column": 16
-        },
-        {
-          "file": "frontend/src/components/legacy/DataFetcher.tsx",
-          "line": 44,
-          "column": 14
         }
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-25T03:50:12.728Z",
-        "lastSeen": "2026-01-25T03:50:12.728Z",
+        "firstSeen": "2026-01-26T05:14:32.366Z",
+        "lastSeen": "2026-01-26T05:14:32.366Z",
         "source": "auto-detected",
         "tags": [
           "components",
@@ -2115,10 +1380,10 @@
         }
       },
       "confidence": {
-        "frequency": 0.07,
+        "frequency": 0.05,
         "consistency": 0.9,
         "age": 0,
-        "spread": 4,
+        "spread": 3,
         "score": 0.8999999999999999,
         "level": "high"
       },
@@ -2147,22 +1412,12 @@
           "file": "backend/src/services/userService.ts",
           "line": 85,
           "column": 23
-        },
-        {
-          "file": "frontend/src/components/legacy/DataFetcher.tsx",
-          "line": 41,
-          "column": 16
-        },
-        {
-          "file": "frontend/src/components/legacy/DataFetcher.tsx",
-          "line": 44,
-          "column": 14
         }
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-25T03:50:12.728Z",
-        "lastSeen": "2026-01-25T03:50:12.728Z",
+        "firstSeen": "2026-01-26T05:14:32.366Z",
+        "lastSeen": "2026-01-26T05:14:32.366Z",
         "source": "auto-detected",
         "tags": [
           "components",
@@ -2185,11 +1440,11 @@
         }
       },
       "confidence": {
-        "frequency": 0.12,
+        "frequency": 0.02,
         "consistency": 0.9,
         "age": 0,
-        "spread": 4,
-        "score": 0.8999999999999999,
+        "spread": 1,
+        "score": 0.8533333333333333,
         "level": "high"
       },
       "locations": [
@@ -2197,27 +1452,12 @@
           "file": "backend/src/services/userService.ts",
           "line": 58,
           "column": 16
-        },
-        {
-          "file": "frontend/src/components/Input.tsx",
-          "line": 35,
-          "column": 9
-        },
-        {
-          "file": "frontend/src/components/legacy/OldButton.tsx",
-          "line": 14,
-          "column": 27
-        },
-        {
-          "file": "frontend/src/components/legacy/UserCard.tsx",
-          "line": 14,
-          "column": 26
         }
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-25T03:50:12.728Z",
-        "lastSeen": "2026-01-25T03:50:12.728Z",
+        "firstSeen": "2026-01-26T05:14:32.366Z",
+        "lastSeen": "2026-01-26T05:14:32.366Z",
         "source": "auto-detected",
         "tags": [
           "components",
@@ -2256,8 +1496,8 @@
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-25T03:50:12.728Z",
-        "lastSeen": "2026-01-25T03:50:12.728Z",
+        "firstSeen": "2026-01-26T05:14:32.366Z",
+        "lastSeen": "2026-01-26T05:14:32.366Z",
         "source": "auto-detected",
         "tags": [
           "components",
@@ -6428,6 +5668,6 @@
       "autoFixable": false
     }
   ],
-  "lastUpdated": "2026-01-25T03:50:12.740Z",
-  "checksum": "2aeae782213bb8e4"
+  "lastUpdated": "2026-01-26T05:14:32.369Z",
+  "checksum": "9cdc75463fcfbcfa"
 }

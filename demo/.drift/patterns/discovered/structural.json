@@ -1536,24 +1536,14 @@
         }
       },
       "confidence": {
-        "frequency": 0.12,
+        "frequency": 0.07,
         "consistency": 0.9,
         "age": 0,
-        "spread": 6,
-        "score": 0.77,
+        "spread": 3,
+        "score": 0.6533333333333333,
         "level": "medium"
       },
       "locations": [
-        {
-          "file": "README.md",
-          "line": 14,
-          "column": 3
-        },
-        {
-          "file": "README.md",
-          "line": 95,
-          "column": 34
-        },
         {
           "file": "backend/src/routes/legacy.ts",
           "line": 4,
@@ -1588,27 +1578,12 @@
           "file": "backend/src/routes/users.ts",
           "line": 47,
           "column": 50
-        },
-        {
-          "file": "laravel-backend/README.md",
-          "line": 18,
-          "column": 29
-        },
-        {
-          "file": "laravel-backend/README.md",
-          "line": 19,
-          "column": 19
-        },
-        {
-          "file": "spring-backend/README.md",
-          "line": 67,
-          "column": 41
         }
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-25T03:50:12.725Z",
-        "lastSeen": "2026-01-25T03:50:12.725Z",
+        "firstSeen": "2026-01-26T05:14:32.366Z",
+        "lastSeen": "2026-01-26T05:14:32.366Z",
         "source": "auto-detected",
         "tags": [
           "structural",
@@ -1631,24 +1606,14 @@
         }
       },
       "confidence": {
-        "frequency": 0.18,
+        "frequency": 0.12,
         "consistency": 0.9,
         "age": 0,
-        "spread": 8,
+        "spread": 4,
         "score": 0.95,
         "level": "high"
       },
       "locations": [
-        {
-          "file": "README.md",
-          "line": 84,
-          "column": 15
-        },
-        {
-          "file": "README.md",
-          "line": 87,
-          "column": 15
-        },
         {
           "file": "backend/src/routes/legacy.ts",
           "line": 20,
@@ -1708,32 +1673,12 @@
           "file": "backend/src/services/userService.ts",
           "line": 37,
           "column": 7
-        },
-        {
-          "file": "frontend/src/api/users.ts",
-          "line": 18,
-          "column": 57
-        },
-        {
-          "file": "frontend/src/hooks/useAuth.ts",
-          "line": 50,
-          "column": 38
-        },
-        {
-          "file": "frontend/src/types/api.ts",
-          "line": 33,
-          "column": 3
-        },
-        {
-          "file": "frontend/src/types/api.ts",
-          "line": 41,
-          "column": 3
         }
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-25T03:50:12.725Z",
-        "lastSeen": "2026-01-25T03:50:12.725Z",
+        "firstSeen": "2026-01-26T05:14:32.366Z",
+        "lastSeen": "2026-01-26T05:14:32.366Z",
         "source": "auto-detected",
         "tags": [
           "structural",
@@ -1861,29 +1806,14 @@
         }
       },
       "confidence": {
-        "frequency": 0.22,
+        "frequency": 0.09,
         "consistency": 0.9,
         "age": 0,
-        "spread": 11,
+        "spread": 3,
         "score": 0.77,
         "level": "medium"
       },
       "locations": [
-        {
-          "file": "README.md",
-          "line": 62,
-          "column": 4
-        },
-        {
-          "file": "README.md",
-          "line": 72,
-          "column": 4
-        },
-        {
-          "file": "README.md",
-          "line": 82,
-          "column": 4
-        },
         {
           "file": "backend/src/routes/orders.ts",
           "line": 5,
@@ -1928,62 +1858,12 @@
           "file": "backend/src/services/userService.ts",
           "line": 87,
           "column": 23
-        },
-        {
-          "file": "frontend/src/api/admin.ts",
-          "line": 6,
-          "column": 7
-        },
-        {
-          "file": "frontend/src/components/Button.tsx",
-          "line": 4,
-          "column": 51
-        },
-        {
-          "file": "frontend/src/components/legacy/OldButton.tsx",
-          "line": 5,
-          "column": 18
-        },
-        {
-          "file": "frontend/src/components/legacy/OldButton.tsx",
-          "line": 6,
-          "column": 9
-        },
-        {
-          "file": "frontend/src/components/legacy/UserCard.tsx",
-          "line": 6,
-          "column": 13
-        },
-        {
-          "file": "frontend/src/components/legacy/UserCard.tsx",
-          "line": 7,
-          "column": 9
-        },
-        {
-          "file": "frontend/src/types/api.ts",
-          "line": 2,
-          "column": 8
-        },
-        {
-          "file": "frontend/src/types/api.ts",
-          "line": 6,
-          "column": 12
-        },
-        {
-          "file": "laravel-backend/README.md",
-          "line": 3,
-          "column": 34
-        },
-        {
-          "file": "spring-backend/README.md",
-          "line": 35,
-          "column": 25
         }
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-25T03:50:12.725Z",
-        "lastSeen": "2026-01-25T03:50:12.725Z",
+        "firstSeen": "2026-01-26T05:14:32.366Z",
+        "lastSeen": "2026-01-26T05:14:32.366Z",
         "source": "auto-detected",
         "tags": [
           "structural",
@@ -2006,24 +1886,14 @@
         }
       },
       "confidence": {
-        "frequency": 1,
+        "frequency": 0.9,
         "consistency": 0.9,
         "age": 0,
-        "spread": 28,
+        "spread": 14,
         "score": 0.77,
         "level": "medium"
       },
       "locations": [
-        {
-          "file": "README.md",
-          "line": 14,
-          "column": 22
-        },
-        {
-          "file": "README.md",
-          "line": 71,
-          "column": 23
-        },
         {
           "file": "backend/src/index.ts",
           "line": 8,
@@ -2473,52 +2343,12 @@
           "file": "backend/src/utils/response.ts",
           "line": 4,
           "column": 47
-        },
-        {
-          "file": "frontend/src/api/admin.ts",
-          "line": 9,
-          "column": 1
-        },
-        {
-          "file": "frontend/src/api/admin.ts",
-          "line": 10,
-          "column": 1
-        },
-        {
-          "file": "frontend/src/api/orders.ts",
-          "line": 7,
-          "column": 1
-        },
-        {
-          "file": "frontend/src/api/orders.ts",
-          "line": 8,
-          "column": 1
-        },
-        {
-          "file": "frontend/src/api/products.ts",
-          "line": 7,
-          "column": 1
-        },
-        {
-          "file": "frontend/src/api/products.ts",
-          "line": 8,
-          "column": 1
-        },
-        {
-          "file": "frontend/src/api/users.ts",
-          "line": 7,
-          "column": 1
-        },
-        {
-          "file": "frontend/src/api/users.ts",
-          "line": 8,
-          "column": 1
         }
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-25T03:50:12.725Z",
-        "lastSeen": "2026-01-25T03:50:12.725Z",
+        "firstSeen": "2026-01-26T05:14:32.365Z",
+        "lastSeen": "2026-01-26T05:14:32.365Z",
         "source": "auto-detected",
         "tags": [
           "structural",
@@ -2541,10 +2371,10 @@
         }
       },
       "confidence": {
-        "frequency": 0.89,
+        "frequency": 0.38,
         "consistency": 0.9,
         "age": 0,
-        "spread": 30,
+        "spread": 15,
         "score": 0.77,
         "level": "medium"
       },
@@ -2738,267 +2568,12 @@
           "file": "backend/src/utils/response.ts",
           "line": 50,
           "column": 1
-        },
-        {
-          "file": "frontend/src/api/admin.ts",
-          "line": 12,
-          "column": 1
-        },
-        {
-          "file": "frontend/src/api/admin.ts",
-          "line": 16,
-          "column": 1
-        },
-        {
-          "file": "frontend/src/api/admin.ts",
-          "line": 21,
-          "column": 1
-        },
-        {
-          "file": "frontend/src/api/admin.ts",
-          "line": 31,
-          "column": 1
-        },
-        {
-          "file": "frontend/src/api/client.ts",
-          "line": 9,
-          "column": 1
-        },
-        {
-          "file": "frontend/src/api/client.ts",
-          "line": 66,
-          "column": 1
-        },
-        {
-          "file": "frontend/src/api/orders.ts",
-          "line": 10,
-          "column": 1
-        },
-        {
-          "file": "frontend/src/api/orders.ts",
-          "line": 18,
-          "column": 1
-        },
-        {
-          "file": "frontend/src/api/orders.ts",
-          "line": 22,
-          "column": 1
-        },
-        {
-          "file": "frontend/src/api/orders.ts",
-          "line": 29,
-          "column": 1
-        },
-        {
-          "file": "frontend/src/api/products.ts",
-          "line": 10,
-          "column": 1
-        },
-        {
-          "file": "frontend/src/api/products.ts",
-          "line": 18,
-          "column": 1
-        },
-        {
-          "file": "frontend/src/api/products.ts",
-          "line": 22,
-          "column": 1
-        },
-        {
-          "file": "frontend/src/api/products.ts",
-          "line": 26,
-          "column": 1
-        },
-        {
-          "file": "frontend/src/api/products.ts",
-          "line": 30,
-          "column": 1
-        },
-        {
-          "file": "frontend/src/api/users.ts",
-          "line": 10,
-          "column": 1
-        },
-        {
-          "file": "frontend/src/api/users.ts",
-          "line": 14,
-          "column": 1
-        },
-        {
-          "file": "frontend/src/api/users.ts",
-          "line": 18,
-          "column": 1
-        },
-        {
-          "file": "frontend/src/api/users.ts",
-          "line": 22,
-          "column": 1
-        },
-        {
-          "file": "frontend/src/api/users.ts",
-          "line": 26,
-          "column": 1
-        },
-        {
-          "file": "frontend/src/components/Button.tsx",
-          "line": 10,
-          "column": 1
-        },
-        {
-          "file": "frontend/src/components/Button.tsx",
-          "line": 21,
-          "column": 1
-        },
-        {
-          "file": "frontend/src/components/Card.tsx",
-          "line": 10,
-          "column": 1
-        },
-        {
-          "file": "frontend/src/components/Card.tsx",
-          "line": 15,
-          "column": 1
-        },
-        {
-          "file": "frontend/src/components/Card.tsx",
-          "line": 23,
-          "column": 1
-        },
-        {
-          "file": "frontend/src/components/Card.tsx",
-          "line": 28,
-          "column": 1
-        },
-        {
-          "file": "frontend/src/components/Card.tsx",
-          "line": 36,
-          "column": 1
-        },
-        {
-          "file": "frontend/src/components/Card.tsx",
-          "line": 41,
-          "column": 1
-        },
-        {
-          "file": "frontend/src/components/Card.tsx",
-          "line": 49,
-          "column": 1
-        },
-        {
-          "file": "frontend/src/components/Card.tsx",
-          "line": 54,
-          "column": 1
-        },
-        {
-          "file": "frontend/src/components/Input.tsx",
-          "line": 10,
-          "column": 1
-        },
-        {
-          "file": "frontend/src/components/Input.tsx",
-          "line": 23,
-          "column": 1
-        },
-        {
-          "file": "frontend/src/components/Table.tsx",
-          "line": 10,
-          "column": 1
-        },
-        {
-          "file": "frontend/src/components/Table.tsx",
-          "line": 17,
-          "column": 1
-        },
-        {
-          "file": "frontend/src/components/Table.tsx",
-          "line": 27,
-          "column": 1
-        },
-        {
-          "file": "frontend/src/components/legacy/DataFetcher.tsx",
-          "line": 14,
-          "column": 1
-        },
-        {
-          "file": "frontend/src/components/legacy/OldButton.tsx",
-          "line": 14,
-          "column": 1
-        },
-        {
-          "file": "frontend/src/components/legacy/UserCard.tsx",
-          "line": 14,
-          "column": 1
-        },
-        {
-          "file": "frontend/src/hooks/useApi.ts",
-          "line": 19,
-          "column": 1
-        },
-        {
-          "file": "frontend/src/hooks/useApi.ts",
-          "line": 46,
-          "column": 1
-        },
-        {
-          "file": "frontend/src/hooks/useAuth.ts",
-          "line": 24,
-          "column": 1
-        },
-        {
-          "file": "frontend/src/hooks/useAuth.ts",
-          "line": 32,
-          "column": 1
-        },
-        {
-          "file": "frontend/src/hooks/useAuth.ts",
-          "line": 72,
-          "column": 1
-        },
-        {
-          "file": "frontend/src/types/api.ts",
-          "line": 10,
-          "column": 1
-        },
-        {
-          "file": "frontend/src/types/api.ts",
-          "line": 21,
-          "column": 1
-        },
-        {
-          "file": "frontend/src/types/api.ts",
-          "line": 30,
-          "column": 1
-        },
-        {
-          "file": "frontend/src/types/api.ts",
-          "line": 39,
-          "column": 1
-        },
-        {
-          "file": "frontend/src/types/api.ts",
-          "line": 49,
-          "column": 1
-        },
-        {
-          "file": "frontend/src/types/api.ts",
-          "line": 55,
-          "column": 1
-        },
-        {
-          "file": "frontend/src/types/api.ts",
-          "line": 66,
-          "column": 1
-        },
-        {
-          "file": "frontend/src/types/api.ts",
-          "line": 73,
-          "column": 1
         }
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-25T03:50:12.728Z",
-        "lastSeen": "2026-01-25T03:50:12.728Z",
+        "firstSeen": "2026-01-26T05:14:32.365Z",
+        "lastSeen": "2026-01-26T05:14:32.365Z",
         "source": "auto-detected",
         "tags": [
           "structural",
@@ -3021,279 +2596,14 @@
         }
       },
       "confidence": {
-        "frequency": 1,
+        "frequency": 0.42,
         "consistency": 0.9,
         "age": 0,
-        "spread": 40,
-        "score": 0.95,
+        "spread": 10,
+        "score": 0.8533333333333333,
         "level": "high"
       },
       "locations": [
-        {
-          "file": "backend/.drift/error-handling/topology.json",
-          "line": 1165,
-          "column": 31
-        },
-        {
-          "file": "backend/.drift/error-handling/topology.json",
-          "line": 1196,
-          "column": 31
-        },
-        {
-          "file": "backend/.drift/error-handling/topology.json",
-          "line": 1207,
-          "column": 31
-        },
-        {
-          "file": "backend/.drift/error-handling/topology.json",
-          "line": 1218,
-          "column": 31
-        },
-        {
-          "file": "backend/.drift/lake/patterns/structural.json",
-          "line": 223,
-          "column": 55
-        },
-        {
-          "file": "backend/.drift/lake/patterns/structural.json",
-          "line": 696,
-          "column": 55
-        },
-        {
-          "file": "backend/.drift/lake/patterns/structural.json",
-          "line": 929,
-          "column": 55
-        },
-        {
-          "file": "backend/.drift/lake/patterns/structural.json",
-          "line": 1268,
-          "column": 55
-        },
-        {
-          "file": "backend/.drift/lake/patterns/structural.json",
-          "line": 1491,
-          "column": 55
-        },
-        {
-          "file": "backend/.drift/lake/patterns/structural.json",
-          "line": 2087,
-          "column": 55
-        },
-        {
-          "file": "backend/.drift/lake/patterns/structural.json",
-          "line": 2120,
-          "column": 55
-        },
-        {
-          "file": "backend/.drift/patterns/discovered/.backups/structural-2026-01-21T15-20-50-942Z.json",
-          "line": 234,
-          "column": 55
-        },
-        {
-          "file": "backend/.drift/patterns/discovered/.backups/structural-2026-01-21T15-20-50-942Z.json",
-          "line": 719,
-          "column": 55
-        },
-        {
-          "file": "backend/.drift/patterns/discovered/.backups/structural-2026-01-21T15-20-50-942Z.json",
-          "line": 964,
-          "column": 55
-        },
-        {
-          "file": "backend/.drift/patterns/discovered/.backups/structural-2026-01-21T15-20-50-942Z.json",
-          "line": 1339,
-          "column": 55
-        },
-        {
-          "file": "backend/.drift/patterns/discovered/.backups/structural-2026-01-21T15-20-50-942Z.json",
-          "line": 1574,
-          "column": 55
-        },
-        {
-          "file": "backend/.drift/patterns/discovered/.backups/structural-2026-01-21T15-20-50-942Z.json",
-          "line": 2314,
-          "column": 55
-        },
-        {
-          "file": "backend/.drift/patterns/discovered/.backups/structural-2026-01-21T15-20-50-942Z.json",
-          "line": 2359,
-          "column": 55
-        },
-        {
-          "file": "backend/.drift/patterns/discovered/.backups/structural-2026-01-23T22-00-41-872Z.json",
-          "line": 234,
-          "column": 55
-        },
-        {
-          "file": "backend/.drift/patterns/discovered/.backups/structural-2026-01-23T22-00-41-872Z.json",
-          "line": 719,
-          "column": 55
-        },
-        {
-          "file": "backend/.drift/patterns/discovered/.backups/structural-2026-01-23T22-00-41-872Z.json",
-          "line": 964,
-          "column": 55
-        },
-        {
-          "file": "backend/.drift/patterns/discovered/.backups/structural-2026-01-23T22-00-41-872Z.json",
-          "line": 1339,
-          "column": 55
-        },
-        {
-          "file": "backend/.drift/patterns/discovered/.backups/structural-2026-01-23T22-00-41-872Z.json",
-          "line": 1574,
-          "column": 55
-        },
-        {
-          "file": "backend/.drift/patterns/discovered/.backups/structural-2026-01-23T22-00-41-872Z.json",
-          "line": 2314,
-          "column": 55
-        },
-        {
-          "file": "backend/.drift/patterns/discovered/.backups/structural-2026-01-23T22-00-41-872Z.json",
-          "line": 2359,
-          "column": 55
-        },
-        {
-          "file": "backend/.drift/patterns/discovered/.backups/structural-2026-01-23T22-23-20-985Z.json",
-          "line": 234,
-          "column": 55
-        },
-        {
-          "file": "backend/.drift/patterns/discovered/.backups/structural-2026-01-23T22-23-20-985Z.json",
-          "line": 719,
-          "column": 55
-        },
-        {
-          "file": "backend/.drift/patterns/discovered/.backups/structural-2026-01-23T22-23-20-985Z.json",
-          "line": 964,
-          "column": 55
-        },
-        {
-          "file": "backend/.drift/patterns/discovered/.backups/structural-2026-01-23T22-23-20-985Z.json",
-          "line": 1339,
-          "column": 55
-        },
-        {
-          "file": "backend/.drift/patterns/discovered/.backups/structural-2026-01-23T22-23-20-985Z.json",
-          "line": 1574,
-          "column": 55
-        },
-        {
-          "file": "backend/.drift/patterns/discovered/.backups/structural-2026-01-23T22-23-20-985Z.json",
-          "line": 2314,
-          "column": 55
-        },
-        {
-          "file": "backend/.drift/patterns/discovered/.backups/structural-2026-01-23T22-23-20-985Z.json",
-          "line": 2359,
-          "column": 55
-        },
-        {
-          "file": "backend/.drift/patterns/discovered/.backups/structural-2026-01-24T06-37-40-783Z.json",
-          "line": 234,
-          "column": 55
-        },
-        {
-          "file": "backend/.drift/patterns/discovered/.backups/structural-2026-01-24T06-37-40-783Z.json",
-          "line": 719,
-          "column": 55
-        },
-        {
-          "file": "backend/.drift/patterns/discovered/.backups/structural-2026-01-24T06-37-40-783Z.json",
-          "line": 964,
-          "column": 55
-        },
-        {
-          "file": "backend/.drift/patterns/discovered/.backups/structural-2026-01-24T06-37-40-783Z.json",
-          "line": 1339,
-          "column": 55
-        },
-        {
-          "file": "backend/.drift/patterns/discovered/.backups/structural-2026-01-24T06-37-40-783Z.json",
-          "line": 1574,
-          "column": 55
-        },
-        {
-          "file": "backend/.drift/patterns/discovered/.backups/structural-2026-01-24T06-37-40-783Z.json",
-          "line": 2314,
-          "column": 55
-        },
-        {
-          "file": "backend/.drift/patterns/discovered/.backups/structural-2026-01-24T06-37-40-783Z.json",
-          "line": 2359,
-          "column": 55
-        },
-        {
-          "file": "backend/.drift/patterns/discovered/.backups/structural-2026-01-24T21-38-07-649Z.json",
-          "line": 234,
-          "column": 55
-        },
-        {
-          "file": "backend/.drift/patterns/discovered/.backups/structural-2026-01-24T21-38-07-649Z.json",
-          "line": 719,
-          "column": 55
-        },
-        {
-          "file": "backend/.drift/patterns/discovered/.backups/structural-2026-01-24T21-38-07-649Z.json",
-          "line": 964,
-          "column": 55
-        },
-        {
-          "file": "backend/.drift/patterns/discovered/.backups/structural-2026-01-24T21-38-07-649Z.json",
-          "line": 1339,
-          "column": 55
-        },
-        {
-          "file": "backend/.drift/patterns/discovered/.backups/structural-2026-01-24T21-38-07-649Z.json",
-          "line": 1574,
-          "column": 55
-        },
-        {
-          "file": "backend/.drift/patterns/discovered/.backups/structural-2026-01-24T21-38-07-649Z.json",
-          "line": 2314,
-          "column": 55
-        },
-        {
-          "file": "backend/.drift/patterns/discovered/.backups/structural-2026-01-24T21-38-07-649Z.json",
-          "line": 2359,
-          "column": 55
-        },
-        {
-          "file": "backend/.drift/patterns/discovered/structural.json",
-          "line": 234,
-          "column": 55
-        },
-        {
-          "file": "backend/.drift/patterns/discovered/structural.json",
-          "line": 719,
-          "column": 55
-        },
-        {
-          "file": "backend/.drift/patterns/discovered/structural.json",
-          "line": 964,
-          "column": 55
-        },
-        {
-          "file": "backend/.drift/patterns/discovered/structural.json",
-          "line": 1339,
-          "column": 55
-        },
-        {
-          "file": "backend/.drift/patterns/discovered/structural.json",
-          "line": 1574,
-          "column": 55
-        },
-        {
-          "file": "backend/.drift/patterns/discovered/structural.json",
-          "line": 2314,
-          "column": 55
-        },
-        {
-          "file": "backend/.drift/patterns/discovered/structural.json",
-          "line": 2359,
-          "column": 55
-        },
         {
           "file": "backend/src/index.ts",
           "line": 8,
@@ -3503,37 +2813,12 @@
           "file": "backend/src/utils/response.ts",
           "line": 8,
           "column": 21
-        },
-        {
-          "file": "frontend/.drift/lake/patterns/structural.json",
-          "line": 576,
-          "column": 55
-        },
-        {
-          "file": "frontend/.drift/lake/patterns/structural.json",
-          "line": 769,
-          "column": 55
-        },
-        {
-          "file": "frontend/.drift/lake/patterns/structural.json",
-          "line": 962,
-          "column": 55
-        },
-        {
-          "file": "frontend/.drift/lake/patterns/structural.json",
-          "line": 1239,
-          "column": 55
-        },
-        {
-          "file": "frontend/.drift/lake/patterns/structural.json",
-          "line": 1393,
-          "column": 55
         }
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-25T03:50:12.727Z",
-        "lastSeen": "2026-01-25T03:50:12.727Z",
+        "firstSeen": "2026-01-26T05:14:32.365Z",
+        "lastSeen": "2026-01-26T05:14:32.365Z",
         "source": "auto-detected",
         "tags": [
           "structural",
@@ -3556,34 +2841,14 @@
         }
       },
       "confidence": {
-        "frequency": 0.09,
+        "frequency": 0.05,
         "consistency": 0.9,
         "age": 0,
-        "spread": 3,
-        "score": 0.95,
-        "level": "high"
+        "spread": 2,
+        "score": 0.83,
+        "level": "medium"
       },
       "locations": [
-        {
-          "file": "backend/.drift/environment/access-map.json",
-          "line": 17,
-          "column": 88
-        },
-        {
-          "file": "backend/.drift/environment/access-map.json",
-          "line": 17,
-          "column": 105
-        },
-        {
-          "file": "backend/.drift/environment/access-map.json",
-          "line": 41,
-          "column": 84
-        },
-        {
-          "file": "backend/.drift/environment/access-map.json",
-          "line": 41,
-          "column": 101
-        },
         {
           "file": "backend/src/index.ts",
           "line": 25,
@@ -3612,8 +2877,8 @@
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-25T03:50:12.727Z",
-        "lastSeen": "2026-01-25T03:50:12.727Z",
+        "firstSeen": "2026-01-26T05:14:32.365Z",
+        "lastSeen": "2026-01-26T05:14:32.365Z",
         "source": "auto-detected",
         "tags": [
           "structural",
@@ -3636,10 +2901,10 @@
         }
       },
       "confidence": {
-        "frequency": 0.56,
+        "frequency": 0.36,
         "consistency": 0.9,
         "age": 0,
-        "spread": 23,
+        "spread": 10,
         "score": 0.77,
         "level": "medium"
       },
@@ -3823,112 +3088,12 @@
           "file": "backend/src/utils/response.ts",
           "line": 8,
           "column": 1
-        },
-        {
-          "file": "frontend/src/api/admin.ts",
-          "line": 9,
-          "column": 1
-        },
-        {
-          "file": "frontend/src/api/admin.ts",
-          "line": 10,
-          "column": 1
-        },
-        {
-          "file": "frontend/src/api/orders.ts",
-          "line": 7,
-          "column": 1
-        },
-        {
-          "file": "frontend/src/api/orders.ts",
-          "line": 8,
-          "column": 1
-        },
-        {
-          "file": "frontend/src/api/products.ts",
-          "line": 7,
-          "column": 1
-        },
-        {
-          "file": "frontend/src/api/products.ts",
-          "line": 8,
-          "column": 1
-        },
-        {
-          "file": "frontend/src/api/users.ts",
-          "line": 7,
-          "column": 1
-        },
-        {
-          "file": "frontend/src/api/users.ts",
-          "line": 8,
-          "column": 1
-        },
-        {
-          "file": "frontend/src/components/Button.tsx",
-          "line": 8,
-          "column": 1
-        },
-        {
-          "file": "frontend/src/components/Card.tsx",
-          "line": 8,
-          "column": 1
-        },
-        {
-          "file": "frontend/src/components/Input.tsx",
-          "line": 8,
-          "column": 1
-        },
-        {
-          "file": "frontend/src/components/Input.tsx",
-          "line": 18,
-          "column": 3
-        },
-        {
-          "file": "frontend/src/components/Input.tsx",
-          "line": 42,
-          "column": 12
-        },
-        {
-          "file": "frontend/src/components/Table.tsx",
-          "line": 8,
-          "column": 1
-        },
-        {
-          "file": "frontend/src/components/legacy/DataFetcher.tsx",
-          "line": 11,
-          "column": 1
-        },
-        {
-          "file": "frontend/src/components/legacy/OldButton.tsx",
-          "line": 11,
-          "column": 1
-        },
-        {
-          "file": "frontend/src/components/legacy/UserCard.tsx",
-          "line": 11,
-          "column": 1
-        },
-        {
-          "file": "frontend/src/hooks/useApi.ts",
-          "line": 7,
-          "column": 1
-        },
-        {
-          "file": "frontend/src/hooks/useAuth.ts",
-          "line": 7,
-          "column": 1
-        },
-        {
-          "file": "frontend/src/hooks/useAuth.ts",
-          "line": 9,
-          "column": 1
         }
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-25T03:50:12.728Z",
-        "lastSeen": "2026-01-25T03:50:12.728Z",
+        "firstSeen": "2026-01-26T05:14:32.365Z",
+        "lastSeen": "2026-01-26T05:14:32.365Z",
         "source": "auto-detected",
         "tags": [
           "structural",
@@ -3951,10 +3116,10 @@
         }
       },
       "confidence": {
-        "frequency": 0.18,
+        "frequency": 0.13,
         "consistency": 0.9,
         "age": 0,
-        "spread": 11,
+        "spread": 6,
         "score": 0.95,
         "level": "high"
       },
@@ -4023,37 +3188,12 @@
           "file": "backend/src/routes/users.ts",
           "line": 15,
           "column": 33
-        },
-        {
-          "file": "frontend/src/api/admin.ts",
-          "line": 10,
-          "column": 77
-        },
-        {
-          "file": "frontend/src/api/orders.ts",
-          "line": 8,
-          "column": 56
-        },
-        {
-          "file": "frontend/src/api/products.ts",
-          "line": 8,
-          "column": 47
-        },
-        {
-          "file": "frontend/src/api/users.ts",
-          "line": 8,
-          "column": 44
-        },
-        {
-          "file": "frontend/src/hooks/useAuth.ts",
-          "line": 9,
-          "column": 31
         }
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-25T03:50:12.728Z",
-        "lastSeen": "2026-01-25T03:50:12.728Z",
+        "firstSeen": "2026-01-26T05:14:32.365Z",
+        "lastSeen": "2026-01-26T05:14:32.365Z",
         "source": "auto-detected",
         "tags": [
           "structural",
@@ -4076,284 +3216,14 @@
         }
       },
       "confidence": {
-        "frequency": 1,
+        "frequency": 0.4,
         "consistency": 0.9,
         "age": 0,
-        "spread": 22,
-        "score": 0.95,
+        "spread": 8,
+        "score": 0.9450000000000001,
         "level": "high"
       },
       "locations": [
-        {
-          "file": "backend/.drift/boundaries/access-map.json",
-          "line": 315,
-          "column": 29
-        },
-        {
-          "file": "backend/.drift/boundaries/access-map.json",
-          "line": 315,
-          "column": 42
-        },
-        {
-          "file": "backend/.drift/boundaries/access-map.json",
-          "line": 327,
-          "column": 29
-        },
-        {
-          "file": "backend/.drift/boundaries/access-map.json",
-          "line": 327,
-          "column": 42
-        },
-        {
-          "file": "backend/.drift/boundaries/access-map.json",
-          "line": 339,
-          "column": 29
-        },
-        {
-          "file": "backend/.drift/boundaries/access-map.json",
-          "line": 339,
-          "column": 42
-        },
-        {
-          "file": "backend/.drift/boundaries/access-map.json",
-          "line": 498,
-          "column": 29
-        },
-        {
-          "file": "backend/.drift/boundaries/access-map.json",
-          "line": 498,
-          "column": 42
-        },
-        {
-          "file": "backend/.drift/boundaries/access-map.json",
-          "line": 514,
-          "column": 29
-        },
-        {
-          "file": "backend/.drift/boundaries/access-map.json",
-          "line": 514,
-          "column": 42
-        },
-        {
-          "file": "backend/.drift/boundaries/access-map.json",
-          "line": 529,
-          "column": 29
-        },
-        {
-          "file": "backend/.drift/boundaries/access-map.json",
-          "line": 529,
-          "column": 42
-        },
-        {
-          "file": "backend/.drift/boundaries/access-map.json",
-          "line": 737,
-          "column": 25
-        },
-        {
-          "file": "backend/.drift/boundaries/access-map.json",
-          "line": 737,
-          "column": 38
-        },
-        {
-          "file": "backend/.drift/boundaries/access-map.json",
-          "line": 749,
-          "column": 25
-        },
-        {
-          "file": "backend/.drift/boundaries/access-map.json",
-          "line": 749,
-          "column": 38
-        },
-        {
-          "file": "backend/.drift/boundaries/access-map.json",
-          "line": 761,
-          "column": 25
-        },
-        {
-          "file": "backend/.drift/boundaries/access-map.json",
-          "line": 761,
-          "column": 38
-        },
-        {
-          "file": "backend/.drift/boundaries/access-map.json",
-          "line": 942,
-          "column": 25
-        },
-        {
-          "file": "backend/.drift/boundaries/access-map.json",
-          "line": 942,
-          "column": 38
-        },
-        {
-          "file": "backend/.drift/boundaries/access-map.json",
-          "line": 958,
-          "column": 25
-        },
-        {
-          "file": "backend/.drift/boundaries/access-map.json",
-          "line": 958,
-          "column": 38
-        },
-        {
-          "file": "backend/.drift/boundaries/access-map.json",
-          "line": 973,
-          "column": 25
-        },
-        {
-          "file": "backend/.drift/boundaries/access-map.json",
-          "line": 973,
-          "column": 38
-        },
-        {
-          "file": "backend/.drift/call-graph/graph.json",
-          "line": 4435,
-          "column": 29
-        },
-        {
-          "file": "backend/.drift/call-graph/graph.json",
-          "line": 4435,
-          "column": 42
-        },
-        {
-          "file": "backend/.drift/call-graph/graph.json",
-          "line": 4447,
-          "column": 29
-        },
-        {
-          "file": "backend/.drift/call-graph/graph.json",
-          "line": 4447,
-          "column": 42
-        },
-        {
-          "file": "backend/.drift/call-graph/graph.json",
-          "line": 4459,
-          "column": 29
-        },
-        {
-          "file": "backend/.drift/call-graph/graph.json",
-          "line": 4459,
-          "column": 42
-        },
-        {
-          "file": "backend/.drift/call-graph/graph.json",
-          "line": 4511,
-          "column": 29
-        },
-        {
-          "file": "backend/.drift/call-graph/graph.json",
-          "line": 4511,
-          "column": 42
-        },
-        {
-          "file": "backend/.drift/call-graph/graph.json",
-          "line": 4527,
-          "column": 29
-        },
-        {
-          "file": "backend/.drift/call-graph/graph.json",
-          "line": 4527,
-          "column": 42
-        },
-        {
-          "file": "backend/.drift/call-graph/graph.json",
-          "line": 4542,
-          "column": 29
-        },
-        {
-          "file": "backend/.drift/call-graph/graph.json",
-          "line": 4542,
-          "column": 42
-        },
-        {
-          "file": "backend/.drift/call-graph/graph.json",
-          "line": 5234,
-          "column": 22
-        },
-        {
-          "file": "backend/.drift/call-graph/graph.json",
-          "line": 5943,
-          "column": 32
-        },
-        {
-          "file": "backend/.drift/call-graph/graph.json",
-          "line": 5943,
-          "column": 39
-        },
-        {
-          "file": "backend/.drift/callgraph/graph.json",
-          "line": 4465,
-          "column": 29
-        },
-        {
-          "file": "backend/.drift/callgraph/graph.json",
-          "line": 4465,
-          "column": 42
-        },
-        {
-          "file": "backend/.drift/callgraph/graph.json",
-          "line": 4477,
-          "column": 29
-        },
-        {
-          "file": "backend/.drift/callgraph/graph.json",
-          "line": 4477,
-          "column": 42
-        },
-        {
-          "file": "backend/.drift/callgraph/graph.json",
-          "line": 4489,
-          "column": 29
-        },
-        {
-          "file": "backend/.drift/callgraph/graph.json",
-          "line": 4489,
-          "column": 42
-        },
-        {
-          "file": "backend/.drift/callgraph/graph.json",
-          "line": 4541,
-          "column": 29
-        },
-        {
-          "file": "backend/.drift/callgraph/graph.json",
-          "line": 4541,
-          "column": 42
-        },
-        {
-          "file": "backend/.drift/callgraph/graph.json",
-          "line": 4557,
-          "column": 29
-        },
-        {
-          "file": "backend/.drift/callgraph/graph.json",
-          "line": 4557,
-          "column": 42
-        },
-        {
-          "file": "backend/.drift/callgraph/graph.json",
-          "line": 4572,
-          "column": 29
-        },
-        {
-          "file": "backend/.drift/callgraph/graph.json",
-          "line": 4572,
-          "column": 42
-        },
-        {
-          "file": "backend/.drift/callgraph/graph.json",
-          "line": 5264,
-          "column": 22
-        },
-        {
-          "file": "backend/.drift/callgraph/graph.json",
-          "line": 5973,
-          "column": 32
-        },
-        {
-          "file": "backend/.drift/callgraph/graph.json",
-          "line": 5973,
-          "column": 39
-        },
         {
           "file": "backend/src/middleware/auth.ts",
           "line": 33,
@@ -4553,42 +3423,12 @@
           "file": "backend/src/services/userService.ts",
           "line": 59,
           "column": 17
-        },
-        {
-          "file": "csharp-backend/.drift/boundaries/access-map.json",
-          "line": 125,
-          "column": 27
-        },
-        {
-          "file": "csharp-backend/.drift/boundaries/access-map.json",
-          "line": 139,
-          "column": 27
-        },
-        {
-          "file": "csharp-backend/.drift/boundaries/access-map.json",
-          "line": 153,
-          "column": 27
-        },
-        {
-          "file": "csharp-backend/.drift/boundaries/access-map.json",
-          "line": 167,
-          "column": 27
-        },
-        {
-          "file": "csharp-backend/.drift/boundaries/access-map.json",
-          "line": 409,
-          "column": 37
-        },
-        {
-          "file": "csharp-backend/.drift/boundaries/access-map.json",
-          "line": 409,
-          "column": 47
         }
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-25T03:50:12.726Z",
-        "lastSeen": "2026-01-25T03:50:12.726Z",
+        "firstSeen": "2026-01-26T05:14:32.365Z",
+        "lastSeen": "2026-01-26T05:14:32.365Z",
         "source": "auto-detected",
         "tags": [
           "structural",
@@ -4611,124 +3451,14 @@
         }
       },
       "confidence": {
-        "frequency": 1,
+        "frequency": 0.04,
         "consistency": 0.9,
         "age": 0,
-        "spread": 13,
-        "score": 0.9439669421487603,
-        "level": "high"
+        "spread": 3,
+        "score": 0.8006451612903226,
+        "level": "medium"
       },
       "locations": [
-        {
-          "file": "backend/.drift/call-graph/graph.json",
-          "line": 5871,
-          "column": 25
-        },
-        {
-          "file": "backend/.drift/call-graph/graph.json",
-          "line": 5948,
-          "column": 25
-        },
-        {
-          "file": "backend/.drift/call-graph/graph.json",
-          "line": 5991,
-          "column": 25
-        },
-        {
-          "file": "backend/.drift/call-graph/graph.json",
-          "line": 6029,
-          "column": 25
-        },
-        {
-          "file": "backend/.drift/call-graph/graph.json",
-          "line": 6055,
-          "column": 25
-        },
-        {
-          "file": "backend/.drift/call-graph/graph.json",
-          "line": 6093,
-          "column": 25
-        },
-        {
-          "file": "backend/.drift/call-graph/graph.json",
-          "line": 6204,
-          "column": 25
-        },
-        {
-          "file": "backend/.drift/call-graph/graph.json",
-          "line": 6281,
-          "column": 25
-        },
-        {
-          "file": "backend/.drift/callgraph/graph.json",
-          "line": 5901,
-          "column": 25
-        },
-        {
-          "file": "backend/.drift/callgraph/graph.json",
-          "line": 5978,
-          "column": 25
-        },
-        {
-          "file": "backend/.drift/callgraph/graph.json",
-          "line": 6021,
-          "column": 25
-        },
-        {
-          "file": "backend/.drift/callgraph/graph.json",
-          "line": 6059,
-          "column": 25
-        },
-        {
-          "file": "backend/.drift/callgraph/graph.json",
-          "line": 6085,
-          "column": 25
-        },
-        {
-          "file": "backend/.drift/callgraph/graph.json",
-          "line": 6123,
-          "column": 25
-        },
-        {
-          "file": "backend/.drift/callgraph/graph.json",
-          "line": 6234,
-          "column": 25
-        },
-        {
-          "file": "backend/.drift/callgraph/graph.json",
-          "line": 6311,
-          "column": 25
-        },
-        {
-          "file": "backend/.drift/error-handling/topology.json",
-          "line": 578,
-          "column": 27
-        },
-        {
-          "file": "backend/.drift/error-handling/topology.json",
-          "line": 598,
-          "column": 27
-        },
-        {
-          "file": "backend/.drift/error-handling/topology.json",
-          "line": 633,
-          "column": 27
-        },
-        {
-          "file": "backend/.drift/error-handling/topology.json",
-          "line": 668,
-          "column": 27
-        },
-        {
-          "file": "backend/.drift/error-handling/topology.json",
-          "line": 688,
-          "column": 27
-        },
-        {
-          "file": "backend/.drift/error-handling/topology.json",
-          "line": 708,
-          "column": 27
-        },
         {
           "file": "backend/src/middleware/auth.ts",
           "line": 49,
@@ -4748,382 +3478,12 @@
           "file": "backend/src/routes/users.ts",
           "line": 55,
           "column": 8
-        },
-        {
-          "file": "csharp-backend/.drift/call-graph/graph.json",
-          "line": 2316,
-          "column": 25
-        },
-        {
-          "file": "csharp-backend/.drift/call-graph/graph.json",
-          "line": 2363,
-          "column": 25
-        },
-        {
-          "file": "csharp-backend/.drift/call-graph/graph.json",
-          "line": 2455,
-          "column": 25
-        },
-        {
-          "file": "csharp-backend/.drift/call-graph/graph.json",
-          "line": 2597,
-          "column": 25
-        },
-        {
-          "file": "csharp-backend/.drift/call-graph/graph.json",
-          "line": 2778,
-          "column": 25
-        },
-        {
-          "file": "csharp-backend/.drift/call-graph/graph.json",
-          "line": 2906,
-          "column": 25
-        },
-        {
-          "file": "csharp-backend/.drift/call-graph/graph.json",
-          "line": 4286,
-          "column": 25
-        },
-        {
-          "file": "csharp-backend/.drift/call-graph/graph.json",
-          "line": 4311,
-          "column": 25
-        },
-        {
-          "file": "csharp-backend/.drift/call-graph/graph.json",
-          "line": 4501,
-          "column": 25
-        },
-        {
-          "file": "csharp-backend/.drift/call-graph/graph.json",
-          "line": 4638,
-          "column": 25
-        },
-        {
-          "file": "csharp-backend/.drift/call-graph/graph.json",
-          "line": 4710,
-          "column": 25
-        },
-        {
-          "file": "csharp-backend/.drift/call-graph/graph.json",
-          "line": 4871,
-          "column": 25
-        },
-        {
-          "file": "csharp-backend/.drift/call-graph/graph.json",
-          "line": 5042,
-          "column": 25
-        },
-        {
-          "file": "csharp-backend/.drift/call-graph/graph.json",
-          "line": 5184,
-          "column": 25
-        },
-        {
-          "file": "csharp-backend/.drift/call-graph/graph.json",
-          "line": 11074,
-          "column": 25
-        },
-        {
-          "file": "csharp-backend/.drift/call-graph/graph.json",
-          "line": 11121,
-          "column": 25
-        },
-        {
-          "file": "csharp-backend/.drift/call-graph/graph.json",
-          "line": 11337,
-          "column": 25
-        },
-        {
-          "file": "csharp-backend/.drift/call-graph/graph.json",
-          "line": 11563,
-          "column": 25
-        },
-        {
-          "file": "csharp-backend/.drift/call-graph/graph.json",
-          "line": 11885,
-          "column": 25
-        },
-        {
-          "file": "csharp-backend/.drift/call-graph/graph.json",
-          "line": 12103,
-          "column": 25
-        },
-        {
-          "file": "csharp-backend/.drift/call-graph/graph.json",
-          "line": 12319,
-          "column": 25
-        },
-        {
-          "file": "csharp-backend/.drift/call-graph/graph.json",
-          "line": 12479,
-          "column": 25
-        },
-        {
-          "file": "csharp-backend/.drift/call-graph/graph.json",
-          "line": 12565,
-          "column": 25
-        },
-        {
-          "file": "csharp-backend/.drift/call-graph/graph.json",
-          "line": 12639,
-          "column": 25
-        },
-        {
-          "file": "csharp-backend/.drift/call-graph/graph.json",
-          "line": 12701,
-          "column": 25
-        },
-        {
-          "file": "csharp-backend/.drift/call-graph/graph.json",
-          "line": 12810,
-          "column": 25
-        },
-        {
-          "file": "csharp-backend/.drift/call-graph/graph.json",
-          "line": 12870,
-          "column": 25
-        },
-        {
-          "file": "csharp-backend/.drift/call-graph/graph.json",
-          "line": 13077,
-          "column": 25
-        },
-        {
-          "file": "csharp-backend/.drift/call-graph/graph.json",
-          "line": 13230,
-          "column": 25
-        },
-        {
-          "file": "csharp-backend/.drift/call-graph/graph.json",
-          "line": 13516,
-          "column": 25
-        },
-        {
-          "file": "csharp-backend/.drift/call-graph/graph.json",
-          "line": 13679,
-          "column": 25
-        },
-        {
-          "file": "csharp-backend/.drift/call-graph/graph.json",
-          "line": 13988,
-          "column": 25
-        },
-        {
-          "file": "csharp-backend/.drift/call-graph/graph.json",
-          "line": 14206,
-          "column": 25
-        },
-        {
-          "file": "csharp-backend/.drift/call-graph/graph.json",
-          "line": 14430,
-          "column": 25
-        },
-        {
-          "file": "csharp-backend/.drift/call-graph/graph.json",
-          "line": 14490,
-          "column": 25
-        },
-        {
-          "file": "csharp-backend/.drift/call-graph/graph.json",
-          "line": 14681,
-          "column": 25
-        },
-        {
-          "file": "csharp-backend/.drift/call-graph/graph.json",
-          "line": 14873,
-          "column": 25
-        },
-        {
-          "file": "csharp-backend/.drift/call-graph/graph.json",
-          "line": 15024,
-          "column": 25
-        },
-        {
-          "file": "csharp-backend/.drift/call-graph/graph.json",
-          "line": 15229,
-          "column": 25
-        },
-        {
-          "file": "csharp-backend/.drift/call-graph/graph.json",
-          "line": 15379,
-          "column": 25
-        },
-        {
-          "file": "csharp-backend/.drift/call-graph/graph.json",
-          "line": 15517,
-          "column": 25
-        },
-        {
-          "file": "csharp-backend/.drift/callgraph/graph.json",
-          "line": 2394,
-          "column": 25
-        },
-        {
-          "file": "csharp-backend/.drift/callgraph/graph.json",
-          "line": 2441,
-          "column": 25
-        },
-        {
-          "file": "csharp-backend/.drift/callgraph/graph.json",
-          "line": 2533,
-          "column": 25
-        },
-        {
-          "file": "csharp-backend/.drift/callgraph/graph.json",
-          "line": 2675,
-          "column": 25
-        },
-        {
-          "file": "csharp-backend/.drift/callgraph/graph.json",
-          "line": 2856,
-          "column": 25
-        },
-        {
-          "file": "csharp-backend/.drift/callgraph/graph.json",
-          "line": 2984,
-          "column": 25
-        },
-        {
-          "file": "csharp-backend/.drift/callgraph/graph.json",
-          "line": 4364,
-          "column": 25
-        },
-        {
-          "file": "csharp-backend/.drift/callgraph/graph.json",
-          "line": 4389,
-          "column": 25
-        },
-        {
-          "file": "csharp-backend/.drift/callgraph/graph.json",
-          "line": 4579,
-          "column": 25
-        },
-        {
-          "file": "csharp-backend/.drift/callgraph/graph.json",
-          "line": 4716,
-          "column": 25
-        },
-        {
-          "file": "csharp-backend/.drift/callgraph/graph.json",
-          "line": 4788,
-          "column": 25
-        },
-        {
-          "file": "csharp-backend/.drift/callgraph/graph.json",
-          "line": 4949,
-          "column": 25
-        },
-        {
-          "file": "csharp-backend/.drift/callgraph/graph.json",
-          "line": 5120,
-          "column": 25
-        },
-        {
-          "file": "csharp-backend/.drift/callgraph/graph.json",
-          "line": 5262,
-          "column": 25
-        },
-        {
-          "file": "csharp-backend/.drift/callgraph/graph.json",
-          "line": 11152,
-          "column": 25
-        },
-        {
-          "file": "csharp-backend/.drift/callgraph/graph.json",
-          "line": 11199,
-          "column": 25
-        },
-        {
-          "file": "csharp-backend/.drift/callgraph/graph.json",
-          "line": 11415,
-          "column": 25
-        },
-        {
-          "file": "csharp-backend/.drift/callgraph/graph.json",
-          "line": 11641,
-          "column": 25
-        },
-        {
-          "file": "csharp-backend/.drift/callgraph/graph.json",
-          "line": 11963,
-          "column": 25
-        },
-        {
-          "file": "csharp-backend/.drift/callgraph/graph.json",
-          "line": 12181,
-          "column": 25
-        },
-        {
-          "file": "csharp-backend/.drift/callgraph/graph.json",
-          "line": 12397,
-          "column": 25
-        },
-        {
-          "file": "csharp-backend/.drift/callgraph/graph.json",
-          "line": 12557,
-          "column": 25
-        },
-        {
-          "file": "csharp-backend/.drift/callgraph/graph.json",
-          "line": 12643,
-          "column": 25
-        },
-        {
-          "file": "csharp-backend/.drift/callgraph/graph.json",
-          "line": 12717,
-          "column": 25
-        },
-        {
-          "file": "csharp-backend/.drift/callgraph/graph.json",
-          "line": 12779,
-          "column": 25
-        },
-        {
-          "file": "csharp-backend/.drift/callgraph/graph.json",
-          "line": 12888,
-          "column": 25
-        },
-        {
-          "file": "csharp-backend/.drift/callgraph/graph.json",
-          "line": 12948,
-          "column": 25
-        },
-        {
-          "file": "csharp-backend/.drift/callgraph/graph.json",
-          "line": 13155,
-          "column": 25
-        },
-        {
-          "file": "csharp-backend/.drift/callgraph/graph.json",
-          "line": 13308,
-          "column": 25
-        },
-        {
-          "file": "csharp-backend/.drift/callgraph/graph.json",
-          "line": 13594,
-          "column": 25
-        },
-        {
-          "file": "csharp-backend/.drift/callgraph/graph.json",
-          "line": 13757,
-          "column": 25
-        },
-        {
-          "file": "csharp-backend/.drift/callgraph/graph.json",
-          "line": 14066,
-          "column": 25
-        },
-        {
-          "file": "csharp-backend/.drift/callgraph/graph.json",
-          "line": 14284,
-          "column": 25
         }
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-25T03:50:12.727Z",
-        "lastSeen": "2026-01-25T03:50:12.727Z",
+        "firstSeen": "2026-01-26T05:14:32.365Z",
+        "lastSeen": "2026-01-26T05:14:32.365Z",
         "source": "auto-detected",
         "tags": [
           "structural",
@@ -5167,8 +3527,8 @@
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-25T03:50:12.728Z",
-        "lastSeen": "2026-01-25T03:50:12.728Z",
+        "firstSeen": "2026-01-26T05:14:32.366Z",
+        "lastSeen": "2026-01-26T05:14:32.366Z",
         "source": "auto-detected",
         "tags": [
           "structural",
@@ -5212,8 +3572,8 @@
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-25T03:50:12.728Z",
-        "lastSeen": "2026-01-25T03:50:12.728Z",
+        "firstSeen": "2026-01-26T05:14:32.366Z",
+        "lastSeen": "2026-01-26T05:14:32.366Z",
         "source": "auto-detected",
         "tags": [
           "structural",
@@ -5236,119 +3596,14 @@
         }
       },
       "confidence": {
-        "frequency": 0.26,
+        "frequency": 0.05,
         "consistency": 0.9,
         "age": 0,
-        "spread": 6,
-        "score": 0.931111111111111,
-        "level": "high"
+        "spread": 3,
+        "score": 0.8427272727272728,
+        "level": "medium"
       },
       "locations": [
-        {
-          "file": "backend/.drift/call-graph/graph.json",
-          "line": 1551,
-          "column": 66
-        },
-        {
-          "file": "backend/.drift/call-graph/graph.json",
-          "line": 1559,
-          "column": 56
-        },
-        {
-          "file": "backend/.drift/call-graph/graph.json",
-          "line": 4686,
-          "column": 48
-        },
-        {
-          "file": "backend/.drift/call-graph/graph.json",
-          "line": 4687,
-          "column": 56
-        },
-        {
-          "file": "backend/.drift/call-graph/graph.json",
-          "line": 4696,
-          "column": 66
-        },
-        {
-          "file": "backend/.drift/call-graph/graph.json",
-          "line": 4710,
-          "column": 66
-        },
-        {
-          "file": "backend/.drift/call-graph/graph.json",
-          "line": 4726,
-          "column": 66
-        },
-        {
-          "file": "backend/.drift/call-graph/graph.json",
-          "line": 4734,
-          "column": 56
-        },
-        {
-          "file": "backend/.drift/callgraph/graph.json",
-          "line": 1581,
-          "column": 66
-        },
-        {
-          "file": "backend/.drift/callgraph/graph.json",
-          "line": 1589,
-          "column": 56
-        },
-        {
-          "file": "backend/.drift/callgraph/graph.json",
-          "line": 4716,
-          "column": 48
-        },
-        {
-          "file": "backend/.drift/callgraph/graph.json",
-          "line": 4717,
-          "column": 56
-        },
-        {
-          "file": "backend/.drift/callgraph/graph.json",
-          "line": 4726,
-          "column": 66
-        },
-        {
-          "file": "backend/.drift/callgraph/graph.json",
-          "line": 4740,
-          "column": 66
-        },
-        {
-          "file": "backend/.drift/callgraph/graph.json",
-          "line": 4756,
-          "column": 66
-        },
-        {
-          "file": "backend/.drift/callgraph/graph.json",
-          "line": 4764,
-          "column": 56
-        },
-        {
-          "file": "backend/.drift/error-handling/topology.json",
-          "line": 229,
-          "column": 50
-        },
-        {
-          "file": "backend/.drift/error-handling/topology.json",
-          "line": 230,
-          "column": 66
-        },
-        {
-          "file": "backend/.drift/error-handling/topology.json",
-          "line": 979,
-          "column": 54
-        },
-        {
-          "file": "backend/.drift/error-handling/topology.json",
-          "line": 1457,
-          "column": 68
-        },
-        {
-          "file": "backend/.drift/error-handling/topology.json",
-          "line": 1462,
-          "column": 54
-        },
         {
           "file": "backend/src/services/adminService.ts",
           "line": 38,
@@ -5377,8 +3632,8 @@
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-25T03:50:12.727Z",
-        "lastSeen": "2026-01-25T03:50:12.727Z",
+        "firstSeen": "2026-01-26T05:14:32.366Z",
+        "lastSeen": "2026-01-26T05:14:32.366Z",
         "source": "auto-detected",
         "tags": [
           "structural",
@@ -5401,10 +3656,10 @@
         }
       },
       "confidence": {
-        "frequency": 0.08,
+        "frequency": 0.05,
         "consistency": 0.9,
         "age": 0,
-        "spread": 6,
+        "spread": 4,
         "score": 0.77,
         "level": "medium"
       },
@@ -5433,27 +3688,12 @@
           "file": "backend/src/utils/errors.ts",
           "line": 11,
           "column": 5
-        },
-        {
-          "file": "frontend/src/api/client.ts",
-          "line": 10,
-          "column": 3
-        },
-        {
-          "file": "frontend/src/api/client.ts",
-          "line": 16,
-          "column": 3
-        },
-        {
-          "file": "frontend/src/components/legacy/DataFetcher.tsx",
-          "line": 7,
-          "column": 15
         }
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-25T03:50:12.728Z",
-        "lastSeen": "2026-01-25T03:50:12.728Z",
+        "firstSeen": "2026-01-26T05:14:32.366Z",
+        "lastSeen": "2026-01-26T05:14:32.366Z",
         "source": "auto-detected",
         "tags": [
           "structural",
@@ -5476,12 +3716,12 @@
         }
       },
       "confidence": {
-        "frequency": 1,
+        "frequency": 0.04,
         "consistency": 0.9,
         "age": 0,
-        "spread": 6,
-        "score": 0.9337931034482758,
-        "level": "high"
+        "spread": 2,
+        "score": 0.7949999999999999,
+        "level": "medium"
       },
       "locations": [
         {
@@ -5503,492 +3743,12 @@
           "file": "backend/src/services/userService.ts",
           "line": 84,
           "column": 11
-        },
-        {
-          "file": "frontend/src/components/legacy/OldButton.tsx",
-          "line": 20,
-          "column": 9
-        },
-        {
-          "file": "frontend/src/components/legacy/OldButton.tsx",
-          "line": 30,
-          "column": 13
-        },
-        {
-          "file": "frontend/src/components/legacy/OldButton.tsx",
-          "line": 30,
-          "column": 20
-        },
-        {
-          "file": "frontend/src/components/legacy/UserCard.tsx",
-          "line": 28,
-          "column": 7
-        },
-        {
-          "file": "frontend/src/components/legacy/UserCard.tsx",
-          "line": 37,
-          "column": 11
-        },
-        {
-          "file": "frontend/src/components/legacy/UserCard.tsx",
-          "line": 38,
-          "column": 10
-        },
-        {
-          "file": "frontend/src/components/legacy/UserCard.tsx",
-          "line": 42,
-          "column": 9
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 4555,
-          "column": 24
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 4555,
-          "column": 82
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 4572,
-          "column": 24
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 4572,
-          "column": 82
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 4589,
-          "column": 24
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 4589,
-          "column": 82
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 4606,
-          "column": 24
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 4606,
-          "column": 82
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 4623,
-          "column": 24
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 4623,
-          "column": 82
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 4640,
-          "column": 24
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 4640,
-          "column": 82
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 4657,
-          "column": 24
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 4657,
-          "column": 82
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 4674,
-          "column": 24
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 4674,
-          "column": 82
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 4691,
-          "column": 24
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 4691,
-          "column": 82
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 4708,
-          "column": 24
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 4708,
-          "column": 82
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 4725,
-          "column": 24
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 4725,
-          "column": 86
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 4742,
-          "column": 24
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 4742,
-          "column": 86
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 4759,
-          "column": 24
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 4759,
-          "column": 86
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 4776,
-          "column": 24
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 4776,
-          "column": 86
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 4793,
-          "column": 24
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 4793,
-          "column": 73
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 4810,
-          "column": 24
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 4810,
-          "column": 73
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 4827,
-          "column": 24
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 4827,
-          "column": 73
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 4844,
-          "column": 24
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 4844,
-          "column": 73
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 4861,
-          "column": 24
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 4861,
-          "column": 73
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 4878,
-          "column": 24
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 4878,
-          "column": 73
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 4895,
-          "column": 24
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 4895,
-          "column": 73
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 4912,
-          "column": 24
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 4912,
-          "column": 73
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 5096,
-          "column": 24
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 5096,
-          "column": 82
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 5113,
-          "column": 24
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 5113,
-          "column": 82
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 5130,
-          "column": 24
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 5130,
-          "column": 82
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 5147,
-          "column": 24
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 5147,
-          "column": 82
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 5164,
-          "column": 24
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 5164,
-          "column": 82
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 5181,
-          "column": 24
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 5181,
-          "column": 82
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 5198,
-          "column": 24
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 5198,
-          "column": 82
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 5215,
-          "column": 24
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 5215,
-          "column": 82
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 5232,
-          "column": 24
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 5232,
-          "column": 82
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 5249,
-          "column": 24
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 5249,
-          "column": 82
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 5266,
-          "column": 24
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 5266,
-          "column": 86
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 5283,
-          "column": 24
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 5283,
-          "column": 86
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 5300,
-          "column": 24
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 5300,
-          "column": 86
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 5317,
-          "column": 24
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 5317,
-          "column": 86
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 5334,
-          "column": 24
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 5334,
-          "column": 73
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 5351,
-          "column": 24
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 5351,
-          "column": 73
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 5368,
-          "column": 24
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 5368,
-          "column": 73
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 5385,
-          "column": 24
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 5385,
-          "column": 73
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 5402,
-          "column": 24
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 5402,
-          "column": 73
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 5419,
-          "column": 24
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 5419,
-          "column": 73
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 5436,
-          "column": 24
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 5436,
-          "column": 73
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 5453,
-          "column": 24
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 5453,
-          "column": 73
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 6020,
-          "column": 24
         }
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-25T03:50:12.728Z",
-        "lastSeen": "2026-01-25T03:50:12.728Z",
+        "firstSeen": "2026-01-26T05:14:32.366Z",
+        "lastSeen": "2026-01-26T05:14:32.366Z",
         "source": "auto-detected",
         "tags": [
           "structural",
@@ -6011,12 +3771,12 @@
         }
       },
       "confidence": {
-        "frequency": 0.31,
+        "frequency": 0.04,
         "consistency": 0.9,
         "age": 0,
-        "spread": 5,
-        "score": 0.95,
-        "level": "high"
+        "spread": 2,
+        "score": 0.7949999999999999,
+        "level": "medium"
       },
       "locations": [
         {
@@ -6038,147 +3798,12 @@
           "file": "backend/src/services/userService.ts",
           "line": 85,
           "column": 9
-        },
-        {
-          "file": "frontend/src/components/legacy/DataFetcher.tsx",
-          "line": 44,
-          "column": 26
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 6682,
-          "column": 45
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 6893,
-          "column": 45
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 7045,
-          "column": 45
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 7197,
-          "column": 45
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 7366,
-          "column": 47
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 7473,
-          "column": 47
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 7566,
-          "column": 47
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 7687,
-          "column": 47
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 7846,
-          "column": 42
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 8000,
-          "column": 42
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 8126,
-          "column": 42
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 8238,
-          "column": 42
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 8319,
-          "column": 42
-        },
-        {
-          "file": "laravel-backend/.drift/callgraph/graph.json",
-          "line": 6720,
-          "column": 45
-        },
-        {
-          "file": "laravel-backend/.drift/callgraph/graph.json",
-          "line": 6931,
-          "column": 45
-        },
-        {
-          "file": "laravel-backend/.drift/callgraph/graph.json",
-          "line": 7083,
-          "column": 45
-        },
-        {
-          "file": "laravel-backend/.drift/callgraph/graph.json",
-          "line": 7235,
-          "column": 45
-        },
-        {
-          "file": "laravel-backend/.drift/callgraph/graph.json",
-          "line": 7404,
-          "column": 47
-        },
-        {
-          "file": "laravel-backend/.drift/callgraph/graph.json",
-          "line": 7511,
-          "column": 47
-        },
-        {
-          "file": "laravel-backend/.drift/callgraph/graph.json",
-          "line": 7604,
-          "column": 47
-        },
-        {
-          "file": "laravel-backend/.drift/callgraph/graph.json",
-          "line": 7725,
-          "column": 47
-        },
-        {
-          "file": "laravel-backend/.drift/callgraph/graph.json",
-          "line": 7884,
-          "column": 42
-        },
-        {
-          "file": "laravel-backend/.drift/callgraph/graph.json",
-          "line": 8038,
-          "column": 42
-        },
-        {
-          "file": "laravel-backend/.drift/callgraph/graph.json",
-          "line": 8164,
-          "column": 42
-        },
-        {
-          "file": "laravel-backend/.drift/callgraph/graph.json",
-          "line": 8276,
-          "column": 42
-        },
-        {
-          "file": "laravel-backend/.drift/callgraph/graph.json",
-          "line": 8357,
-          "column": 42
         }
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-25T03:50:12.728Z",
-        "lastSeen": "2026-01-25T03:50:12.728Z",
+        "firstSeen": "2026-01-26T05:14:32.366Z",
+        "lastSeen": "2026-01-26T05:14:32.366Z",
         "source": "auto-detected",
         "tags": [
           "structural",
@@ -6201,29 +3826,14 @@
         }
       },
       "confidence": {
-        "frequency": 0.07,
+        "frequency": 0.04,
         "consistency": 0.9,
         "age": 0,
-        "spread": 5,
-        "score": 0.931111111111111,
-        "level": "high"
+        "spread": 2,
+        "score": 0.8427272727272728,
+        "level": "medium"
       },
       "locations": [
-        {
-          "file": "backend/.drift/call-graph/graph.json",
-          "line": 4689,
-          "column": 38
-        },
-        {
-          "file": "backend/.drift/callgraph/graph.json",
-          "line": 4719,
-          "column": 38
-        },
-        {
-          "file": "backend/.drift/error-handling/topology.json",
-          "line": 233,
-          "column": 40
-        },
         {
           "file": "backend/src/services/productService.ts",
           "line": 69,
@@ -6247,8 +3857,8 @@
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-25T03:50:12.727Z",
-        "lastSeen": "2026-01-25T03:50:12.727Z",
+        "firstSeen": "2026-01-26T05:14:32.366Z",
+        "lastSeen": "2026-01-26T05:14:32.366Z",
         "source": "auto-detected",
         "tags": [
           "structural",
@@ -6271,10 +3881,10 @@
         }
       },
       "confidence": {
-        "frequency": 0.23,
+        "frequency": 0.06,
         "consistency": 0.9,
         "age": 0,
-        "spread": 7,
+        "spread": 2,
         "score": 0.95,
         "level": "high"
       },
@@ -6308,97 +3918,12 @@
           "file": "backend/src/utils/errors.ts",
           "line": 35,
           "column": 10
-        },
-        {
-          "file": "csharp-backend/.drift/call-graph/graph.json",
-          "line": 3351,
-          "column": 47
-        },
-        {
-          "file": "csharp-backend/.drift/call-graph/graph.json",
-          "line": 3365,
-          "column": 47
-        },
-        {
-          "file": "csharp-backend/.drift/call-graph/graph.json",
-          "line": 5730,
-          "column": 59
-        },
-        {
-          "file": "csharp-backend/.drift/call-graph/graph.json",
-          "line": 5744,
-          "column": 59
-        },
-        {
-          "file": "csharp-backend/.drift/call-graph/graph.json",
-          "line": 5758,
-          "column": 59
-        },
-        {
-          "file": "csharp-backend/.drift/call-graph/graph.json",
-          "line": 9578,
-          "column": 116
-        },
-        {
-          "file": "csharp-backend/.drift/call-graph/graph.json",
-          "line": 10243,
-          "column": 114
-        },
-        {
-          "file": "csharp-backend/.drift/callgraph/graph.json",
-          "line": 3429,
-          "column": 47
-        },
-        {
-          "file": "csharp-backend/.drift/callgraph/graph.json",
-          "line": 3443,
-          "column": 47
-        },
-        {
-          "file": "csharp-backend/.drift/callgraph/graph.json",
-          "line": 5808,
-          "column": 59
-        },
-        {
-          "file": "csharp-backend/.drift/callgraph/graph.json",
-          "line": 5822,
-          "column": 59
-        },
-        {
-          "file": "csharp-backend/.drift/callgraph/graph.json",
-          "line": 5836,
-          "column": 59
-        },
-        {
-          "file": "csharp-backend/.drift/callgraph/graph.json",
-          "line": 9656,
-          "column": 116
-        },
-        {
-          "file": "csharp-backend/.drift/callgraph/graph.json",
-          "line": 10321,
-          "column": 114
-        },
-        {
-          "file": "frontend/src/components/legacy/UserCard.tsx",
-          "line": 37,
-          "column": 45
-        },
-        {
-          "file": "spring-backend/.drift/call-graph/graph.json",
-          "line": 3066,
-          "column": 178
-        },
-        {
-          "file": "spring-backend/.drift/callgraph/graph.json",
-          "line": 3108,
-          "column": 178
         }
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-25T03:50:12.728Z",
-        "lastSeen": "2026-01-25T03:50:12.728Z",
+        "firstSeen": "2026-01-26T05:14:32.366Z",
+        "lastSeen": "2026-01-26T05:14:32.366Z",
         "source": "auto-detected",
         "tags": [
           "structural",
@@ -6421,10 +3946,10 @@
         }
       },
       "confidence": {
-        "frequency": 0.06,
+        "frequency": 0.02,
         "consistency": 0.9,
         "age": 0,
-        "spread": 3,
+        "spread": 1,
         "score": 0.95,
         "level": "high"
       },
@@ -6438,32 +3963,12 @@
           "file": "backend/src/services/userService.ts",
           "line": 24,
           "column": 7
-        },
-        {
-          "file": "frontend/src/hooks/useApi.ts",
-          "line": 9,
-          "column": 11
-        },
-        {
-          "file": "frontend/src/hooks/useApi.ts",
-          "line": 15,
-          "column": 11
-        },
-        {
-          "file": "frontend/src/hooks/useApi.ts",
-          "line": 15,
-          "column": 35
-        },
-        {
-          "file": "frontend/src/types/api.ts",
-          "line": 30,
-          "column": 18
         }
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-25T03:50:12.728Z",
-        "lastSeen": "2026-01-25T03:50:12.728Z",
+        "firstSeen": "2026-01-26T05:14:32.366Z",
+        "lastSeen": "2026-01-26T05:14:32.366Z",
         "source": "auto-detected",
         "tags": [
           "structural",
@@ -6486,12 +3991,12 @@
         }
       },
       "confidence": {
-        "frequency": 0.35,
+        "frequency": 0.02,
         "consistency": 0.9,
         "age": 0,
-        "spread": 8,
-        "score": 0.9430769230769231,
-        "level": "high"
+        "spread": 1,
+        "score": 0.83875,
+        "level": "medium"
       },
       "locations": [
         {
@@ -6503,177 +4008,12 @@
           "file": "backend/src/services/userService.ts",
           "line": 92,
           "column": 32
-        },
-        {
-          "file": "csharp-backend/.drift/boundaries/access-map.json",
-          "line": 469,
-          "column": 31
-        },
-        {
-          "file": "csharp-backend/.drift/boundaries/access-map.json",
-          "line": 923,
-          "column": 27
-        },
-        {
-          "file": "frontend/src/components/legacy/DataFetcher.tsx",
-          "line": 15,
-          "column": 27
-        },
-        {
-          "file": "frontend/src/components/legacy/DataFetcher.tsx",
-          "line": 16,
-          "column": 33
-        },
-        {
-          "file": "frontend/src/components/legacy/DataFetcher.tsx",
-          "line": 19,
-          "column": 3
-        },
-        {
-          "file": "frontend/src/components/legacy/UserCard.tsx",
-          "line": 18,
-          "column": 3
-        },
-        {
-          "file": "frontend/src/hooks/useApi.ts",
-          "line": 29,
-          "column": 17
-        },
-        {
-          "file": "frontend/src/hooks/useApi.ts",
-          "line": 39,
-          "column": 3
-        },
-        {
-          "file": "frontend/src/hooks/useApi.ts",
-          "line": 53,
-          "column": 33
-        },
-        {
-          "file": "frontend/src/hooks/useApi.ts",
-          "line": 56,
-          "column": 18
-        },
-        {
-          "file": "frontend/src/hooks/useAuth.ts",
-          "line": 25,
-          "column": 19
-        },
-        {
-          "file": "frontend/src/hooks/useAuth.ts",
-          "line": 42,
-          "column": 17
-        },
-        {
-          "file": "frontend/src/hooks/useAuth.ts",
-          "line": 60,
-          "column": 18
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 363,
-          "column": 34
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 377,
-          "column": 34
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 391,
-          "column": 34
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 405,
-          "column": 34
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 1437,
-          "column": 34
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 1752,
-          "column": 34
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 2217,
-          "column": 31
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 2420,
-          "column": 31
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 4215,
-          "column": 34
-        },
-        {
-          "file": "laravel-backend/.drift/call-graph/graph.json",
-          "line": 4319,
-          "column": 34
-        },
-        {
-          "file": "laravel-backend/.drift/callgraph/graph.json",
-          "line": 401,
-          "column": 34
-        },
-        {
-          "file": "laravel-backend/.drift/callgraph/graph.json",
-          "line": 415,
-          "column": 34
-        },
-        {
-          "file": "laravel-backend/.drift/callgraph/graph.json",
-          "line": 429,
-          "column": 34
-        },
-        {
-          "file": "laravel-backend/.drift/callgraph/graph.json",
-          "line": 443,
-          "column": 34
-        },
-        {
-          "file": "laravel-backend/.drift/callgraph/graph.json",
-          "line": 1475,
-          "column": 34
-        },
-        {
-          "file": "laravel-backend/.drift/callgraph/graph.json",
-          "line": 1790,
-          "column": 34
-        },
-        {
-          "file": "laravel-backend/.drift/callgraph/graph.json",
-          "line": 2255,
-          "column": 31
-        },
-        {
-          "file": "laravel-backend/.drift/callgraph/graph.json",
-          "line": 2458,
-          "column": 31
-        },
-        {
-          "file": "laravel-backend/.drift/callgraph/graph.json",
-          "line": 4253,
-          "column": 34
-        },
-        {
-          "file": "laravel-backend/.drift/callgraph/graph.json",
-          "line": 4357,
-          "column": 34
         }
       ],
       "outliers": [],
       "metadata": {
-        "firstSeen": "2026-01-25T03:50:12.728Z",
-        "lastSeen": "2026-01-25T03:50:12.728Z",
+        "firstSeen": "2026-01-26T05:14:32.366Z",
+        "lastSeen": "2026-01-26T05:14:32.366Z",
         "source": "auto-detected",
         "tags": [
           "structural",
@@ -11524,6 +8864,6 @@
       "autoFixable": false
     }
   ],
-  "lastUpdated": "2026-01-25T03:50:12.732Z",
-  "checksum": "5c6dd917a852c304"
+  "lastUpdated": "2026-01-26T05:14:32.366Z",
+  "checksum": "c3a85f78e1b77fa9"
 }
