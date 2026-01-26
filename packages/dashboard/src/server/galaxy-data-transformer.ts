@@ -471,15 +471,41 @@ export class GalaxyDataTransformer {
   }
 
   /**
-   * Load call graph from .drift/call-graph or .drift/callgraph
+   * Load call graph from .drift/lake/callgraph (primary) or legacy paths
    */
   private async loadCallGraph(): Promise<StoredCallGraph | null> {
-    const possiblePaths = [
+    // Primary: Load from lake storage (sharded format)
+    const lakeIndexPath = path.join(this.driftDir, 'lake', 'callgraph', 'index.json');
+    try {
+      const content = await fs.readFile(lakeIndexPath, 'utf-8');
+      const index = JSON.parse(content);
+      // Convert lake index format to StoredCallGraph format
+      return {
+        version: index.version || '1.0.0',
+        generatedAt: index.generatedAt,
+        projectRoot: this.driftDir.replace('/.drift', ''),
+        stats: {
+          totalFunctions: index.summary?.totalFunctions || 0,
+          totalCallSites: index.summary?.totalCalls || 0,
+          resolvedCallSites: index.summary?.totalCalls || 0,
+          unresolvedCallSites: 0,
+          totalDataAccessors: index.summary?.dataAccessors || 0,
+        },
+        functions: {}, // Empty - would need to load shards for full data
+        entryPoints: index.topEntryPoints?.map((ep: { id: string }) => ep.id) || [],
+        dataAccessors: index.topDataAccessors?.map((da: { id: string }) => da.id) || [],
+      };
+    } catch {
+      // Fall through to legacy paths
+    }
+
+    // Legacy: Try old paths for backwards compatibility
+    const legacyPaths = [
       path.join(this.driftDir, 'call-graph', 'graph.json'),
       path.join(this.driftDir, 'callgraph', 'graph.json'),
     ];
 
-    for (const graphPath of possiblePaths) {
+    for (const graphPath of legacyPaths) {
       try {
         const content = await fs.readFile(graphPath, 'utf-8');
         return JSON.parse(content) as StoredCallGraph;
