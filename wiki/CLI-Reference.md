@@ -1,6 +1,174 @@
 # CLI Reference
 
-Complete reference for all 28 Drift CLI commands.
+Complete reference for all Drift CLI commands.
+
+## Language-Specific Commands
+
+### `drift ts`
+
+TypeScript/JavaScript language analysis.
+
+```bash
+drift ts <subcommand> [path] [options]
+
+Subcommands:
+  status             Show project analysis summary
+  routes             List HTTP routes (Express, NestJS, Next.js, Fastify)
+  components         List React components
+  hooks              Analyze React hooks usage
+  errors             Analyze error handling patterns
+  data-access        Analyze database patterns (Prisma, TypeORM, Drizzle, Sequelize, Mongoose)
+  decorators         Analyze decorator usage (NestJS, TypeORM)
+
+Options:
+  --framework <fw>   Filter by framework
+  --limit <n>        Limit results (default: 50)
+  --json             JSON output
+```
+
+### `drift py`
+
+Python language analysis.
+
+```bash
+drift py <subcommand> [path] [options]
+
+Subcommands:
+  status             Show project analysis summary
+  routes             List HTTP routes (Flask, FastAPI, Django, Starlette)
+  errors             Analyze error handling patterns
+  data-access        Analyze database patterns (Django ORM, SQLAlchemy, Tortoise, Peewee)
+  decorators         Analyze decorator usage
+  async              Analyze async patterns
+
+Options:
+  --framework <fw>   Filter by framework
+  --limit <n>        Limit results (default: 50)
+  --json             JSON output
+```
+
+### `drift java`
+
+Java language analysis.
+
+```bash
+drift java <subcommand> [path] [options]
+
+Subcommands:
+  status             Show project analysis summary
+  routes             List HTTP routes (Spring MVC, JAX-RS, Micronaut, Quarkus)
+  errors             Analyze error handling patterns
+  data-access        Analyze database patterns (Spring Data JPA, Hibernate, JDBC, MyBatis)
+  annotations        Analyze annotation usage
+
+Options:
+  --framework <fw>   Filter by framework
+  --limit <n>        Limit results (default: 50)
+  --json             JSON output
+```
+
+### `drift php`
+
+PHP language analysis.
+
+```bash
+drift php <subcommand> [path] [options]
+
+Subcommands:
+  status             Show project analysis summary
+  routes             List HTTP routes (Laravel, Symfony, Slim, Lumen)
+  errors             Analyze error handling patterns
+  data-access        Analyze database patterns (Eloquent, Doctrine, PDO)
+  traits             Analyze trait definitions and usage
+
+Options:
+  --framework <fw>   Filter by framework
+  --limit <n>        Limit results (default: 50)
+  --json             JSON output
+```
+
+### `drift go`
+
+Go language analysis.
+
+```bash
+drift go <subcommand> [path] [options]
+
+Subcommands:
+  status             Show project analysis summary
+  routes             List HTTP routes (Gin, Echo, Chi, Fiber, net/http)
+  errors             Analyze error handling patterns
+  interfaces         List interfaces and implementations
+  data-access        Analyze database patterns (GORM, sqlx, database/sql, Ent, Bun)
+  goroutines         Analyze concurrency patterns
+
+Options:
+  --framework <fw>   Filter by framework
+  --limit <n>        Limit results (default: 50)
+  --json             JSON output
+```
+
+### `drift rust`
+
+Rust language analysis.
+
+```bash
+drift rust <subcommand> [path] [options]
+
+Subcommands:
+  status             Show project analysis summary
+  routes             List HTTP routes (Actix, Axum, Rocket, Warp)
+  errors             Analyze error handling (Result, thiserror, anyhow)
+  traits             List traits and implementations
+  data-access        Analyze database patterns (SQLx, Diesel, SeaORM)
+  async              Analyze async patterns and runtime usage
+
+Options:
+  --framework <fw>   Filter by framework
+  --limit <n>        Limit results (default: 50)
+  --json             JSON output
+```
+
+### `drift cpp`
+
+C++ language analysis.
+
+```bash
+drift cpp <subcommand> [path] [options]
+
+Subcommands:
+  status             Show project analysis summary
+  classes            List classes/structs with inheritance
+  memory             Analyze memory management (smart pointers, RAII)
+  templates          List template classes and functions
+  virtual            Analyze virtual functions and polymorphism
+
+Options:
+  --framework <fw>   Filter by framework (Qt, Boost, Unreal)
+  --limit <n>        Limit results (default: 50)
+  --json             JSON output
+```
+
+### `drift wpf`
+
+WPF (C#) framework analysis.
+
+```bash
+drift wpf <subcommand> [path] [options]
+
+Subcommands:
+  status             Show project analysis summary
+  bindings           List XAML data bindings
+  mvvm               Check MVVM compliance
+  datacontext        Analyze DataContext resolution
+  commands           List ICommand implementations
+
+Options:
+  --limit <n>        Limit results (default: 50)
+  --json             JSON output
+```
+
+---
 
 ## Core Commands
 

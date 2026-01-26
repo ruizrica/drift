@@ -410,15 +410,46 @@ See `packages/core/src/call-graph/extractors/` for examples.
 
 ---
 
-## Language-Specific MCP Tools
+## Language-Specific CLI & MCP Tools
 
-Each language has dedicated MCP tools:
+All 8 languages have dedicated CLI commands and MCP tools:
 
-| Language | MCP Tool | CLI Command |
-|----------|----------|-------------|
-| Go | `drift_go` | `drift go` |
-| Rust | `drift_rust` | `drift rust` |
-| C++ | `drift_cpp` | `drift cpp` |
-| WPF (C#) | `drift_wpf` | `drift wpf` |
+| Language | CLI Command | MCP Tool | Actions |
+|----------|-------------|----------|---------|
+| TypeScript/JS | `drift ts` | `drift_typescript` | status, routes, components, hooks, errors, data-access, decorators |
+| Python | `drift py` | `drift_python` | status, routes, errors, data-access, decorators, async |
+| Java | `drift java` | `drift_java` | status, routes, errors, data-access, annotations |
+| PHP | `drift php` | `drift_php` | status, routes, errors, data-access, traits |
+| Go | `drift go` | `drift_go` | status, routes, errors, interfaces, data-access, goroutines |
+| Rust | `drift rust` | `drift_rust` | status, routes, errors, traits, data-access, async |
+| C++ | `drift cpp` | `drift_cpp` | status, classes, memory, templates, virtual |
+| WPF (C#) | `drift wpf` | `drift_wpf` | status, bindings, mvvm, datacontext, commands |
+
+### Examples
+
+```bash
+# TypeScript/JavaScript
+drift ts status              # Project overview
+drift ts routes              # HTTP routes (Express, NestJS, Next.js, Fastify)
+drift ts components          # React components
+drift ts hooks               # React hooks usage
+drift ts data-access         # Database patterns (Prisma, TypeORM, etc.)
+
+# Python
+drift py status              # Project overview
+drift py routes              # HTTP routes (Flask, FastAPI, Django)
+drift py decorators          # Decorator usage
+drift py async               # Async patterns
+
+# Java
+drift java status            # Project overview
+drift java routes            # HTTP routes (Spring, JAX-RS, Micronaut)
+drift java annotations       # Annotation usage
+
+# PHP
+drift php status             # Project overview
+drift php routes             # HTTP routes (Laravel, Symfony)
+drift php traits             # Trait definitions and usage
+```
 
 These provide language-specific analysis beyond the general tools.
