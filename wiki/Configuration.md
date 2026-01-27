@@ -90,20 +90,15 @@ Drift stores configuration in `.drift/config.json`:
 
 ## .driftignore
 
-Exclude files from scanning (same syntax as `.gitignore`):
+Exclude files from scanning. Uses the same syntax as `.gitignore`.
+
+**Important:** Drift automatically respects your `.gitignore` patterns. You don't need to duplicate them in `.driftignore`. The `.driftignore` file is for additional exclusions specific to Drift scanning.
 
 ```gitignore
-# Dependencies
-node_modules/
-vendor/
-.venv/
+# .driftignore - Additional exclusions for Drift
+# (Your .gitignore patterns are already respected automatically)
 
-# Build output
-dist/
-build/
-out/
-
-# Test files (optional)
+# Test files (if you don't want patterns from tests)
 *.test.ts
 *.spec.ts
 __tests__/
@@ -112,13 +107,17 @@ __tests__/
 *.generated.ts
 *.d.ts
 
-# IDE
-.idea/
-.vscode/
-
-# Git
-.git/
+# Large data files Drift shouldn't analyze
+*.sql
+*.csv
+fixtures/
 ```
+
+**How it works:**
+1. Drift reads both `.gitignore` and `.driftignore`
+2. Patterns from both files are combined
+3. Files matching EITHER pattern are excluded from scanning
+4. This is the default behavior — no configuration needed
 
 ---
 

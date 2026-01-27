@@ -76,27 +76,46 @@ All data is stored in `.drift/` at your project root. This includes:
 
 ### Should I commit `.drift/` to git?
 
-**Yes, commit these:**
-- `.drift/config.json` — Project configuration
-- `.drift/patterns/approved/` — Approved patterns
-- `.drift/boundaries/` — Security boundaries and access rules
-- `.drift/indexes/` — Pattern indexes (small, fast to rebuild but nice to share)
-- `.drift/views/` — Cached views (small, speeds up status checks)
-- `.drift/constraints/approved/` — Approved architectural constraints
+**Short answer:** Use this simple `.gitignore` pattern:
 
-**Don't commit these (add to .gitignore):**
-- `.drift/lake/` — Large cached data (call graph, examples, security tables)
-- `.drift/cache/` — Temporary cache
-- `.drift/history/` — Historical snapshots
-- `.drift/call-graph/` — Call graph cache (rebuilt on scan)
-
-**Example .gitignore:**
 ```gitignore
-.drift/lake/
-.drift/cache/
-.drift/history/
-.drift/call-graph/
+# Ignore everything in .drift except what we explicitly include
+.drift/*
+
+# Keep these (team-shareable configuration and approved patterns)
+!.drift/config.json
+!.drift/patterns/
+.drift/patterns/*
+!.drift/patterns/approved/
+!.drift/boundaries/
+!.drift/indexes/
+!.drift/views/
+!.drift/constraints/
+.drift/constraints/*
+!.drift/constraints/approved/
 ```
+
+**What this does:**
+- Ignores all cache/temporary data (lake, cache, history, call-graph)
+- Keeps your approved patterns and configuration
+- Team members get your conventions without rebuilding everything
+
+**Detailed breakdown:**
+
+| Directory | Commit? | Why |
+|-----------|---------|-----|
+| `.drift/config.json` | ✅ Yes | Project configuration |
+| `.drift/patterns/approved/` | ✅ Yes | Your approved conventions |
+| `.drift/boundaries/` | ✅ Yes | Security boundary rules |
+| `.drift/indexes/` | ✅ Yes | Small, speeds up lookups |
+| `.drift/views/` | ✅ Yes | Small, speeds up status |
+| `.drift/constraints/approved/` | ✅ Yes | Architectural constraints |
+| `.drift/lake/` | ❌ No | Large cached data |
+| `.drift/cache/` | ❌ No | Temporary cache |
+| `.drift/history/` | ❌ No | Historical snapshots |
+| `.drift/call-graph/` | ❌ No | Rebuilt on scan |
+| `.drift/patterns/discovered/` | ❌ No | Not yet approved |
+| `.drift/patterns/ignored/` | ❌ No | Explicitly ignored |
 
 ---
 
@@ -133,26 +152,27 @@ All data is stored in `.drift/` at your project root. This includes:
 
 ### What files should I exclude?
 
-Add to `.driftignore`:
-```
-# Dependencies
-node_modules/
-vendor/
-.venv/
+**Good news:** Drift automatically respects your `.gitignore`, so `node_modules/`, `dist/`, etc. are already excluded if they're in your `.gitignore`.
 
-# Build output
-dist/
-build/
-out/
-*.min.js
+Use `.driftignore` only for additional exclusions specific to Drift:
+
+```gitignore
+# .driftignore - Additional exclusions
+# (Your .gitignore patterns are already respected automatically)
+
+# Test files (if you don't want test patterns)
+*.test.ts
+*.spec.ts
+__tests__/
 
 # Generated code
 *.generated.ts
 *.g.cs
 
-# Large files
+# Large data files
 *.log
 *.sql
+fixtures/
 ```
 
 ### Why are some patterns not detected?
