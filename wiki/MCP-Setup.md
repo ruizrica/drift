@@ -17,16 +17,38 @@ MCP (Model Context Protocol) is a standard for connecting AI agents to external 
 
 ## Quick Setup
 
+### Recommended: Global Install
+
+For production use, install globally with a pinned version:
+
+```bash
+npm install -g driftdetect-mcp@0.9.22
+```
+
+Then configure your MCP client to use the installed binary.
+
 ### Claude Desktop
 
 Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows):
 
+**With global install:**
+```json
+{
+  "mcpServers": {
+    "drift": {
+      "command": "driftdetect-mcp"
+    }
+  }
+}
+```
+
+**With npx (pinned version):**
 ```json
 {
   "mcpServers": {
     "drift": {
       "command": "npx",
-      "args": ["-y", "driftdetect-mcp"]
+      "args": ["-y", "driftdetect-mcp@0.9.22"]
     }
   }
 }
@@ -40,8 +62,7 @@ Add to your Cursor MCP settings (`.cursor/mcp.json`):
 {
   "mcpServers": {
     "drift": {
-      "command": "npx",
-      "args": ["-y", "driftdetect-mcp"]
+      "command": "driftdetect-mcp"
     }
   }
 }
@@ -55,8 +76,7 @@ Add to your Windsurf MCP configuration:
 {
   "mcpServers": {
     "drift": {
-      "command": "npx",
-      "args": ["-y", "driftdetect-mcp"]
+      "command": "driftdetect-mcp"
     }
   }
 }
@@ -70,8 +90,7 @@ Add to `.kiro/settings/mcp.json`:
 {
   "mcpServers": {
     "drift": {
-      "command": "npx",
-      "args": ["-y", "driftdetect-mcp"],
+      "command": "driftdetect-mcp",
       "disabled": false,
       "autoApprove": []
     }
@@ -87,8 +106,7 @@ Add to your VS Code MCP settings:
 {
   "mcpServers": {
     "drift": {
-      "command": "npx",
-      "args": ["-y", "driftdetect-mcp"]
+      "command": "driftdetect-mcp"
     }
   }
 }
@@ -260,9 +278,11 @@ export DRIFT_CACHE_DIR=/path/to/cache
 
 1. Restart your AI client after config changes
 2. Check the config file path is correct for your OS
-3. Verify `npx driftdetect-mcp` runs without errors:
+3. Verify the MCP server runs without errors:
    ```bash
-   npx driftdetect-mcp --help
+   driftdetect-mcp --help
+   # or with npx:
+   npx driftdetect-mcp@0.9.22 --help
    ```
 
 ### "Scan required" errors
@@ -306,7 +326,7 @@ Enable debug logging to see what's happening:
   "mcpServers": {
     "drift": {
       "command": "npx",
-      "args": ["-y", "driftdetect-mcp"],
+      "args": ["-y", "driftdetect-mcp@0.9.22"],
       "env": {
         "DEBUG": "drift:*"
       }
