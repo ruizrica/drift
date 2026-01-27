@@ -22,7 +22,7 @@ MCP (Model Context Protocol) is a standard for connecting AI agents to external 
 For production use, install globally with a pinned version:
 
 ```bash
-npm install -g driftdetect-mcp@0.9.22
+npm install -g driftdetect-mcp@0.9.23
 ```
 
 Then configure your MCP client to use the installed binary.
@@ -48,7 +48,7 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS)
   "mcpServers": {
     "drift": {
       "command": "npx",
-      "args": ["-y", "driftdetect-mcp@0.9.22"]
+      "args": ["-y", "driftdetect-mcp@0.9.23"]
     }
   }
 }
@@ -282,7 +282,7 @@ export DRIFT_CACHE_DIR=/path/to/cache
    ```bash
    driftdetect-mcp --help
    # or with npx:
-   npx driftdetect-mcp@0.9.22 --help
+   npx driftdetect-mcp@0.9.23 --help
    ```
 
 ### "Scan required" errors
@@ -326,7 +326,7 @@ Enable debug logging to see what's happening:
   "mcpServers": {
     "drift": {
       "command": "npx",
-      "args": ["-y", "driftdetect-mcp@0.9.22"],
+      "args": ["-y", "driftdetect-mcp@0.9.23"],
       "env": {
         "DEBUG": "drift:*"
       }
