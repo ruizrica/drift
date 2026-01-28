@@ -176,7 +176,7 @@ For monorepos, combine incremental scans with project targeting:
 drift scan packages/backend --incremental
 
 # Scan specific project by name
-drift scan --project backend --incremental
+drift scan -p backend --incremental
 
 # Scan all projects incrementally
 drift scan --all-projects --incremental

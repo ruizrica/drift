@@ -19,11 +19,15 @@ MCP (Model Context Protocol) is a standard for connecting AI agents to external 
 
 ### Recommended: Global Install
 
-For production use, install globally with a pinned version:
+For production use, install globally:
 
 ```bash
-npm install -g driftdetect-mcp@0.9.23
+npm install -g driftdetect-mcp
 ```
+
+This provides two equivalent commands:
+- `driftdetect-mcp` - Full package name
+- `drift-mcp` - Short alias
 
 Then configure your MCP client to use the installed binary.
 
@@ -31,7 +35,7 @@ Then configure your MCP client to use the installed binary.
 
 Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows):
 
-**With global install:**
+**With global install (recommended):**
 ```json
 {
   "mcpServers": {
@@ -48,7 +52,7 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS)
   "mcpServers": {
     "drift": {
       "command": "npx",
-      "args": ["-y", "driftdetect-mcp@0.9.23"]
+      "args": ["-y", "driftdetect-mcp@0.9.27"]
     }
   }
 }
@@ -184,7 +188,7 @@ If connected, it will call `drift_status` and show your pattern summary.
 
 ## Available MCP Tools
 
-Drift provides **45+ MCP tools** organized in 7 layers:
+Drift provides **49+ MCP tools** organized in 7 layers:
 
 | Layer | Tools | Purpose |
 |-------|-------|---------|
@@ -282,7 +286,7 @@ export DRIFT_CACHE_DIR=/path/to/cache
    ```bash
    driftdetect-mcp --help
    # or with npx:
-   npx driftdetect-mcp@0.9.23 --help
+   npx driftdetect-mcp@0.9.27 --help
    ```
 
 ### "Scan required" errors
@@ -326,13 +330,26 @@ Enable debug logging to see what's happening:
   "mcpServers": {
     "drift": {
       "command": "npx",
-      "args": ["-y", "driftdetect-mcp@0.9.23"],
+      "args": ["-y", "driftdetect-mcp@0.9.27"],
       "env": {
         "DEBUG": "drift:*"
       }
     }
   }
 }
+```
+
+### MCP Server Command-Line Options
+
+The MCP server supports these flags:
+
+```bash
+driftdetect-mcp                    # Use active project from ~/.drift/projects.json
+driftdetect-mcp /path/to/project   # Analyze specific project
+driftdetect-mcp --no-cache         # Disable response caching
+driftdetect-mcp --no-rate-limit    # Disable rate limiting
+driftdetect-mcp --verbose          # Enable verbose logging
+driftdetect-mcp --skip-warmup      # Skip startup warmup
 ```
 
 ---

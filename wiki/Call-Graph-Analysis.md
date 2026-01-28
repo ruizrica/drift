@@ -38,6 +38,9 @@ drift callgraph build
 
 # Check status
 drift callgraph status
+
+# Security-prioritized view (P0-P4 tiers)
+drift callgraph status --security
 ```
 
 **Output:**
@@ -75,8 +78,8 @@ drift callgraph reach src/api/users.ts:42
 # From a function
 drift callgraph reach handleUserUpdate
 
-# Only sensitive data
-drift callgraph reach src/api/users.ts:42 --sensitive-only
+# Limit traversal depth
+drift callgraph reach src/api/users.ts:42 --max-depth 5
 ```
 
 **Example Output:**
@@ -111,7 +114,8 @@ Total: 12 data points reachable
   "direction": "forward",
   "location": "src/api/users.ts:42",
   "maxDepth": 10,
-  "sensitiveOnly": true
+  "sensitiveOnly": true,
+  "limit": 15
 }
 ```
 
@@ -127,8 +131,8 @@ Starting from a data point, trace backward to find all code that can access it:
 # Who can access password hashes?
 drift callgraph inverse users.password_hash
 
-# Who can access any user PII?
-drift callgraph inverse users --pii-only
+# Who can access any user data?
+drift callgraph inverse users
 
 # Limit depth
 drift callgraph inverse users.email --max-depth 5
@@ -181,6 +185,12 @@ drift callgraph impact src/auth/login.ts
 
 # Analyze impact of changing a function
 drift callgraph impact verifyToken
+
+# Find dead code (functions never called)
+drift callgraph dead
+
+# Analyze test coverage for sensitive data
+drift callgraph coverage
 ```
 
 **Example Output:**
@@ -441,7 +451,10 @@ drift callgraph function handleLogin
 # 2. Check impact
 drift callgraph impact handleLogin
 
-# 3. Check what tests to run
+# 3. Check test coverage for sensitive data
+drift callgraph coverage
+
+# 4. Check what tests to run
 drift test-topology affected src/auth/login.ts
 ```
 

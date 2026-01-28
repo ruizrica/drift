@@ -1,6 +1,6 @@
 # Language Support
 
-Drift supports **8 programming languages** with full feature parity across all analysis capabilities.
+Drift supports **9 programming languages** with full feature parity across all analysis capabilities.
 
 ## Language Matrix
 
@@ -412,7 +412,7 @@ See `packages/core/src/call-graph/extractors/` for examples.
 
 ## Language-Specific CLI & MCP Tools
 
-All 8 languages have dedicated CLI commands and MCP tools:
+All 9 languages have dedicated CLI commands and MCP tools:
 
 | Language | CLI Command | MCP Tool | Actions |
 |----------|-------------|----------|---------|

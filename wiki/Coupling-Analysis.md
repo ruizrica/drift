@@ -102,17 +102,20 @@ Dependency Cycles
 drift coupling cycles --min-severity critical
 
 # Limit cycle length
-drift coupling cycles --max-length 5
+drift coupling cycles --max-cycle-length 5
 ```
 
 ### MCP Tool
 
-```json
-{
-  "action": "cycles",
-  "minSeverity": "warning",
-  "maxCycleLength": 10
-}
+```typescript
+drift_coupling({
+  action: "status" | "cycles" | "hotspots" | "analyze" | "refactor-impact" | "unused-exports",
+  module?: string,        // Module path for analyze/refactor-impact actions
+  limit?: number,         // Max results for hotspots/unused-exports (default: 15/20)
+  minCoupling?: number,   // Minimum coupling threshold for hotspots (default: 3)
+  maxCycleLength?: number, // Maximum cycle length to report (default: 10)
+  minSeverity?: "info" | "warning" | "critical"  // Minimum severity for cycles (default: info)
+})
 ```
 
 ---
@@ -160,12 +163,12 @@ Coupling Hotspots
 
 ### MCP Tool
 
-```json
-{
-  "action": "hotspots",
-  "minCoupling": 10,
-  "limit": 15
-}
+```typescript
+drift_coupling({
+  action: "hotspots",
+  minCoupling: 10,
+  limit: 15
+})
 ```
 
 ---
@@ -213,11 +216,11 @@ Suggestions:
 
 ### MCP Tool
 
-```json
-{
-  "action": "analyze",
-  "module": "src/services/user.ts"
-}
+```typescript
+drift_coupling({
+  action: "analyze",
+  module: "src/services/user.ts"
+})
 ```
 
 ---
@@ -253,11 +256,11 @@ Potential dead code: ~450 lines
 
 ### MCP Tool
 
-```json
-{
-  "action": "unused-exports",
-  "limit": 20
-}
+```typescript
+drift_coupling({
+  action: "unused-exports",
+  limit: 20
+})
 ```
 
 ---
@@ -309,11 +312,11 @@ Suggestions:
 
 ### MCP Tool
 
-```json
-{
-  "action": "refactor-impact",
-  "module": "src/services/user.ts"
-}
+```typescript
+drift_coupling({
+  action: "refactor-impact",
+  module: "src/services/user.ts"
+})
 ```
 
 ---

@@ -33,22 +33,24 @@ drift test-topology status
 
 **Output:**
 ```
-Test Topology Status
-====================
+🧪 Test Topology Status
+────────────────────────────────────────────────────────────
 
-Test Files: 89
-Source Files: 247
-Mappings: 1,234
+📊 Test Summary
+──────────────────────────────────────────────────────────
+  Test Files:      89
+  Test Cases:      1,234
+  Avg Quality:     72/100
 
-Coverage:
-  High coverage (>80%): 156 files
-  Medium coverage (50-80%): 67 files
-  Low coverage (<50%): 24 files
-  No coverage: 12 files ⚠️
+📈 Coverage
+──────────────────────────────────────────────────────────
+  Files:     156/247 (63%)
+  Functions: 1,456/1,842 (79%)
 
-Test Frameworks Detected:
-  Jest: 67 test files
-  Vitest: 22 test files
+🔧 By Framework
+──────────────────────────────────────────────────────────
+  🃏 jest         67 tests
+  ⚡ vitest       22 tests
 ```
 
 ---
@@ -58,42 +60,30 @@ Test Frameworks Detected:
 ### For Changed Files
 
 ```bash
-# Single file
-drift test-topology affected src/auth/login.ts
-
 # Multiple files
 drift test-topology affected src/auth/login.ts src/auth/session.ts
-
-# From git diff
-drift test-topology affected --staged
 ```
 
 **Output:**
 ```
-Affected Tests for src/auth/login.ts
-====================================
+🎯 Minimum Test Set
+────────────────────────────────────────────────────────────
 
-Direct Tests (test this file directly):
-  tests/auth/login.test.ts
-    - loginUser
-    - validateCredentials
-    - handleLoginError
+Changed Files: 2
+Changed Code Coverage: 87%
 
-Indirect Tests (call functions in this file):
-  tests/api/auth.controller.test.ts
-    - POST /api/auth/login
-    - POST /api/auth/refresh
-    
-  tests/middleware/auth.test.ts
-    - requireAuth middleware
-    
-Integration Tests:
-  tests/e2e/auth-flow.test.ts
-    - complete login flow
-    - session management
+Tests to Run: 4/89
+Time Saved: ~37s
 
-Total: 4 test files, 12 test cases
-Estimated time: 8.3s (vs 45.2s for full suite)
+Selected Tests:
+  ✓ loginUser
+    tests/auth/login.test.ts
+  ✓ validateCredentials
+    tests/auth/login.test.ts
+  ✓ POST /api/auth/login
+    tests/api/auth.controller.test.ts
+  ✓ requireAuth middleware
+    tests/middleware/auth.test.ts
 ```
 
 ### MCP Tool: `drift_test_topology`
@@ -117,27 +107,22 @@ drift test-topology uncovered
 
 **Output:**
 ```
-Uncovered Code
-==============
+🔍 Uncovered Functions
+────────────────────────────────────────────────────────────
 
-High Risk (no tests, high complexity):
-  ⚠️  src/payments/refund.ts
-      Complexity: 15, Lines: 234
-      Calls: processRefund, validateRefund, notifyUser
-      
-  ⚠️  src/admin/bulk-operations.ts
-      Complexity: 12, Lines: 189
-      Calls: bulkUpdate, bulkDelete, validateBatch
+● processRefund
+  src/payments/refund.ts:45
+  Risk: 75/100
+  💾 Accesses data
 
-Medium Risk (no tests, medium complexity):
-  src/utils/date-helpers.ts
-  src/formatters/currency.ts
-  
-Low Risk (no tests, low complexity):
-  src/constants/errors.ts
-  src/types/user.ts
+● bulkUpdate
+  src/admin/bulk-operations.ts:23
+  Risk: 60/100
+  🚪 Entry point
 
-Total: 12 files without test coverage
+● validateBatch
+  src/admin/bulk-operations.ts:89
+  Risk: 45/100
 ```
 
 ### Filter by Risk
@@ -146,8 +131,8 @@ Total: 12 files without test coverage
 # Only high risk
 drift test-topology uncovered --min-risk high
 
-# Specific directory
-drift test-topology uncovered --path src/payments/
+# Limit results
+drift test-topology uncovered --limit 10
 ```
 
 ### MCP Tool
@@ -164,39 +149,22 @@ drift test-topology uncovered --path src/payments/
 
 ## Test Coverage Analysis
 
-### File Coverage
+The test topology provides coverage information as part of the status and build commands:
 
 ```bash
-drift test-topology coverage src/auth/login.ts
+drift test-topology status
 ```
 
-**Output:**
-```
-Coverage for src/auth/login.ts
-==============================
-
-Functions (5 total):
-  ✅ loginUser - 3 tests
-  ✅ validateCredentials - 2 tests
-  ✅ hashPassword - 1 test
-  ⚠️  handleMFA - 0 tests
-  ⚠️  logLoginAttempt - 0 tests
-
-Lines: 78% covered (156/200)
-Branches: 65% covered (13/20)
-
-Missing Coverage:
-  Lines 45-52: MFA handling
-  Lines 78-89: Audit logging
-  Lines 120-135: Error edge cases
-```
+Shows coverage metrics including:
+- File coverage percentage
+- Function coverage percentage
+- Quality scores by framework
 
 ### MCP Tool
 
 ```json
 {
-  "action": "coverage",
-  "file": "src/auth/login.ts"
+  "action": "status"
 }
 ```
 
@@ -212,27 +180,28 @@ drift test-topology mocks
 
 **Output:**
 ```
-Mock Analysis
-=============
+🎭 Mock Analysis
+────────────────────────────────────────────────────────────
 
-Most Mocked:
-  1. prisma (45 tests)
-     Pattern: jest.mock('@prisma/client')
-     
-  2. fetch (34 tests)
-     Pattern: jest.spyOn(global, 'fetch')
-     
-  3. AuthService (23 tests)
-     Pattern: jest.mock('../services/auth')
+🎭 Mock Summary
+──────────────────────────────────────────────────────────
+  Total Mocks:     145
+  External:        89 (61%)
+  Internal:        56 (39%)
+  Avg Mock Ratio:  35%
 
-Mock Inconsistencies:
-  ⚠️  UserRepository mocked differently in 3 files
-      - tests/api/users.test.ts: partial mock
-      - tests/services/user.test.ts: full mock
-      - tests/e2e/users.test.ts: no mock
-      
-  ⚠️  Date.now() mocked in some tests but not others
-      May cause flaky tests
+📦 Most Mocked Modules
+──────────────────────────────────────────────────────────
+  @prisma/client           ████████████████████ 45
+  node-fetch               ████████████████ 34
+  ../services/auth         ██████████ 23
+
+⚠️  High Mock Ratio Tests
+──────────────────────────────────────────────────────────
+  ● should process payment
+    tests/payments/processor.test.ts (78% mocked)
+  ● should handle bulk update
+    tests/admin/bulk.test.ts (72% mocked)
 ```
 
 ### MCP Tool
@@ -247,43 +216,22 @@ Mock Inconsistencies:
 
 ## Test Quality Metrics
 
-### Analyze Test Quality
+Test quality metrics are included in the build and status output:
 
 ```bash
-drift test-topology quality tests/auth/login.test.ts
+drift test-topology build
 ```
 
-**Output:**
-```
-Test Quality: tests/auth/login.test.ts
-======================================
-
-Score: 78/100
-
-✅ Good:
-  - Descriptive test names
-  - Proper setup/teardown
-  - Tests error cases
-  - Uses beforeEach for isolation
-
-⚠️  Improvements:
-  - Missing edge case: empty password
-  - Missing edge case: SQL injection attempt
-  - Test "should login" is too broad (tests multiple things)
-  - No timeout handling tests
-
-Suggestions:
-  1. Split "should login" into smaller focused tests
-  2. Add test for rate limiting
-  3. Add test for concurrent login attempts
-```
+Shows quality scores including:
+- Average quality score (0-100)
+- Framework breakdown
+- Mock ratio analysis
 
 ### MCP Tool
 
 ```json
 {
-  "action": "quality",
-  "file": "tests/auth/login.test.ts"
+  "action": "status"
 }
 ```
 
@@ -295,13 +243,13 @@ Suggestions:
 
 ```bash
 # Get affected tests as JSON
-drift test-topology affected --staged --format json > affected.json
+drift test-topology affected src/auth/login.ts --format json > affected.json
 
 # Run with Jest
-jest $(cat affected.json | jq -r '.files | join(" ")')
+jest $(cat affected.json | jq -r '.result.tests[].file' | sort -u | tr '\n' ' ')
 
 # Run with Vitest
-vitest run $(cat affected.json | jq -r '.files | join(" ")')
+vitest run $(cat affected.json | jq -r '.result.tests[].file' | sort -u | tr '\n' ' ')
 ```
 
 ### GitHub Actions Example
@@ -327,10 +275,17 @@ jobs:
       - name: Build Test Topology
         run: drift test-topology build
         
+      - name: Get Changed Files
+        id: changed
+        run: |
+          FILES=$(git diff --name-only origin/main...HEAD | grep -E '\.(ts|tsx|js|jsx)$' | tr '\n' ' ')
+          echo "files=$FILES" >> $GITHUB_OUTPUT
+          
       - name: Get Affected Tests
+        if: steps.changed.outputs.files != ''
         id: affected
         run: |
-          TESTS=$(drift test-topology affected --staged --format json | jq -r '.files | join(" ")')
+          TESTS=$(drift test-topology affected ${{ steps.changed.outputs.files }} --format json | jq -r '.result.tests[].file' | sort -u | tr '\n' ' ')
           echo "tests=$TESTS" >> $GITHUB_OUTPUT
           
       - name: Run Affected Tests
@@ -348,12 +303,17 @@ jobs:
 #!/bin/sh
 # .husky/pre-commit
 
-# Get affected tests
-AFFECTED=$(drift test-topology affected --staged --format list)
+# Get changed files
+CHANGED=$(git diff --cached --name-only | grep -E '\.(ts|tsx|js|jsx)$' | tr '\n' ' ')
 
-if [ -n "$AFFECTED" ]; then
-  echo "Running affected tests..."
-  npm test -- $AFFECTED
+if [ -n "$CHANGED" ]; then
+  # Get affected tests
+  AFFECTED=$(drift test-topology affected $CHANGED --format json 2>/dev/null | jq -r '.result.tests[].file' | sort -u | tr '\n' ' ')
+
+  if [ -n "$AFFECTED" ]; then
+    echo "Running affected tests..."
+    npm test -- $AFFECTED
+  fi
 fi
 ```
 
@@ -436,7 +396,7 @@ jest.mock('../../src/repositories/user');
 drift test-topology build
 
 # Or run after significant changes
-drift test-topology build --force
+drift scan
 ```
 
 ### 2. Use Affected Tests in CI
@@ -444,7 +404,7 @@ drift test-topology build --force
 Don't run the full suite on every PR:
 
 ```bash
-drift test-topology affected --staged | xargs npm test --
+drift test-topology affected src/changed-file.ts --format json
 ```
 
 ### 3. Monitor Uncovered Code
@@ -459,13 +419,6 @@ drift test-topology uncovered --min-risk high
 ```bash
 drift test-topology mocks
 # Review and standardize mock patterns
-```
-
-### 5. Generate Test Templates
-
-```bash
-# For uncovered code
-drift test-topology template src/payments/refund.ts
 ```
 
 ---

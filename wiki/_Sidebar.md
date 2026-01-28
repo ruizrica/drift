@@ -7,18 +7,48 @@
 ## 🤖 MCP Server
 - [MCP Tools Reference](MCP-Tools-Reference)
 - [MCP Architecture](MCP-Architecture)
+- [AI Navigation Guide](AI-Navigation-Guide)
 
 ## 📖 Reference
 - [CLI Reference](CLI-Reference)
 - [Pattern Categories](Pattern-Categories)
+- [Detectors Deep Dive](Detectors-Deep-Dive)
 - [Language Support](Language-Support)
+- [Skills](Skills)
 
-## 🔬 Deep Dives
+## 🔬 Analysis
 - [Architecture](Architecture)
 - [Call Graph Analysis](Call-Graph-Analysis)
+- [Impact Analysis](Impact-Analysis)
 - [Security Analysis](Security-Analysis)
+- [Data Boundaries](Data-Boundaries)
 - [Test Topology](Test-Topology)
 - [Coupling Analysis](Coupling-Analysis)
+- [Error Handling Analysis](Error-Handling-Analysis)
+- [Wrappers Detection](Wrappers-Detection)
+- [Environment Variables](Environment-Variables)
+- [Constants Analysis](Constants-Analysis)
+- [Styling DNA](Styling-DNA)
+
+## 🛠️ AI Tools
+- [Code Examples](Code-Examples)
+- [Similar Code](Similar-Code)
+- [Explain Tool](Explain-Tool)
+- [Suggest Changes](Suggest-Changes)
+- [Validate Change](Validate-Change)
+
+## 🏗️ Advanced Features
+- [Constraints](Constraints)
+- [Contracts](Contracts)
+- [Decision Mining](Decision-Mining)
+- [Speculative Execution](Speculative-Execution)
+- [Watch Mode](Watch-Mode)
+- [Trends Analysis](Trends-Analysis)
+- [Projects Management](Projects-Management)
+- [Package Context](Package-Context)
+- [Monorepo Support](Monorepo-Support)
+- [Reports & Export](Reports-Export)
+- [Dashboard](Dashboard)
 
 ## 🔧 CI/CD Integration
 - [Quality Gates](Quality-Gates)

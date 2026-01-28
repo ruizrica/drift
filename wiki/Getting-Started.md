@@ -1,270 +1,419 @@
 # Getting Started
 
-Get Drift running in under 2 minutes.
+Get Drift running in your project in under 5 minutes.
+
+---
+
+## Prerequisites
+
+- **Node.js** 18+ (LTS recommended)
+- **npm**, **pnpm**, or **yarn**
+- A codebase in any supported language
+
+---
 
 ## Installation
 
+### Global Install (Recommended)
+
+Install both the CLI and MCP server:
+
 ```bash
+# CLI (provides the 'drift' command)
 npm install -g driftdetect
+
+# MCP server (provides 'driftdetect-mcp' and 'drift-mcp' commands)
+npm install -g driftdetect-mcp
 ```
 
-Or use npx without installing:
+### Project Install
 
 ```bash
-npx driftdetect init
+npm install --save-dev driftdetect driftdetect-mcp
 ```
 
-## Quick Start
+### Verify Installation
 
 ```bash
-# Navigate to your project
+drift --version
+# driftdetect v0.9.27
+
+driftdetect-mcp --help
+# Shows MCP server options
+```
+
+---
+
+## Initialize Your Project
+
+```bash
 cd your-project
-
-# Initialize Drift (creates .drift/ directory)
 drift init
-
-# Scan your codebase
-drift scan
-
-# See what Drift learned
-drift status
-
-# Open the dashboard
-drift dashboard
 ```
 
-## What Happens During Scan
+This creates the `.drift/` directory with:
+- `config.json` — Project configuration
+- `patterns/` — Pattern storage (discovered, approved, ignored, variants)
+- `history/` — Historical snapshots for trend tracking
+- `cache/` — Analysis cache
+- `reports/` — Generated reports
 
-1. **File Discovery** — Drift finds all source files (respects `.driftignore`)
-2. **AST Parsing** — Tree-sitter parses each file into an AST
-3. **Pattern Detection** — 170+ detectors analyze your code
-4. **Call Graph Building** — Maps function calls and data access
-5. **Pattern Storage** — Results saved to `.drift/` directory
-
-## First Scan Output
-
-After scanning, `drift status` shows:
-
+**Output:**
 ```
-Drift Status
-============
+🔍 Drift - Architectural Drift Detection
 
-Patterns: 47 discovered, 0 approved, 0 ignored
-Categories: api (12), auth (8), errors (15), data-access (12)
-Health Score: 72/100
+✓ Created .drift directory structure
+✓ Created config.json
 
-Languages: TypeScript (45 files), Python (12 files)
-Frameworks: Express, Prisma, FastAPI
+Drift initialized successfully!
 
-Run 'drift approve <pattern-id>' to approve patterns
-Run 'drift dashboard' to explore in the web UI
+Configuration: .drift/config.json
+Patterns: .drift/patterns/
+Ignore rules: .driftignore
+
+📝 Add to your .gitignore:
+
+  # Drift: ignore caches and temporary data
+  .drift/lake/
+  .drift/cache/
+  .drift/history/
+  .drift/call-graph/
+  .drift/patterns/discovered/
+  .drift/patterns/ignored/
+  .drift/patterns/variants/
+  ...
+
+✓ Registered as my-project
 ```
 
-## Next Steps
+---
 
-### 1. Explore Patterns
+## Run Your First Scan
 
 ```bash
-# Open web dashboard
-drift dashboard
-
-# Or use the where command to find patterns
-drift where "API" --limit 10
-
-# See patterns in a specific file
-drift files src/api/users.ts
+drift scan
 ```
 
-### 2. Approve Patterns
+Drift will:
+1. Detect languages and frameworks in your project
+2. Parse all source files with Tree-sitter
+3. Build the call graph
+4. Run 400+ pattern detectors
+5. Store results in `.drift/`
 
-Approve patterns that represent your conventions:
+**Output:**
+```
+🔍 Drift - Enterprise Pattern Scanner
+
+✓ Discovered 245 files
+✓ Loaded 156 detectors (400+ available) [4 worker threads]
+✓ Analyzed 245 files in 12.34s (127 pattern types, 23 violations)
+
+Patterns detected by category:
+  api: 47 occurrences
+  auth: 23 occurrences
+  errors: 56 occurrences
+  data-access: 31 occurrences
+  ...
+
+⚠️  23 Violations Found:
+  Errors (5):
+    src/api/users.ts:45 - Missing error handling in async function
+    ...
+
+✓ Saved 89 new patterns (38 already existed)
+
+To review and approve patterns:
+  drift status
+  drift approve <pattern-id>
+```
+
+---
+
+## Review Discovered Patterns
+
+```bash
+drift status --detailed
+```
+
+**Output:**
+```
+🔍 Drift - Status
+
+Patterns: 127 total
+  Discovered: 127
+  Approved: 0
+  Ignored: 0
+
+By Category:
+  api           23 patterns (18%)
+  auth          15 patterns (12%)
+  errors        18 patterns (14%)
+  data-access   31 patterns (24%)
+  components    12 patterns (9%)
+  ...
+
+By Confidence:
+  High (≥0.85):    89 patterns
+  Medium (0.7-0.84): 32 patterns
+  Low (<0.7):        6 patterns
+
+Top Patterns:
+  1. api-rest-controller (confidence: 0.95, 47 locations)
+  2. auth-middleware-pattern (confidence: 0.92, 23 locations)
+  3. error-try-catch-pattern (confidence: 0.91, 56 locations)
+```
+
+---
+
+## Approve Patterns
+
+Approve patterns that represent "how we do things":
 
 ```bash
 # Approve a specific pattern
-drift approve <pattern-id>
+drift approve api-rest-controller
 
 # Approve all patterns in a category
 drift approve --category api
 
-# See what needs approval
-drift status --pending
+# Approve high-confidence patterns
+drift approve --min-confidence 0.9
 ```
 
-### 3. Connect to AI
+Approved patterns become the "golden standard" for your project. Drift will flag code that doesn't follow them.
 
-Connect Drift to Claude, Cursor, or other AI agents via MCP.
+---
 
-See [MCP Setup](MCP-Setup) for detailed configuration.
+## Connect to AI Agents
 
-### 4. Build Analysis Data
+### Claude Desktop
 
-For advanced analysis, build additional data:
+Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows):
+
+```json
+{
+  "mcpServers": {
+    "drift": {
+      "command": "driftdetect-mcp"
+    }
+  }
+}
+```
+
+### Cursor
+
+Add to `.cursor/mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "drift": {
+      "command": "driftdetect-mcp"
+    }
+  }
+}
+```
+
+### Windsurf
+
+Add to your Windsurf MCP configuration:
+
+```json
+{
+  "mcpServers": {
+    "drift": {
+      "command": "driftdetect-mcp"
+    }
+  }
+}
+```
+
+### Kiro
+
+Add to `.kiro/settings/mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "drift": {
+      "command": "driftdetect-mcp",
+      "disabled": false,
+      "autoApprove": []
+    }
+  }
+}
+```
+
+See [[MCP-Setup]] for more options including npx usage and environment variables.
+
+---
+
+## What's Next?
+
+### Explore Your Codebase
 
 ```bash
-# Build test topology (test-to-code mapping)
+# See patterns in a specific file
+drift files src/api/users.ts
+
+# Find where a pattern is used
+drift where api-rest-controller
+
+# Analyze call graph
+drift callgraph status
+```
+
+### Language-Specific Analysis
+
+```bash
+# TypeScript/JavaScript
+drift ts routes
+drift ts components
+drift ts hooks
+
+# Python
+drift py routes
+drift py decorators
+
+# Java
+drift java routes
+drift java annotations
+
+# And more: drift go, drift rust, drift cpp, drift php
+```
+
+### Build Analysis Data
+
+```bash
+# Build call graph (for data flow analysis)
+drift callgraph build
+
+# Build test topology (for coverage analysis)
 drift test-topology build
 
-# Build coupling analysis (dependency cycles)
+# Build coupling graph (for dependency analysis)
 drift coupling build
-
-# Build error handling analysis
-drift error-handling build
 ```
 
-### 5. CI Integration
-
-Add Drift to your CI pipeline:
+### Get Recommendations
 
 ```bash
-# Check for violations (exits non-zero on failure)
-drift check --ci
+# What should I do next?
+drift next-steps
+
+# Diagnose issues
+drift troubleshoot
+```
+
+---
+
+## Typical Workflow
+
+### Daily Development
+
+```bash
+# Before starting work
+drift status
+
+# After making changes
+drift check --staged
+
+# Before committing
+drift gate
+```
+
+### Code Review
+
+```bash
+# Check impact of changes
+drift callgraph reach src/api/users.ts
+
+# Find affected tests
+drift test-topology affected src/api/users.ts
 
 # Run quality gates
 drift gate --policy strict
 ```
 
-See [CI Integration](CI-Integration) for detailed setup.
-
----
-
-## Project Structure
-
-After initialization, Drift creates:
-
-```
-your-project/
-├── .drift/
-│   ├── config.json      # Project configuration
-│   ├── manifest.json    # Scan metadata
-│   ├── patterns/        # Detected patterns
-│   │   ├── approved/    # Approved patterns
-│   │   ├── discovered/  # New patterns
-│   │   └── ignored/     # Ignored patterns
-│   ├── lake/            # Data lake
-│   │   ├── callgraph/   # Call graph data
-│   │   ├── patterns/    # Pattern data
-│   │   └── security/    # Security analysis
-│   ├── contracts/       # API contracts
-│   ├── boundaries/      # Data access boundaries
-│   └── views/           # Pre-computed views
-└── .driftignore         # Files to exclude
-```
-
----
-
-## Supported Languages
-
-Drift supports 8 languages out of the box:
-
-| Language | Frameworks | ORMs |
-|----------|------------|------|
-| TypeScript/JavaScript | React, Next.js, Express, NestJS | Prisma, TypeORM, Drizzle |
-| Python | Django, FastAPI, Flask | SQLAlchemy, Django ORM |
-| Java | Spring Boot | JPA/Hibernate |
-| C# | ASP.NET Core, WPF | Entity Framework, Dapper |
-| PHP | Laravel | Eloquent |
-| Go | Gin, Echo, Fiber, Chi | GORM, sqlx |
-| Rust | Actix-web, Axum, Rocket | SQLx, Diesel, SeaORM |
-| C++ | Unreal Engine, Qt, Boost | SQLite, ODBC |
-
-Check parser status:
+### Onboarding
 
 ```bash
-drift parser
-```
+# Understand the codebase
+drift status --detailed
+drift ts routes
+drift boundaries overview
 
----
-
-## Ignoring Files
-
-Edit `.driftignore` (same syntax as `.gitignore`):
-
-```
-# Dependencies
-node_modules/
-vendor/
-
-# Build output
-dist/
-build/
-out/
-
-# Tests (optional)
-*.test.ts
-*.spec.ts
-__tests__/
-
-# Generated
-*.generated.ts
-*.g.cs
+# Find patterns for a feature area
+drift where --category auth
+drift files src/auth/
 ```
 
 ---
 
 ## Configuration
 
-Edit `.drift/config.json`:
+Edit `.drift/config.json` to customize:
 
 ```json
 {
-  "version": "1.0.0",
+  "version": "2.0.0",
   "project": {
+    "id": "uuid",
     "name": "my-project",
-    "languages": ["typescript", "python"]
+    "initializedAt": "2024-01-01T00:00:00.000Z"
   },
-  "scan": {
-    "include": ["src/**/*"],
-    "exclude": ["**/*.test.ts"]
+  "ignore": [
+    "node_modules/**",
+    "dist/**",
+    "**/*.test.ts"
+  ],
+  "learning": {
+    "autoApproveThreshold": 0.95,
+    "minOccurrences": 3
   },
-  "patterns": {
-    "minConfidence": 0.7,
-    "autoApprove": false
+  "features": {
+    "callGraph": true,
+    "boundaries": true,
+    "contracts": true
   }
 }
 ```
 
-See [Configuration](Configuration) for all options.
-
----
-
-## Common Commands
-
-| Command | Description |
-|---------|-------------|
-| `drift init` | Initialize Drift in a project |
-| `drift scan` | Scan codebase for patterns |
-| `drift status` | Show current status |
-| `drift dashboard` | Open web dashboard |
-| `drift where <pattern>` | Find pattern locations |
-| `drift check` | Check for violations |
-
-See [CLI Reference](CLI-Reference) for all commands.
+See [[Configuration]] for all options.
 
 ---
 
 ## Troubleshooting
 
-### Scan takes too long
+### Scan is slow
 
-- Check `.driftignore` excludes `node_modules/`, `dist/`
-- Try scanning a subdirectory: `drift scan src/`
-- Use incremental scan: `drift scan --incremental`
+```bash
+# Use incremental scanning (only changed files)
+drift scan --incremental
+
+# Increase timeout (default is 300 seconds / 5 minutes)
+drift scan --timeout 600
+```
 
 ### No patterns found
 
-- Ensure you're scanning source files, not just config
-- Check language is supported: `drift parser`
-- Try verbose mode: `drift scan --verbose`
+```bash
+# Check if files are being ignored
+drift troubleshoot
 
-### Permission errors
+# Force rescan (ignore cache)
+drift scan --force
+```
 
-- Drift needs write access to create `.drift/` directory
-- Run in a directory you own
+### MCP not connecting
 
-### Parser errors
+```bash
+# Check MCP server
+drift troubleshoot
 
-- Run `drift parser --test` to verify parsers work
-- Check for syntax errors in your code
-- Try regex fallback: `drift scan --fallback`
+# Test MCP manually
+driftdetect-mcp --verbose
+```
 
-See [Troubleshooting](Troubleshooting) for more solutions.
+See [[Troubleshooting]] for more solutions.

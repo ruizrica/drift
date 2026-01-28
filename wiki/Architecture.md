@@ -254,7 +254,7 @@ drift test-topology build
 Analyzes dependencies:
 
 ```bash
-drift coupling build
+drift coupling status
 ```
 
 - **Dependency cycles** — Circular dependencies
@@ -267,7 +267,7 @@ drift coupling build
 Analyzes error patterns:
 
 ```bash
-drift error-handling build
+drift error-handling status
 ```
 
 - **Error boundaries** — Where errors are caught

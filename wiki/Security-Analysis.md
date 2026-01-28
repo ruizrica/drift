@@ -40,29 +40,30 @@ Drift detects sensitive data by:
 Get an overview of your security posture:
 
 ```bash
-drift boundaries overview
+drift callgraph status --security
 ```
 
 **Output:**
 ```
-Security Overview
-=================
+🔒 Security-Prioritized Data Access
+────────────────────────────────────────────────────────────
 
-Sensitive Data Access Points: 47
-  CRITICAL: 8 (passwords, tokens, keys)
-  SENSITIVE: 12 (financial, SSN)
-  PII: 27 (email, phone, address)
+Summary:
+  Total Access Points: 47
+  🔴 Critical (P0/P1): 8
+  🟡 High (P2): 12
+  ⚪ Low (P3/P4): 27
 
-Entry Points with Sensitive Access: 23
-  Authenticated: 19
-  Unauthenticated: 4 ⚠️
+Regulatory Implications:
+  GDPR, PCI-DSS, HIPAA
 
-Potential Issues:
-  ⚠️  4 unauthenticated endpoints access PII
-  ⚠️  2 functions access passwords without audit logging
-  ⚠️  1 endpoint returns sensitive data in error messages
-
-Run 'drift boundaries check' for detailed analysis
+🚨 Critical Security Items (P0/P1):
+  P0 🔑 users.password_hash
+       read password_hash
+       src/auth/login.ts:45
+       Credentials access - highest priority
+       Regulations: PCI-DSS
+  ...
 ```
 
 ### MCP Tool: `drift_security_summary`
@@ -86,47 +87,38 @@ drift boundaries sensitive
 
 **Output:**
 ```
-Sensitive Data Access
-=====================
+🔒 Sensitive Field Access
+────────────────────────────────────────────────────────────
 
-CRITICAL (8 locations):
-  src/auth/login.ts:45 → users.password_hash
-    Called by: POST /api/auth/login
-    
-  src/auth/register.ts:23 → users.password_hash
-    Called by: POST /api/auth/register
-    
-  src/services/api-keys.ts:12 → api_keys.secret
-    Called by: GET /api/keys (admin only)
-    
-  ...
+CREDENTIALS (8):
+  ● users.password_hash
+    src/auth/login.ts:56
+    src/auth/register.ts:34
+    src/services/user.ts:67
 
-SENSITIVE (12 locations):
-  src/payments/processor.ts:67 → payments.card_number
-    Called by: POST /api/payments/charge
-    
-  src/users/profile.ts:34 → users.ssn
-    Called by: GET /api/users/:id/tax-info
-    
-  ...
+PII (68):
+  ● users.email
+    src/services/user.ts:23
+    src/api/users.ts:12
+    src/notifications/email.ts:45
+  ● users.phone
+    src/services/user.ts:23
+    src/notifications/sms.ts:12
 
-PII (27 locations):
-  src/users/profile.ts:12 → users.email, users.phone
-  src/notifications/email.ts:45 → users.email
-  ...
+FINANCIAL (12):
+  ● payments.card_number
+    src/services/payment.ts:34
+    src/checkout/process.ts:56
 ```
 
-### Filter by Classification
+### View Table Access
 
 ```bash
-# Only critical
-drift boundaries sensitive --level critical
+# View specific table access
+drift boundaries table users
 
-# Only PII
-drift boundaries sensitive --level pii
-
-# Specific table
-drift boundaries sensitive --table users
+# View all tables
+drift boundaries tables
 ```
 
 ---
@@ -136,27 +128,32 @@ drift boundaries sensitive --table users
 ### Forward: "What sensitive data can this code access?"
 
 ```bash
-drift callgraph reach src/api/users.ts:42 --sensitive-only
+drift callgraph reach src/api/users.ts:42
 ```
 
 **Output:**
 ```
-Sensitive Data Reachable from src/api/users.ts:42
-=================================================
+🔎 Reachability Analysis
+────────────────────────────────────────────────────────────
 
-Direct Access:
-  → users.email (PII)
-  → users.phone (PII)
+Origin: src/api/users.ts:42
+Tables Reachable: users, payment_methods
+Functions Traversed: 12
+Max Depth: 10
 
-Via getUserProfile (depth 2):
-  → users.address (PII)
-  → users.date_of_birth (PII)
+⚠️  Sensitive Fields Accessible:
+  ● users.email (pii)
+    2 access point(s), 3 path(s)
+  ● users.phone (pii)
+    1 access point(s), 2 path(s)
+  ● payment_methods.card_last_four (financial)
+    1 access point(s), 1 path(s)
 
-Via getPaymentMethods (depth 3):
-  → payment_methods.card_last_four (SENSITIVE)
-  → payment_methods.billing_address (PII)
-
-⚠️  This code path can access 6 PII fields and 1 SENSITIVE field
+Data Access Points:
+  read users.email, phone
+    Path: handleRequest → getUserProfile → fetchUser
+  read payment_methods.card_last_four
+    Path: handleRequest → getPaymentMethods → fetchPayments
 ```
 
 ### Inverse: "Who can access this sensitive data?"
@@ -167,25 +164,22 @@ drift callgraph inverse users.password_hash
 
 **Output:**
 ```
-Code That Can Access users.password_hash
-========================================
+🔄 Inverse Reachability
+────────────────────────────────────────────────────────────
 
-Direct Access (3 functions):
-  ← src/auth/login.ts:verifyPassword
-  ← src/auth/register.ts:hashPassword  
-  ← src/admin/users.ts:resetPassword
+Target: users.password_hash
+Direct Accessors: 3
+Entry Points That Can Reach: 4
 
-Entry Points (4 routes):
-  POST /api/auth/login
-  POST /api/auth/register
-  POST /api/auth/change-password
-  POST /api/admin/users/:id/reset-password
-
-Authentication Required:
-  ✅ POST /api/auth/change-password (user)
-  ✅ POST /api/admin/users/:id/reset-password (admin)
-  ⚠️  POST /api/auth/login (none - expected)
-  ⚠️  POST /api/auth/register (none - expected)
+Access Paths:
+  🚪 login
+     Path: login → verifyPassword
+  🚪 register
+     Path: register → hashPassword
+  🚪 changePassword
+     Path: changePassword → verifyPassword
+  🚪 resetPassword
+     Path: resetPassword → hashPassword
 ```
 
 ---

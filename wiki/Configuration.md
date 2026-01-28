@@ -10,24 +10,37 @@ Drift stores configuration in `.drift/config.json`:
 {
   "version": "2.0.0",
   "project": {
+    "id": "uuid-generated-on-init",
     "name": "my-project",
-    "language": "typescript"
+    "description": "Optional project description",
+    "initializedAt": "2024-01-01T00:00:00.000Z"
   },
-  "scan": {
-    "include": ["src/**/*"],
-    "exclude": ["**/*.test.ts", "**/__tests__/**"],
-    "timeout": 300000
-  },
-  "patterns": {
-    "minConfidence": 0.7
+  "severity": {},
+  "ignore": [
+    "node_modules/**",
+    "dist/**",
+    "**/*.test.ts"
+  ],
+  "ci": {
+    "failOn": "error",
+    "reportFormat": "text"
   },
   "learning": {
     "autoApproveThreshold": 0.95,
-    "minOccurrences": 3
+    "minOccurrences": 3,
+    "semanticLearning": true
   },
-  "callgraph": {
-    "maxDepth": 10,
-    "includeTests": false
+  "performance": {
+    "maxWorkers": 4,
+    "cacheEnabled": true,
+    "incrementalAnalysis": true,
+    "cacheTTL": 3600
+  },
+  "features": {
+    "callGraph": true,
+    "boundaries": true,
+    "dna": true,
+    "contracts": true
   }
 }
 ```
@@ -40,26 +53,46 @@ Drift stores configuration in `.drift/config.json`:
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `project.name` | string | folder name | Project identifier |
-| `project.language` | string | auto-detect | Primary language |
+| `project.id` | string | auto-generated | Unique project identifier (UUID) |
+| `project.name` | string | folder name | Project display name |
+| `project.description` | string | - | Optional project description |
+| `project.initializedAt` | string | auto-set | ISO timestamp of initialization |
 
-### Scan Settings
-
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `scan.include` | array | `["**/*"]` | Glob patterns to include |
-| `scan.exclude` | array | `[]` | Glob patterns to exclude |
-| `scan.timeout` | number | `300000` | Scan timeout in ms |
-| `scan.incremental` | boolean | `true` | Enable incremental scanning |
-| `scan.parallel` | number | CPU cores | Parallel workers |
-
-### Pattern Settings
+### Ignore Settings
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `patterns.minConfidence` | number | `0.5` | Minimum confidence to report |
-| `patterns.autoApprove` | boolean | `false` | Auto-approve high-confidence patterns |
-| `patterns.categories` | array | all | Categories to detect |
+| `ignore` | array | see below | Glob patterns to exclude from scanning |
+| `include` | array | - | Glob patterns to include (allowlist mode) |
+
+**Default ignore patterns:**
+```json
+[
+  "node_modules/**",
+  "dist/**",
+  "build/**",
+  ".git/**",
+  "coverage/**",
+  "*.min.js",
+  "*.bundle.js",
+  "vendor/**",
+  "__pycache__/**",
+  ".venv/**",
+  "target/**",
+  "bin/**",
+  "obj/**"
+]
+```
+
+**Allowlist mode:** If `include` is specified, ONLY those paths are scanned. This takes precedence over `ignore` patterns.
+
+### CI Settings
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `ci.failOn` | string | `"error"` | Severity that causes CI failure: `error`, `warning`, `info`, `none` |
+| `ci.reportFormat` | string | `"text"` | Output format: `text`, `json`, `sarif`, `github` |
+| `ci.uploadResults` | boolean | `false` | Upload results to dashboard |
 
 ### Learning Settings
 
@@ -67,24 +100,27 @@ Drift stores configuration in `.drift/config.json`:
 |--------|------|---------|-------------|
 | `learning.autoApproveThreshold` | number | `0.95` | Auto-approve patterns above this confidence (0-1) |
 | `learning.minOccurrences` | number | `3` | Minimum occurrences before pattern is detected |
+| `learning.semanticLearning` | boolean | `true` | Enable semantic learning |
 
-**Note:** `learning.autoApproveThreshold` is the recommended way to auto-approve patterns. Set to `1.0` to disable auto-approval, or lower (e.g., `0.8`) to be more permissive. The older `patterns.autoApprove: true` enables auto-approval at the `minConfidence` threshold.
+**Note:** `learning.autoApproveThreshold` is the recommended way to auto-approve patterns. Set to `1.0` to disable auto-approval, or lower (e.g., `0.8`) to be more permissive.
 
-### Call Graph Settings
-
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `callgraph.maxDepth` | number | `10` | Max traversal depth |
-| `callgraph.includeTests` | boolean | `false` | Include test files |
-| `callgraph.includeNodeModules` | boolean | `false` | Include dependencies |
-
-### Boundary Settings
+### Performance Settings
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `boundaries.enabled` | boolean | `true` | Enable boundary scanning |
-| `boundaries.sensitiveFields` | array | built-in | Additional sensitive field names |
-| `boundaries.rules` | object | `{}` | Custom boundary rules |
+| `performance.maxWorkers` | number | `4` | Maximum parallel workers |
+| `performance.cacheEnabled` | boolean | `true` | Enable caching |
+| `performance.incrementalAnalysis` | boolean | `true` | Enable incremental scanning |
+| `performance.cacheTTL` | number | `3600` | Cache TTL in seconds |
+
+### Feature Flags
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `features.callGraph` | boolean | `true` | Enable call graph analysis |
+| `features.boundaries` | boolean | `true` | Enable data boundary scanning |
+| `features.dna` | boolean | `true` | Enable styling DNA analysis |
+| `features.contracts` | boolean | `true` | Enable API contract verification |
 
 ---
 
@@ -293,7 +329,7 @@ By default, Drift automatically detects your project's languages and only expose
 rm -rf .drift
 drift init
 
-# Keep patterns, reset config
+# Keep patterns, reset config only
 rm .drift/config.json
-drift init --keep-patterns
+drift init --yes
 ```

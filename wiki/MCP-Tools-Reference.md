@@ -1,6 +1,6 @@
 # MCP Tools Reference
 
-Drift provides **45+ MCP tools** organized in a **7-layer architecture** designed for efficient AI agent interaction. This architecture minimizes token usage while maximizing capability — a model for how MCP servers should be built.
+Drift provides **50 MCP tools** organized in a **7-layer architecture** designed for efficient AI agent interaction. This architecture minimizes token usage while maximizing capability — a model for how MCP servers should be built.
 
 ## Architecture Philosophy
 
@@ -257,7 +257,7 @@ List all Drift capabilities and when to use each tool.
 {}
 ```
 
-**Returns:** Organized guide to all available tools.
+**Returns:** Organized guide to all 50 available tools.
 
 ### `drift_projects`
 
@@ -353,8 +353,8 @@ Resolve correct import statements.
 
 ```json
 {
-  "symbol": "User",
-  "fromFile": "src/api/users.ts"
+  "symbols": ["User", "createUser"],
+  "targetFile": "src/api/users.ts"
 }
 ```
 
@@ -364,8 +364,9 @@ Quick validation before making changes.
 
 ```json
 {
-  "file": "src/api/users.ts",
-  "change": "adding new endpoint"
+  "code": "export async function createUser(data: UserInput): Promise<User> { ... }",
+  "targetFile": "src/api/users.ts",
+  "kind": "function"
 }
 ```
 
@@ -375,8 +376,10 @@ Find semantically similar code.
 
 ```json
 {
-  "pattern": "error handling",
-  "file": "src/api/users.ts"
+  "intent": "api_endpoint",
+  "description": "user preferences CRUD",
+  "scope": "src/api",
+  "limit": 3
 }
 ```
 
@@ -386,7 +389,8 @@ Expand type definitions.
 
 ```json
 {
-  "name": "User",
+  "type": "User",
+  "depth": 2,
   "file": "src/types/user.ts"
 }
 ```
@@ -397,8 +401,9 @@ Show recent changes in an area.
 
 ```json
 {
+  "area": "src/api/",
   "days": 7,
-  "category": "api"
+  "type": "feat"
 }
 ```
 
@@ -408,8 +413,9 @@ Generate test scaffolding.
 
 ```json
 {
+  "targetFile": "src/auth/login.ts",
   "function": "handleLogin",
-  "file": "src/auth/login.ts"
+  "type": "unit"
 }
 ```
 
@@ -419,7 +425,10 @@ Package dependencies lookup (multi-language).
 
 ```json
 {
-  "target": "src/auth"
+  "search": "react",
+  "type": "prod",
+  "category": "framework",
+  "language": "javascript"
 }
 ```
 
@@ -429,8 +438,9 @@ Middleware pattern lookup.
 
 ```json
 {
-  "endpoint": "/api/users",
-  "method": "POST"
+  "type": "auth",
+  "framework": "express",
+  "limit": 20
 }
 ```
 
@@ -815,7 +825,7 @@ Comprehensive code explanation.
 
 ## Language-Specific Tools
 
-All 8 languages have dedicated MCP tools for language-specific analysis.
+All 9 languages have dedicated MCP tools for language-specific analysis.
 
 ### `drift_typescript`
 

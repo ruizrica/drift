@@ -597,6 +597,90 @@ Subcommands:
   export             Export DNA profile
 ```
 
+### `drift decisions`
+
+Mine architectural decisions from git history.
+
+```bash
+drift decisions <subcommand> [options]
+
+Subcommands:
+  mine               Mine decisions from git history
+  status             Show decision mining summary
+  list               List all decisions
+  show <id>          Show decision details
+  export             Export decisions as markdown ADRs
+  confirm <id>       Confirm a draft decision
+  for-file <file>    Find decisions affecting a file
+  timeline           Show decisions timeline
+
+Options:
+  -f, --format <format>    Output format (text, json)
+  -v, --verbose            Enable verbose output
+```
+
+**Mine Options:**
+```bash
+drift decisions mine [options]
+
+Options:
+  -s, --since <date>       Start date (ISO format)
+  -u, --until <date>       End date (ISO format)
+  -c, --min-confidence <n> Minimum confidence (0-1, default: 0.5)
+```
+
+**List Options:**
+```bash
+drift decisions list [options]
+
+Options:
+  -l, --limit <n>          Maximum results (default: 20)
+  --category <category>    Filter by category
+  --status <status>        Filter by status (draft, confirmed, superseded, rejected)
+```
+
+**Categories:**
+- `technology-adoption` — New technology introduced
+- `technology-removal` — Technology removed
+- `pattern-introduction` — New pattern introduced
+- `pattern-migration` — Pattern changed/migrated
+- `architecture-change` — Architectural changes
+- `api-change` — API modifications
+- `security-enhancement` — Security improvements
+- `performance-optimization` — Performance work
+- `refactoring` — Code refactoring
+- `testing-strategy` — Testing changes
+- `infrastructure` — Infrastructure changes
+- `other` — Other decisions
+
+**Examples:**
+
+```bash
+# Mine decisions from git history
+drift decisions mine
+
+# Mine with date range
+drift decisions mine --since 2024-01-01 --until 2024-06-30
+
+# List all decisions
+drift decisions list
+
+# List high-confidence architecture decisions
+drift decisions list --category architecture-change --status confirmed
+
+# Show decision details
+drift decisions show ADR-001
+
+# Export as markdown ADRs
+drift decisions export
+
+# Find decisions affecting a file
+drift decisions for-file src/auth/middleware.ts
+
+# View timeline
+drift decisions timeline
+```
+
 ---
 
 ## Enterprise Commands

@@ -73,6 +73,9 @@ drift gate --policy strict
 
 # Check specific files
 drift gate src/api/users.ts src/api/orders.ts
+
+# Specify project root
+drift gate --root /path/to/project
 ```
 
 ### CI Mode
@@ -341,6 +344,20 @@ Check if my changes pass quality gates
 ```
 
 The `drift_quality_gate` MCP tool runs gates and returns results.
+
+### MCP Tool Parameters
+
+```typescript
+drift_quality_gate({
+  files?: string[],        // Files to check (defaults to changed files)
+  policy?: string,         // Policy: default, strict, relaxed, ci-fast
+  gates?: string,          // Comma-separated gates to run
+  format?: string,         // Output format: text, json, github, gitlab, sarif
+  verbose?: boolean,       // Include detailed output
+  branch?: string,         // Current branch name
+  baseBranch?: string      // Base branch for comparison
+})
+```
 
 ---
 
