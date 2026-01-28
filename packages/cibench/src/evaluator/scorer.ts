@@ -5,7 +5,6 @@
  */
 
 import type {
-  EvaluationResult,
   CategoryScore,
   ToolOutput,
   PatternEvaluationDetail,
@@ -77,13 +76,12 @@ export function evaluatePatterns(
   // Build location sets for comparison
   const expectedLocations = new Map<string, Set<string>>();
   for (const pattern of expectedPatterns) {
-    const locs = new Set(pattern.locations.map(normalizeLocation));
-    expectedLocations.set(pattern.id, locs);
+    const patternLocs = new Set(pattern.locations.map(normalizeLocation));
+    expectedLocations.set(pattern.id, patternLocs);
   }
   
   const foundLocations = new Map<string, Set<string>>();
   for (const pattern of toolPatterns) {
-    const locs = new Set(pattern.locations.map(normalizeLocation));
     // Try to match by name/category if ID doesn't match
     const matchedId = findMatchingPatternId(pattern, expectedPatterns);
     if (matchedId) {
@@ -318,7 +316,7 @@ export function calculateOverallScore(
   let totalWeightedScore = 0;
   let totalWeight = 0;
   
-  for (const [category, score] of Object.entries(categoryScores)) {
+  for (const score of Object.values(categoryScores)) {
     totalWeightedScore += score.weightedScore;
     totalWeight += score.weight;
   }

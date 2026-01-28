@@ -147,8 +147,11 @@ function evaluateIntentProbes(
     totalScore += score;
     count++;
     
-    byDifficulty[probe.difficulty].total++;
-    byDifficulty[probe.difficulty].score += score;
+    const diffData = byDifficulty[probe.difficulty];
+    if (diffData) {
+      diffData.total++;
+      diffData.score += score;
+    }
   }
   
   const difficultyScores: Record<string, number> = {};

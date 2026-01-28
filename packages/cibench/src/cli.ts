@@ -228,8 +228,8 @@ program
       // Validate agentic tasks
       if (groundTruth.agentic) {
         console.log(chalk.gray('Checking agentic tasks...'));
-        // @ts-expect-error - agentic type not fully defined
-        for (const task of groundTruth.agentic.tasks ?? []) {
+        const agenticData = groundTruth.agentic as { tasks?: Array<{ id: string; expectedGrounding?: { relevantFiles?: unknown[] } }> };
+        for (const task of agenticData.tasks ?? []) {
           if (!task.expectedGrounding?.relevantFiles?.length) {
             console.log(chalk.yellow(`  ⚠ Task ${task.id} has no relevant files`));
             warnings++;

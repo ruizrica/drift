@@ -7,8 +7,8 @@
  * - Data flow tracking with boundary awareness
  */
 
-import type { PatternScore, CallGraphScore, DataFlowScore } from './types.js';
-import type { PatternGroundTruth, CallGraphGroundTruth, DataFlowGroundTruth } from '../../schema/v2/perception.js';
+import type { PatternScore } from './types.js';
+import type { PatternGroundTruth } from '../../schema/v2/perception.js';
 
 // ============================================================================
 // Utility Functions

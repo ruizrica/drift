@@ -1,0 +1,117 @@
+{
+  "version": "2.0.0",
+  "patterns": [
+    {
+      "id": "auth-middleware",
+      "category": "auth",
+      "name": "Auth Middleware Detector",
+      "description": "Express middleware that validates authentication from Authorization header",
+      "locations": [
+        { "file": "src/middleware/auth.ts", "line": 18, "confidence": 1.0 }
+      ],
+      "groundTruthConfidence": 1.0,
+      "detectionDifficulty": "easy"
+    },
+    {
+      "id": "rbac-patterns",
+      "category": "auth",
+      "name": "RBAC Patterns Detector",
+      "description": "Middleware that checks for admin role after authentication",
+      "locations": [
+        { "file": "src/middleware/auth.ts", "line": 42, "confidence": 1.0 }
+      ],
+      "groundTruthConfidence": 1.0,
+      "detectionDifficulty": "easy"
+    },
+    {
+      "id": "error-handler",
+      "category": "errors",
+      "name": "Try/Catch Detector",
+      "description": "Express error middleware that catches all errors",
+      "locations": [
+        { "file": "src/middleware/errorHandler.ts", "line": 11, "confidence": 1.0 }
+      ],
+      "groundTruthConfidence": 1.0,
+      "detectionDifficulty": "easy"
+    },
+    {
+      "id": "exception-hierarchy",
+      "category": "errors",
+      "name": "Exception Hierarchy Detector",
+      "description": "Application-specific error classes extending base Error",
+      "locations": [
+        { "file": "src/utils/errors.ts", "line": 7, "confidence": 1.0 }
+      ],
+      "groundTruthConfidence": 1.0,
+      "detectionDifficulty": "easy"
+    },
+    {
+      "id": "route-structure",
+      "category": "api",
+      "name": "Route Structure Detector",
+      "description": "Utility functions that ensure consistent API response format",
+      "locations": [
+        { "file": "src/utils/response.ts", "line": 16, "confidence": 1.0 }
+      ],
+      "groundTruthConfidence": 1.0,
+      "detectionDifficulty": "medium"
+    },
+    {
+      "id": "barrel-exports",
+      "category": "structural",
+      "name": "Barrel Exports Detector",
+      "description": "Index files that re-export from multiple modules",
+      "locations": [
+        { "file": "src/index.ts", "line": 1, "confidence": 1.0 }
+      ],
+      "groundTruthConfidence": 1.0,
+      "detectionDifficulty": "medium"
+    },
+    {
+      "id": "http-methods",
+      "category": "api",
+      "name": "HTTP Methods Detector",
+      "description": "Standard REST endpoints using HTTP methods",
+      "locations": [
+        { "file": "src/routes/users.ts", "line": 19, "confidence": 1.0 }
+      ],
+      "groundTruthConfidence": 1.0,
+      "detectionDifficulty": "easy"
+    },
+    {
+      "id": "structured-logging",
+      "category": "logging",
+      "name": "Structured Logging Detector",
+      "description": "Middleware that logs all incoming requests",
+      "locations": [
+        { "file": "src/middleware/logger.ts", "line": 9, "confidence": 1.0 }
+      ],
+      "groundTruthConfidence": 1.0,
+      "detectionDifficulty": "easy"
+    }
+  ],
+  "outliers": [
+    {
+      "patternId": "auth-middleware",
+      "location": { "file": "src/routes/legacy.ts", "line": 81 },
+      "reason": "Legacy route handler missing authentication middleware",
+      "intentional": false,
+      "severity": "error"
+    },
+    {
+      "patternId": "auth-middleware",
+      "location": { "file": "src/routes/legacy.ts", "line": 92 },
+      "reason": "Legacy route missing authentication",
+      "intentional": false,
+      "severity": "error"
+    },
+    {
+      "patternId": "route-structure",
+      "location": { "file": "src/routes/admin.ts", "line": 21 },
+      "reason": "Admin route structure deviation",
+      "intentional": false,
+      "severity": "warning"
+    }
+  ],
+  "relationships": []
+}

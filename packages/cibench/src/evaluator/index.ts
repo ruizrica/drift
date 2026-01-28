@@ -59,7 +59,8 @@ export async function loadGroundTruth(cibenchDir: string): Promise<GroundTruth> 
     const filePath = path.join(cibenchDir, filename);
     try {
       const content = await fs.readFile(filePath, 'utf-8');
-      (groundTruth as Record<string, unknown>)[key] = JSON.parse(content);
+      // Use type assertion to handle the dynamic key assignment
+      Object.assign(groundTruth, { [key]: JSON.parse(content) });
     } catch {
       // File doesn't exist, skip
     }

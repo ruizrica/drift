@@ -1,18 +1,19 @@
 {
   "name": "@drift/cibench",
-  "version": "0.1.0",
-  "description": "Codebase Intelligence Benchmark - measure how well tools understand code",
+  "version": "2.0.0",
+  "description": "CIBench - Frontier Codebase Intelligence Benchmark",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
-    "cibench": "dist/cli.js"
+    "cibench": "dist/cli-v2.js"
   },
   "scripts": {
     "build": "tsc",
     "test": "vitest run",
     "lint": "eslint src/",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "benchmark": "node dist/cli-v2.js run --tool drift --corpus demo-backend -v"
   },
   "keywords": [
     "benchmark",
@@ -20,7 +21,9 @@
     "intelligence",
     "static-analysis",
     "ai",
-    "agents"
+    "agents",
+    "understanding",
+    "calibration"
   ],
   "author": "Drift",
   "license": "Apache-2.0",
