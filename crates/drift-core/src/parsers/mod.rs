@@ -12,6 +12,7 @@
 //! - Go
 //! - Rust
 //! - C++
+//! - C
 
 mod types;
 mod manager;
@@ -23,6 +24,7 @@ mod php;
 mod go;
 mod rust_lang;
 mod cpp;
+mod c;
 
 pub use types::*;
 pub use manager::ParserManager;
@@ -34,3 +36,4 @@ pub use php::PhpParser;
 pub use go::GoParser;
 pub use rust_lang::RustParser;
 pub use cpp::CppParser;
+pub use c::CParser;

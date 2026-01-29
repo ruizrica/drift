@@ -157,7 +157,8 @@ impl EnvironmentAnalyzer {
             "go" => Some(Language::Go),
             "php" => Some(Language::Php),
             "rs" => Some(Language::Rust),
-            "cpp" | "cc" | "cxx" | "hpp" | "h" => Some(Language::Cpp),
+            "cpp" | "cc" | "cxx" | "hpp" | "hxx" | "hh" => Some(Language::Cpp),
+            "c" | "h" => Some(Language::C),
             _ => None,
         }
     }

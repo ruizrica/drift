@@ -71,7 +71,7 @@ impl AstPatternDetector {
             Language::Php => &self.php_queries,
             Language::Go => &self.go_queries,
             Language::Rust => &self.rust_queries,
-            Language::Cpp => &self.cpp_queries,
+            Language::Cpp | Language::C => &self.cpp_queries,
         }
     }
     
@@ -143,7 +143,7 @@ impl AstPatternDetector {
             Language::Rust => {
                 kind == "string_literal" || kind == "raw_string_literal"
             }
-            Language::Cpp => {
+            Language::Cpp | Language::C => {
                 kind == "string_literal" || kind == "raw_string_literal"
             }
         };

@@ -11,6 +11,7 @@ use super::php::PhpParser;
 use super::go::GoParser;
 use super::rust_lang::RustParser;
 use super::cpp::CppParser;
+use super::c::CParser;
 
 /// Manages parsers for all supported languages
 pub struct ParserManager {
@@ -22,6 +23,7 @@ pub struct ParserManager {
     go_parser: Option<GoParser>,
     rust_parser: Option<RustParser>,
     cpp_parser: Option<CppParser>,
+    c_parser: Option<CParser>,
 }
 
 impl ParserManager {
@@ -36,6 +38,7 @@ impl ParserManager {
             go_parser: GoParser::new().ok(),
             rust_parser: RustParser::new().ok(),
             cpp_parser: CppParser::new().ok(),
+            c_parser: CParser::new().ok(),
         }
     }
     
@@ -50,7 +53,7 @@ impl ParserManager {
             Language::Go => self.go_parser.is_some(),
             Language::Rust => self.rust_parser.is_some(),
             Language::Cpp => self.cpp_parser.is_some(),
-            _ => false,
+            Language::C => self.c_parser.is_some(),
         }
     }
 
@@ -81,6 +84,9 @@ impl ParserManager {
         }
         if self.cpp_parser.is_some() {
             langs.push(Language::Cpp);
+        }
+        if self.c_parser.is_some() {
+            langs.push(Language::C);
         }
         langs
     }
@@ -121,7 +127,9 @@ impl ParserManager {
             Language::Cpp => {
                 self.cpp_parser.as_mut().map(|p| p.parse(source))
             }
-            _ => None,
+            Language::C => {
+                self.c_parser.as_mut().map(|p| p.parse(source))
+            }
         }
     }
 
@@ -243,6 +251,34 @@ mod tests {
     }
 
     #[test]
+    fn test_parse_c_file() {
+        let mut manager = ParserManager::new();
+        let result = manager.parse_file(
+            "main.c",
+            "int main(void) { return 0; }"
+        );
+        
+        assert!(result.is_some());
+        let result = result.unwrap();
+        assert_eq!(result.language, Language::C);
+        assert_eq!(result.functions.len(), 1);
+        assert_eq!(result.functions[0].name, "main");
+    }
+
+    #[test]
+    fn test_parse_c_header_file() {
+        let mut manager = ParserManager::new();
+        let result = manager.parse_file(
+            "gpio.h",
+            "#include <stdint.h>\ntypedef struct { uint32_t pin; } GPIO_Config;\nvoid GPIO_Init(GPIO_Config* config);"
+        );
+        
+        assert!(result.is_some());
+        let result = result.unwrap();
+        assert_eq!(result.language, Language::C);
+    }
+
+    #[test]
     fn test_parse_php_file() {
         let mut manager = ParserManager::new();
         let result = manager.parse_file(
@@ -260,8 +296,8 @@ mod tests {
         let manager = ParserManager::new();
         let langs = manager.supported_languages();
         
-        // Should support all 9 languages (TS, JS, Python, Java, C#, PHP, Go, Rust, C++)
-        assert!(langs.len() >= 9);
+        // Should support all 10 languages (TS, JS, Python, Java, C#, PHP, Go, Rust, C++, C)
+        assert!(langs.len() >= 10);
     }
 
     #[test]

@@ -5,7 +5,7 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-/// Supported languages (all 9)
+/// Supported languages (all 10)
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum Language {
@@ -18,6 +18,7 @@ pub enum Language {
     Go,
     Rust,
     Cpp,
+    C,
 }
 
 impl Language {
@@ -32,6 +33,7 @@ impl Language {
             Language::Go,
             Language::Rust,
             Language::Cpp,
+            Language::C,
         ]
     }
     
@@ -45,7 +47,8 @@ impl Language {
             "php" => Some(Language::Php),
             "go" => Some(Language::Go),
             "rs" => Some(Language::Rust),
-            "cpp" | "cc" | "cxx" | "c++" | "hpp" | "h" => Some(Language::Cpp),
+            "cpp" | "cc" | "cxx" | "c++" | "hpp" | "hxx" | "hh" => Some(Language::Cpp),
+            "c" | "h" => Some(Language::C),
             _ => None,
         }
     }
