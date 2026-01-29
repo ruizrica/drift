@@ -8,6 +8,7 @@
 //! - Write each file's functions to SQLite immediately
 //! - Run resolution pass in batches after all files processed
 //! - Disk-backed function index prevents OOM on large codebases
+//! - Data access detection integrated (Prisma, Supabase, TypeORM, etc.)
 //!
 //! Two build modes:
 //! - `build()` - Legacy JSON shard mode (backward compatible)
@@ -23,6 +24,7 @@ use rayon::prelude::*;
 
 use crate::parsers::{ParserManager, Language};
 use crate::scanner::{Scanner, ScanConfig};
+use crate::boundaries::DataAccessDetector;
 use super::types::*;
 use super::extractor::to_function_entries;
 use super::universal_extractor::UniversalExtractor;
@@ -184,10 +186,11 @@ impl StreamingBuilder {
     fn process_file_static(root_dir: &PathBuf, file: &str) -> Result<Option<FunctionBatch>, String> {
         use std::cell::RefCell;
         
-        // Thread-local parser and extractor to avoid re-initialization overhead
+        // Thread-local parser, extractor, and data access detector to avoid re-initialization overhead
         thread_local! {
             static PARSER: RefCell<ParserManager> = RefCell::new(ParserManager::new());
             static EXTRACTOR: UniversalExtractor = UniversalExtractor::new();
+            static DATA_ACCESS_DETECTOR: DataAccessDetector = DataAccessDetector::new();
         }
         
         let full_path = root_dir.join(file);
@@ -201,7 +204,7 @@ impl StreamingBuilder {
             parser.borrow_mut().parse_file(file, &source)
         }).ok_or_else(|| "Unsupported language".to_string())?;
         
-        // Extract using thread-local extractor
+        // Extract functions and calls using thread-local extractor
         let extraction = EXTRACTOR.with(|extractor| {
             extractor.extract_from_parse_result(&parse_result)
         });
@@ -210,8 +213,35 @@ impl StreamingBuilder {
             return Ok(None);
         }
         
-        // Convert to function entries
-        let functions = to_function_entries(file, &extraction, &[]);
+        // Extract data access points using thread-local detector
+        // AST-first: detect from parsed call sites (Prisma, Supabase, TypeORM, etc.)
+        let mut data_access = DATA_ACCESS_DETECTOR.with(|detector| {
+            detector.detect_from_ast(&parse_result, file)
+        });
+        
+        // Fallback: detect SQL in raw source (for embedded SQL strings)
+        let sql_access = DATA_ACCESS_DETECTOR.with(|detector| {
+            detector.detect_sql_in_source(&source, file)
+        });
+        data_access.extend(sql_access);
+        
+        // Convert DataAccessPoint to DataAccessRef for function entries
+        let data_access_refs: Vec<DataAccessRef> = data_access
+            .into_iter()
+            .map(|da| DataAccessRef {
+                table: da.table,
+                operation: match da.operation {
+                    crate::boundaries::DataOperation::Read => DataOperation::Read,
+                    crate::boundaries::DataOperation::Write => DataOperation::Write,
+                    crate::boundaries::DataOperation::Delete => DataOperation::Delete,
+                },
+                fields: da.fields,
+                line: da.line,
+            })
+            .collect();
+        
+        // Convert to function entries with data access
+        let functions = to_function_entries(file, &extraction, &data_access_refs);
         
         Ok(Some(FunctionBatch {
             file: file.to_string(),
@@ -311,15 +341,40 @@ impl StreamingBuilder {
         let parse_result = self.parser.parse_file(file, &source)
             .ok_or_else(|| "Unsupported language".to_string())?;
         
-        // Extract
+        // Extract functions and calls
         let extraction = self.extractor.extract_from_parse_result(&parse_result);
         
         if extraction.functions.is_empty() {
             return Ok(None);
         }
         
-        // Convert to function entries (no data access for now)
-        let functions = to_function_entries(file, &extraction, &[]);
+        // Extract data access points
+        let data_detector = DataAccessDetector::new();
+        
+        // AST-first: detect from parsed call sites
+        let mut data_access = data_detector.detect_from_ast(&parse_result, file);
+        
+        // Fallback: detect SQL in raw source
+        let sql_access = data_detector.detect_sql_in_source(&source, file);
+        data_access.extend(sql_access);
+        
+        // Convert DataAccessPoint to DataAccessRef
+        let data_access_refs: Vec<DataAccessRef> = data_access
+            .into_iter()
+            .map(|da| DataAccessRef {
+                table: da.table,
+                operation: match da.operation {
+                    crate::boundaries::DataOperation::Read => DataOperation::Read,
+                    crate::boundaries::DataOperation::Write => DataOperation::Write,
+                    crate::boundaries::DataOperation::Delete => DataOperation::Delete,
+                },
+                fields: da.fields,
+                line: da.line,
+            })
+            .collect();
+        
+        // Convert to function entries with data access
+        let functions = to_function_entries(file, &extraction, &data_access_refs);
         
         Ok(Some(CallGraphShard {
             file: file.to_string(),
