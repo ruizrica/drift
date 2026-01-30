@@ -1,6 +1,7 @@
 //! Universal call graph extractor
 //!
 //! Extracts functions and calls from any language using the unified ParseResult.
+//! Also extracts classes as callable entities (for constructor resolution).
 
 use crate::parsers::{ParseResult, Language};
 use super::extractor::{CallGraphExtractor, ExtractionResult, ExtractedFunction, ExtractedCall};
@@ -15,7 +16,8 @@ impl UniversalExtractor {
     
     /// Extract from a ParseResult
     pub fn extract_from_parse_result(&self, result: &ParseResult) -> ExtractionResult {
-        let functions: Vec<ExtractedFunction> = result.functions
+        // Extract functions
+        let mut functions: Vec<ExtractedFunction> = result.functions
             .iter()
             .map(|f| ExtractedFunction {
                 name: f.name.clone(),
@@ -25,6 +27,31 @@ impl UniversalExtractor {
                 is_async: f.is_async,
             })
             .collect();
+        
+        // Also extract classes as callable entities (for constructor resolution)
+        // When someone calls `new MyClass()` or `MyClass()`, we want to resolve it
+        for class in &result.classes {
+            functions.push(ExtractedFunction {
+                name: class.name.clone(),
+                start_line: class.range.start.line,
+                end_line: class.range.end.line,
+                is_exported: class.is_exported,
+                is_async: false,
+            });
+            
+            // Also add class methods as functions
+            for method in &class.methods {
+                // Create qualified name: ClassName.methodName
+                let qualified_name = format!("{}.{}", class.name, method.name);
+                functions.push(ExtractedFunction {
+                    name: qualified_name,
+                    start_line: method.range.start.line,
+                    end_line: method.range.end.line,
+                    is_exported: class.is_exported,
+                    is_async: method.is_async,
+                });
+            }
+        }
         
         let calls: Vec<ExtractedCall> = result.calls
             .iter()
@@ -86,5 +113,61 @@ mod tests {
         
         assert_eq!(extraction.functions.len(), 2);
         assert!(extraction.calls.len() >= 2); // console.log and world
+    }
+    
+    #[test]
+    fn test_extract_classes_as_callables() {
+        let mut parser = ParserManager::new();
+        let source = r#"
+            export class UserService {
+                constructor() {}
+                
+                getUser(id: string) {
+                    return { id };
+                }
+            }
+            
+            function main() {
+                const service = new UserService();
+                service.getUser("123");
+            }
+        "#;
+        
+        let result = parser.parse(source, Language::TypeScript).unwrap();
+        let extractor = UniversalExtractor::new();
+        let extraction = extractor.extract_from_parse_result(&result);
+        
+        // Should have: main function + UserService class + methods
+        let function_names: Vec<&str> = extraction.functions.iter().map(|f| f.name.as_str()).collect();
+        
+        assert!(function_names.contains(&"main"), "Should have main function");
+        assert!(function_names.contains(&"UserService"), "Should have UserService class as callable");
+        // Methods are extracted as top-level functions by the TS parser
+        assert!(function_names.contains(&"getUser"), "Should have getUser method");
+    }
+    
+    #[test]
+    fn test_extract_python_classes() {
+        let mut parser = ParserManager::new();
+        let source = r#"
+class AccountService:
+    def __init__(self):
+        pass
+    
+    def get_account(self, account_id):
+        return {"id": account_id}
+
+def main():
+    service = AccountService()
+    service.get_account("123")
+        "#;
+        
+        let result = parser.parse(source, Language::Python).unwrap();
+        let extractor = UniversalExtractor::new();
+        let extraction = extractor.extract_from_parse_result(&result);
+        
+        let function_names: Vec<&str> = extraction.functions.iter().map(|f| f.name.as_str()).collect();
+        assert!(function_names.contains(&"main"), "Should have main function");
+        assert!(function_names.contains(&"AccountService"), "Should have AccountService class as callable");
     }
 }
