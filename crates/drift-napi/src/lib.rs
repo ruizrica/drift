@@ -77,16 +77,28 @@ pub struct JsParseResult {
     pub parse_time_us: i64,
 }
 
+/// Parameter info exposed to JavaScript
+#[napi(object)]
+pub struct JsParameterInfo {
+    pub name: String,
+    pub type_annotation: Option<String>,
+    pub default_value: Option<String>,
+    pub is_rest: bool,
+}
+
 /// Function info exposed to JavaScript
 #[napi(object)]
 pub struct JsFunctionInfo {
     pub name: String,
     pub qualified_name: Option<String>,
+    pub parameters: Vec<JsParameterInfo>,
+    pub return_type: Option<String>,
     pub is_exported: bool,
     pub is_async: bool,
     pub start_line: i64,
     pub end_line: i64,
     pub decorators: Vec<String>,
+    pub doc_comment: Option<String>,
 }
 
 /// Class info exposed to JavaScript
@@ -219,11 +231,19 @@ pub fn parse(source: String, file_path: String) -> Result<Option<JsParseResult>>
             functions: result.functions.into_iter().map(|f| JsFunctionInfo {
                 name: f.name,
                 qualified_name: f.qualified_name,
+                parameters: f.parameters.into_iter().map(|p| JsParameterInfo {
+                    name: p.name,
+                    type_annotation: p.type_annotation,
+                    default_value: p.default_value,
+                    is_rest: p.is_rest,
+                }).collect(),
+                return_type: f.return_type,
                 is_exported: f.is_exported,
                 is_async: f.is_async,
                 start_line: f.range.start.line as i64,
                 end_line: f.range.end.line as i64,
                 decorators: f.decorators,
+                doc_comment: f.doc_comment,
             }).collect(),
             classes: result.classes.into_iter().map(|c| JsClassInfo {
                 name: c.name,

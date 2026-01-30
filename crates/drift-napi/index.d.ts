@@ -45,15 +45,25 @@ export interface JsParseResult {
   errors: Array<JsParseError>
   parseTimeUs: number
 }
+/** Parameter info exposed to JavaScript */
+export interface JsParameterInfo {
+  name: string
+  typeAnnotation?: string
+  defaultValue?: string
+  isRest: boolean
+}
 /** Function info exposed to JavaScript */
 export interface JsFunctionInfo {
   name: string
   qualifiedName?: string
+  parameters: Array<JsParameterInfo>
+  returnType?: string
   isExported: boolean
   isAsync: boolean
   startLine: number
   endLine: number
   decorators: Array<string>
+  docComment?: string
 }
 /** Class info exposed to JavaScript */
 export interface JsClassInfo {
@@ -64,6 +74,21 @@ export interface JsClassInfo {
   startLine: number
   endLine: number
   decorators: Array<string>
+  properties: Array<JsPropertyInfo>
+}
+/** Property info exposed to JavaScript (for struct fields, class properties) */
+export interface JsPropertyInfo {
+  name: string
+  typeAnnotation?: string
+  isStatic: boolean
+  isReadonly: boolean
+  visibility: string
+  tags?: Array<JsStructTag>
+}
+/** Struct tag exposed to JavaScript (for Go struct field tags) */
+export interface JsStructTag {
+  key: string
+  value: string
 }
 /** Import info exposed to JavaScript */
 export interface JsImportInfo {
