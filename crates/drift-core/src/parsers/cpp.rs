@@ -43,6 +43,26 @@ impl CppParser {
                     parameters: (parameter_list) @params
                 )
             ) @method
+            
+            (function_definition
+                declarator: (pointer_declarator
+                    declarator: (function_declarator
+                        declarator: (identifier) @name
+                        parameters: (parameter_list) @params
+                    )
+                )
+                type: (_)? @return_type
+            ) @ptr_function
+            
+            (field_declaration_list
+                (function_definition
+                    declarator: (function_declarator
+                        declarator: (field_identifier) @name
+                        parameters: (parameter_list) @params
+                    )
+                    type: (_)? @return_type
+                ) @inline_method
+            )
             "#,
         ).map_err(|e| format!("Failed to create function query: {}", e))?;
         
@@ -158,7 +178,7 @@ impl CppParser {
                             return_type = Some(rt.to_string());
                         }
                     }
-                    "function" | "method" => {
+                    "function" | "method" | "ptr_function" | "inline_method" => {
                         range = node_range(&node);
                         function_node = Some(node);
                     }

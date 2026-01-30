@@ -38,9 +38,9 @@ impl PhpParser {
         "#).map_err(|e| format!("Failed to create function query: {}", e))?;
 
         let class_query = Query::new(&language.into(), r#"
-            (class_declaration (attribute_list)? @attributes (abstract_modifier)? @abstract name: (name) @name (base_clause (name) @extends)? (class_interface_clause (name) @implements)*) @class
+            (class_declaration (attribute_list)? @attributes (abstract_modifier)? @abstract name: (name) @name (base_clause (name) @extends)? (class_interface_clause (name) @implements)* (declaration_list) @body) @class
             (interface_declaration name: (name) @name (base_clause (name) @extends_interface)*) @interface
-            (trait_declaration name: (name) @name) @trait
+            (trait_declaration name: (name) @name (declaration_list) @trait_body) @trait
         "#).map_err(|e| format!("Failed to create class query: {}", e))?;
         
         let use_query = Query::new(&language.into(), r#"
@@ -203,6 +203,7 @@ impl PhpParser {
             let mut range = Range::new(0, 0, 0, 0);
             let mut is_abstract = false;
             let mut attributes = Vec::new();
+            let mut class_body: Option<Node> = None;
             
             for capture in m.captures {
                 let node = capture.node;
@@ -212,6 +213,7 @@ impl PhpParser {
                     "implements" | "extends_interface" => { let n = node.utf8_text(source).unwrap_or("").to_string(); if !n.is_empty() { implements.push(n); } }
                     "abstract" => { is_abstract = true; }
                     "attributes" => { attributes = self.extract_attributes(&node, source); }
+                    "body" | "trait_body" => { class_body = Some(node); }
                     "class" => { range = node_range(&node); }
                     "interface" => { range = node_range(&node); is_abstract = true; }
                     "trait" => { range = node_range(&node); }
@@ -219,9 +221,100 @@ impl PhpParser {
                 }
             }
             if !name.is_empty() {
-                result.classes.push(ClassInfo { name, extends, implements, is_exported: true, is_abstract, methods: Vec::new(), properties: Vec::new(), range, decorators: attributes });
+                let properties = class_body
+                    .map(|body| self.extract_class_properties(&body, source))
+                    .unwrap_or_default();
+                
+                result.classes.push(ClassInfo { name, extends, implements, is_exported: true, is_abstract, methods: Vec::new(), properties, range, decorators: attributes });
             }
         }
+    }
+    
+    /// Extract class properties from declaration_list
+    fn extract_class_properties(&self, body: &Node, source: &[u8]) -> Vec<PropertyInfo> {
+        let mut properties = Vec::new();
+        
+        let mut cursor = body.walk();
+        if cursor.goto_first_child() {
+            loop {
+                let child = cursor.node();
+                if child.kind() == "property_declaration" {
+                    properties.extend(self.extract_property(&child, source));
+                }
+                if !cursor.goto_next_sibling() {
+                    break;
+                }
+            }
+        }
+        
+        properties
+    }
+    
+    /// Extract properties from a property_declaration
+    fn extract_property(&self, prop_node: &Node, source: &[u8]) -> Vec<PropertyInfo> {
+        let mut props = Vec::new();
+        let mut visibility = Visibility::Public;
+        let mut is_static = false;
+        let mut is_readonly = false;
+        let mut type_annotation: Option<String> = None;
+        
+        let mut cursor = prop_node.walk();
+        if cursor.goto_first_child() {
+            loop {
+                let child = cursor.node();
+                match child.kind() {
+                    "visibility_modifier" => {
+                        let vis = child.utf8_text(source).unwrap_or("");
+                        visibility = match vis {
+                            "public" => Visibility::Public,
+                            "protected" => Visibility::Protected,
+                            "private" => Visibility::Private,
+                            _ => Visibility::Public,
+                        };
+                    }
+                    "static_modifier" => {
+                        is_static = true;
+                    }
+                    "readonly_modifier" => {
+                        is_readonly = true;
+                    }
+                    "named_type" | "primitive_type" | "optional_type" | "union_type" | "intersection_type" => {
+                        type_annotation = Some(child.utf8_text(source).unwrap_or("").to_string());
+                    }
+                    "property_element" => {
+                        // Get the variable name
+                        let mut var_cursor = child.walk();
+                        if var_cursor.goto_first_child() {
+                            loop {
+                                let var_child = var_cursor.node();
+                                if var_child.kind() == "variable_name" {
+                                    let name = var_child.utf8_text(source).unwrap_or("")
+                                        .trim_start_matches('$')
+                                        .to_string();
+                                    if !name.is_empty() {
+                                        props.push(PropertyInfo {
+                                            name,
+                                            type_annotation: type_annotation.clone(),
+                                            is_static,
+                                            is_readonly,
+                                            visibility,
+                                            tags: None,
+                                        });
+                                    }
+                                }
+                                if !var_cursor.goto_next_sibling() { break; }
+                            }
+                        }
+                    }
+                    _ => {}
+                }
+                if !cursor.goto_next_sibling() {
+                    break;
+                }
+            }
+        }
+        
+        props
     }
     
     fn extract_uses(&self, root: &Node, source: &[u8], result: &mut ParseResult) {

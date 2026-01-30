@@ -59,6 +59,7 @@ impl JavaParser {
                 name: (identifier) @name
                 (superclass (type_identifier) @extends)?
                 (super_interfaces (type_list (type_identifier) @implements))?
+                body: (class_body) @body
             ) @class
             
             (interface_declaration
@@ -351,6 +352,7 @@ impl JavaParser {
             let mut is_public = false;
             let mut is_abstract = false;
             let mut annotations = Vec::new();
+            let mut class_body: Option<Node> = None;
             
             for capture in m.captures {
                 let node = capture.node;
@@ -381,6 +383,9 @@ impl JavaParser {
                         // Extract annotations from modifiers
                         annotations = self.extract_annotations(&node, source);
                     }
+                    "body" => {
+                        class_body = Some(node);
+                    }
                     "class" => {
                         range = node_range(&node);
                     }
@@ -393,6 +398,10 @@ impl JavaParser {
             }
 
             if !name.is_empty() {
+                let properties = class_body
+                    .map(|body| self.extract_class_fields(&body, source))
+                    .unwrap_or_default();
+                
                 result.classes.push(ClassInfo {
                     name,
                     extends,
@@ -400,12 +409,101 @@ impl JavaParser {
                     is_exported: is_public,
                     is_abstract,
                     methods: Vec::new(),
-                    properties: Vec::new(),
+                    properties,
                     range,
                     decorators: annotations,
                 });
             }
         }
+    }
+    
+    /// Extract class fields from class body
+    fn extract_class_fields(&self, body: &Node, source: &[u8]) -> Vec<PropertyInfo> {
+        let mut properties = Vec::new();
+        
+        let mut cursor = body.walk();
+        if cursor.goto_first_child() {
+            loop {
+                let child = cursor.node();
+                if child.kind() == "field_declaration" {
+                    if let Some(prop) = self.extract_field(&child, source) {
+                        properties.push(prop);
+                    }
+                }
+                if !cursor.goto_next_sibling() {
+                    break;
+                }
+            }
+        }
+        
+        properties
+    }
+    
+    /// Extract a single field declaration
+    fn extract_field(&self, field_node: &Node, source: &[u8]) -> Option<PropertyInfo> {
+        let mut name = String::new();
+        let mut type_annotation: Option<String> = None;
+        let mut visibility = Visibility::Private; // Java default is package-private, treat as private
+        let mut is_static = false;
+        let mut is_final = false;
+        
+        let mut cursor = field_node.walk();
+        if cursor.goto_first_child() {
+            loop {
+                let child = cursor.node();
+                match child.kind() {
+                    "modifiers" => {
+                        let mods = child.utf8_text(source).unwrap_or("");
+                        if mods.contains("public") {
+                            visibility = Visibility::Public;
+                        } else if mods.contains("protected") {
+                            visibility = Visibility::Protected;
+                        } else if mods.contains("private") {
+                            visibility = Visibility::Private;
+                        }
+                        is_static = mods.contains("static");
+                        is_final = mods.contains("final");
+                    }
+                    "type_identifier" | "integral_type" | "floating_point_type" | "boolean_type" | "void_type" => {
+                        type_annotation = Some(child.utf8_text(source).unwrap_or("").to_string());
+                    }
+                    "generic_type" | "array_type" => {
+                        type_annotation = Some(child.utf8_text(source).unwrap_or("").to_string());
+                    }
+                    "variable_declarator" => {
+                        // Get the name from the variable declarator
+                        let mut var_cursor = child.walk();
+                        if var_cursor.goto_first_child() {
+                            loop {
+                                let var_child = var_cursor.node();
+                                if var_child.kind() == "identifier" {
+                                    name = var_child.utf8_text(source).unwrap_or("").to_string();
+                                    break;
+                                }
+                                if !var_cursor.goto_next_sibling() { break; }
+                            }
+                        }
+                    }
+                    _ => {}
+                }
+                if !cursor.goto_next_sibling() {
+                    break;
+                }
+            }
+        }
+        
+        if name.is_empty() {
+            return None;
+        }
+        
+        Some(PropertyInfo {
+            name,
+            type_annotation,
+            is_static,
+            is_readonly: is_final,
+            visibility,
+            tags: None,
+        })
     }
     
     fn extract_imports(&self, root: &Node, source: &[u8], result: &mut ParseResult) {

@@ -40,8 +40,10 @@ impl CParser {
                 declarator: (pointer_declarator
                     declarator: (function_declarator
                         declarator: (identifier) @name
+                        parameters: (parameter_list) @params
                     )
                 )
+                type: (_)? @return_type
             ) @ptr_function
             "#,
         ).map_err(|e| format!("Failed to create function query: {}", e))?;
@@ -253,8 +255,12 @@ impl CParser {
                     "type_identifier" | "primitive_type" | "sized_type_specifier" => {
                         type_parts.push(child.utf8_text(source).unwrap_or("").to_string());
                     }
+                    "type_qualifier" => {
+                        // Handle const, volatile, etc.
+                        type_parts.push(child.utf8_text(source).unwrap_or("").to_string());
+                    }
                     "pointer_declarator" => {
-                        // Handle pointer parameters like int *ptr
+                        // Handle pointer parameters like int *ptr or const char *name
                         let mut ptr_cursor = child.walk();
                         if ptr_cursor.goto_first_child() {
                             loop {
@@ -272,6 +278,10 @@ impl CParser {
                     }
                     "struct_specifier" | "union_specifier" | "enum_specifier" => {
                         type_parts.push(child.utf8_text(source).unwrap_or("").to_string());
+                    }
+                    "abstract_pointer_declarator" => {
+                        // Handle abstract pointers (type without name)
+                        type_parts.push("*".to_string());
                     }
                     _ => {}
                 }
@@ -292,7 +302,8 @@ impl CParser {
             // Try to extract name from "type name" pattern
             let parts: Vec<&str> = text.split_whitespace().collect();
             if parts.len() >= 2 {
-                name = parts.last().unwrap_or(&"").trim_start_matches('*').to_string();
+                let last = parts.last().unwrap_or(&"");
+                name = last.trim_start_matches('*').trim_end_matches(',').to_string();
             }
         }
         
