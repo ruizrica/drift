@@ -514,23 +514,32 @@ drift memory delete mem_abc123
 Learn from a correction. Creates new memories based on feedback.
 
 ```bash
-drift memory learn [options]
+drift memory learn <correction> [options]
+
+Arguments:
+  correction   The correction or lesson learned (required)
 
 Options:
-  -o, --original <text>   Original code or response (required)
-  -f, --feedback <text>   Feedback or correction (required)
-  -c, --code <code>       Corrected code
+  -o, --original <text>   What was originally done (optional context)
+  -c, --code <code>       Corrected code example
   --file <file>           Related file path
 ```
 
-**Example:**
+**Examples:**
 
 ```bash
-drift memory learn \
-  --original "Use MD5 for hashing passwords" \
-  --feedback "MD5 is insecure. Use bcrypt instead." \
-  --code "const hash = await bcrypt.hash(password, 10);" \
-  --file src/auth/password.ts
+# Simple correction (most common usage)
+drift memory learn "Always use bcrypt with cost factor 12 for password hashing"
+
+# With context about what was wrong
+drift memory learn "Use bcrypt instead of MD5" \
+  --original "Used MD5 for hashing passwords"
+
+# With corrected code example
+drift memory learn "Use parameterized queries to prevent SQL injection" \
+  --original "Used string concatenation for SQL" \
+  --code "db.query('SELECT * FROM users WHERE id = ?', [userId])" \
+  --file src/db/queries.ts
 ```
 
 **Example output:**
@@ -930,10 +939,12 @@ drift memory why "authentication"
 ### After Code Review
 
 ```bash
-# Learn from reviewer feedback
-drift memory learn \
-  --original "Used string concatenation for SQL" \
-  --feedback "Use parameterized queries to prevent SQL injection"
+# Learn from reviewer feedback (simple)
+drift memory learn "Always use parameterized queries"
+
+# Learn with context
+drift memory learn "Use parameterized queries to prevent SQL injection" \
+  --original "Used string concatenation for SQL"
 
 # Add tribal knowledge
 drift memory add tribal "Always use parameterized queries" \

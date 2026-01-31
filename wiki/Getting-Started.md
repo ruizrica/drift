@@ -10,16 +10,28 @@ Get Drift running and understanding your codebase in under 5 minutes.
 # Install globally
 npm install -g driftdetect
 
-# Initialize and scan your project
+# Run the guided setup wizard
 cd your-project
-drift init
-drift scan
+drift setup
 
 # See what Drift discovered
 drift status
 ```
 
 **That's it.** Drift now understands your codebase patterns, conventions, and architecture.
+
+The setup wizard walks you through:
+- ✅ Initializing Drift
+- ✅ Scanning for patterns  
+- ✅ Auto-approving high-confidence patterns
+- ✅ Building call graph (optional)
+- ✅ Setting up test topology (optional)
+- ✅ Initializing Cortex memory (optional)
+
+**Quick setup (skip prompts):**
+```bash
+drift setup -y
+```
 
 ---
 
@@ -81,9 +93,22 @@ node packages/cli/dist/bin/drift.js --version
 
 ## 🚀 Initialize Your Project
 
+### Option A: Guided Setup (Recommended)
+
+```bash
+cd your-project
+drift setup
+```
+
+The setup wizard guides you through all features and lets you choose what to enable.
+
+### Option B: Manual Setup
+
 ```bash
 cd your-project
 drift init
+drift scan
+drift approve --auto  # Auto-approve high-confidence patterns
 ```
 
 This creates the `.drift/` directory structure:

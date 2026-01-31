@@ -290,8 +290,10 @@ describe('SQLiteCausalStorage', () => {
         expect(affected).toBe(2);
         
         const edges = await storage.findByRelation('caused');
-        expect(edges[0]!.strength).toBeCloseTo(0.9, 2);
-        expect(edges[1]!.strength).toBeCloseTo(0.72, 2);
+        // Sort by strength descending to ensure consistent ordering
+        const sortedEdges = edges.sort((a, b) => b.strength - a.strength);
+        expect(sortedEdges[0]!.strength).toBeCloseTo(0.9, 2);
+        expect(sortedEdges[1]!.strength).toBeCloseTo(0.72, 2);
       });
     });
   });

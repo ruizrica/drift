@@ -266,8 +266,11 @@ drift memory list
 # Search memories
 drift memory search "authentication"
 
-# Learn from a correction
-drift memory learn --original "Use MD5" --feedback "Use bcrypt instead"
+# Learn from a correction (simplified syntax)
+drift memory learn "Always use bcrypt with cost factor 12"
+
+# Learn with context about what was wrong
+drift memory learn "Use bcrypt instead" --original "Used MD5 for hashing"
 
 # Get context for a task
 drift memory why "authentication" --intent add_feature
@@ -994,6 +997,170 @@ drift migrate-storage [options]
 
 Options:
   --status           Show migration status only
+```
+
+---
+
+## Backup Commands
+
+### `drift backup`
+
+Enterprise-grade backup and restore for .drift directory.
+
+```bash
+drift backup <subcommand> [options]
+
+Subcommands:
+  create             Create a new backup
+  list               List all backups
+  restore <id>       Restore from a backup
+  info <id>          Show backup details
+  delete <id>        Delete a backup (requires confirmation)
+  prune              Remove old backups based on retention policy
+```
+
+### `drift backup create`
+
+Create a new backup of the .drift directory.
+
+```bash
+drift backup create [options]
+
+Options:
+  -r, --reason <reason>    Reason for backup (default: user_requested)
+  -f, --format <format>    Output format: text, json (default: text)
+```
+
+**Reasons:**
+- `user_requested` — Manual backup
+- `pre_migration` — Before schema migration
+- `pre_scan` — Before major scan
+- `scheduled` — Automated scheduled backup
+
+**Examples:**
+
+```bash
+# Create a backup
+drift backup create
+
+# Create with reason
+drift backup create --reason pre_migration
+
+# JSON output for scripting
+drift backup create --format json
+```
+
+### `drift backup list`
+
+List all available backups.
+
+```bash
+drift backup list [options]
+
+Options:
+  -l, --limit <n>          Maximum backups to show (default: 10)
+  -f, --format <format>    Output format: text, json (default: text)
+```
+
+**Examples:**
+
+```bash
+# List recent backups
+drift backup list
+
+# List more backups
+drift backup list --limit 20
+
+# JSON output
+drift backup list --format json
+```
+
+### `drift backup restore`
+
+Restore from a backup.
+
+```bash
+drift backup restore <id> [options]
+
+Arguments:
+  id    Backup ID (from drift backup list)
+
+Options:
+  -y, --yes    Skip confirmation prompt
+```
+
+**Example:**
+
+```bash
+# Restore from backup
+drift backup restore backup-2026-01-31T10-30-00-000Z-user_requested
+
+# Skip confirmation
+drift backup restore backup-2026-01-31T10-30-00-000Z-user_requested --yes
+```
+
+### `drift backup info`
+
+Show detailed information about a backup.
+
+```bash
+drift backup info <id> [options]
+
+Arguments:
+  id    Backup ID
+
+Options:
+  -f, --format <format>    Output format: text, json (default: text)
+```
+
+**Example:**
+
+```bash
+drift backup info backup-2026-01-31T10-30-00-000Z-user_requested
+```
+
+### `drift backup delete`
+
+Delete a backup. Requires typing DELETE to confirm.
+
+```bash
+drift backup delete <id>
+
+Arguments:
+  id    Backup ID to delete
+```
+
+**Example:**
+
+```bash
+drift backup delete backup-2026-01-31T10-30-00-000Z-user_requested
+# Prompts: Type DELETE to confirm
+```
+
+### `drift backup prune`
+
+Remove old backups based on retention policy.
+
+```bash
+drift backup prune [options]
+
+Options:
+  --keep <n>       Number of backups to keep (default: 5)
+  --older-than <d> Delete backups older than N days
+  -y, --yes        Skip confirmation prompt
+```
+
+**Examples:**
+
+```bash
+# Keep only 5 most recent
+drift backup prune --keep 5
+
+# Delete backups older than 30 days
+drift backup prune --older-than 30
+
+# Skip confirmation
+drift backup prune --keep 3 --yes
 ```
 
 ---

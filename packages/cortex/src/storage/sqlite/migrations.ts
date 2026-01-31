@@ -184,7 +184,10 @@ export async function runMigrations(client: SQLiteClient): Promise<void> {
   // Apply pending migrations
   for (const migration of MIGRATIONS) {
     if (migration.version > version) {
-      console.log(`Applying migration ${migration.version}: ${migration.description}`);
+      // Only log migrations in verbose mode (check env var)
+      if (process.env['DRIFT_VERBOSE'] === 'true') {
+        console.error(`Applying migration ${migration.version}: ${migration.description}`);
+      }
 
       client.transaction(() => {
         db.exec(migration.up);

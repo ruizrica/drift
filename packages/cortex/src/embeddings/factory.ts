@@ -80,7 +80,9 @@ export async function autoDetectEmbeddingProvider(): Promise<IEmbeddingProvider>
       const provider = new OpenAIEmbeddingProvider(openaiKey);
       if (await provider.isAvailable()) {
         await provider.initialize();
-        console.log('Using OpenAI embedding provider');
+        if (process.env['DRIFT_VERBOSE'] === 'true') {
+          console.error('Using OpenAI embedding provider');
+        }
         return provider;
       }
     } catch {
@@ -94,7 +96,9 @@ export async function autoDetectEmbeddingProvider(): Promise<IEmbeddingProvider>
     const provider = new OllamaEmbeddingProvider(ollamaUrl);
     if (await provider.isAvailable()) {
       await provider.initialize();
-      console.log('Using Ollama embedding provider');
+      if (process.env['DRIFT_VERBOSE'] === 'true') {
+        console.error('Using Ollama embedding provider');
+      }
       return provider;
     }
   } catch {
@@ -102,7 +106,9 @@ export async function autoDetectEmbeddingProvider(): Promise<IEmbeddingProvider>
   }
 
   // 3. Fall back to local
-  console.error('Using local (Transformers.js) embedding provider');
+  if (process.env['DRIFT_VERBOSE'] === 'true') {
+    console.error('Using local (Transformers.js) embedding provider');
+  }
   const provider = new LocalEmbeddingProvider();
   await provider.initialize();
   return provider;
