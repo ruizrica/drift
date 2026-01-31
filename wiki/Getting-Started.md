@@ -4,11 +4,35 @@ Get Drift running in your project in under 5 minutes.
 
 ---
 
+## ⚡ Quick Start
+
+```bash
+# Install
+npm install -g driftdetect
+
+# In your project
+cd your-project
+drift init
+drift scan
+
+# See results
+drift status
+```
+
+**Done!** Drift now understands your codebase.
+
+---
+
 ## Prerequisites
 
-- **Node.js** 18+ (LTS recommended)
-- **npm**, **pnpm**, or **yarn**
-- A codebase in any supported language
+- **Node.js 18+** — [Download here](https://nodejs.org/)
+- **npm** — Comes with Node.js
+
+Check your versions:
+```bash
+node --version   # Should show v18.x.x or higher
+npm --version    # Should show 9.x.x or higher
+```
 
 ---
 
@@ -16,13 +40,11 @@ Get Drift running in your project in under 5 minutes.
 
 ### Global Install (Recommended)
 
-Install both the CLI and MCP server:
-
 ```bash
 # CLI (provides the 'drift' command)
 npm install -g driftdetect
 
-# MCP server (provides 'driftdetect-mcp' and 'drift-mcp' commands)
+# MCP server (for AI integration)
 npm install -g driftdetect-mcp
 ```
 
@@ -36,16 +58,7 @@ npm install --save-dev driftdetect driftdetect-mcp
 
 ```bash
 drift --version
-# driftdetect v1.0.0
-
-driftdetect-mcp --help
-# Shows MCP server options
-```
-
-**Check native module status:**
-```bash
-drift --version --verbose
-# Should show: Native module: ✓ available
+# driftdetect v0.9.40
 ```
 
 ---
@@ -57,39 +70,30 @@ cd your-project
 drift init
 ```
 
-This creates the `.drift/` directory with:
-- `config.json` — Project configuration
-- `patterns/` — Pattern storage (discovered, approved, ignored, variants)
-- `history/` — Historical snapshots for trend tracking
-- `cache/` — Analysis cache
-- `reports/` — Generated reports
+This creates the `.drift/` directory:
 
-**Output:**
 ```
-🔍 Drift - Architectural Drift Detection
+.drift/
+├── config.json          # Project configuration
+├── patterns/            # Pattern storage
+│   ├── discovered/      # Auto-discovered patterns
+│   ├── approved/        # Patterns you've approved
+│   └── ignored/         # Patterns you've ignored
+├── lake/                # Analysis data (call graph, etc.)
+├── cache/               # Analysis cache
+└── history/             # Historical snapshots
+```
 
-✓ Created .drift directory structure
-✓ Created config.json
-
-Drift initialized successfully!
-
-Configuration: .drift/config.json
-Patterns: .drift/patterns/
-Ignore rules: .driftignore
-
-📝 Add to your .gitignore:
-
-  # Drift: ignore caches and temporary data
-  .drift/lake/
-  .drift/cache/
-  .drift/history/
-  .drift/call-graph/
-  .drift/patterns/discovered/
-  .drift/patterns/ignored/
-  .drift/patterns/variants/
-  ...
-
-✓ Registered as my-project
+**Add to `.gitignore`:**
+```
+# Drift: ignore caches and temporary data
+.drift/lake/
+.drift/cache/
+.drift/history/
+.drift/call-graph/
+.drift/patterns/discovered/
+.drift/patterns/ignored/
+.drift/patterns/variants/
 ```
 
 ---
@@ -101,48 +105,38 @@ drift scan
 ```
 
 Drift will:
-1. Detect languages and frameworks in your project
+1. Detect languages and frameworks
 2. Parse all source files with Tree-sitter
 3. Build the call graph
 4. Run 400+ pattern detectors
 5. Store results in `.drift/`
 
-**Output:**
+**Example output:**
 ```
 🔍 Drift - Enterprise Pattern Scanner
 
 ✓ Discovered 245 files
-✓ Loaded 156 detectors (400+ available) [4 worker threads]
-✓ Analyzed 245 files in 12.34s (127 pattern types, 23 violations)
+✓ Loaded 156 detectors [4 worker threads]
+✓ Analyzed 245 files in 12.34s
 
 Patterns detected by category:
   api: 47 occurrences
   auth: 23 occurrences
   errors: 56 occurrences
   data-access: 31 occurrences
-  ...
 
-⚠️  23 Violations Found:
-  Errors (5):
-    src/api/users.ts:45 - Missing error handling in async function
-    ...
-
-✓ Saved 89 new patterns (38 already existed)
-
-To review and approve patterns:
-  drift status
-  drift approve <pattern-id>
+✓ Saved 89 new patterns
 ```
 
 ---
 
-## Review Discovered Patterns
+## Review What Drift Found
 
 ```bash
-drift status --detailed
+drift status
 ```
 
-**Output:**
+**Example output:**
 ```
 🔍 Drift - Status
 
@@ -151,23 +145,15 @@ Patterns: 127 total
   Approved: 0
   Ignored: 0
 
-By Category:
-  api           23 patterns (18%)
-  auth          15 patterns (12%)
-  errors        18 patterns (14%)
-  data-access   31 patterns (24%)
-  components    12 patterns (9%)
-  ...
+Health Score: 85/100
 
-By Confidence:
-  High (≥0.85):    89 patterns
-  Medium (0.7-0.84): 32 patterns
-  Low (<0.7):        6 patterns
+Languages: TypeScript, Python
+Frameworks: Express, Prisma
+```
 
-Top Patterns:
-  1. api-rest-controller (confidence: 0.95, 47 locations)
-  2. auth-middleware-pattern (confidence: 0.92, 23 locations)
-  3. error-try-catch-pattern (confidence: 0.91, 56 locations)
+For more detail:
+```bash
+drift status --detailed
 ```
 
 ---
@@ -183,19 +169,23 @@ drift approve api-rest-controller
 # Approve all patterns in a category
 drift approve --category api
 
-# Approve high-confidence patterns
-drift approve --min-confidence 0.9
+# Approve high-confidence patterns automatically
+drift approve --auto
 ```
 
-Approved patterns become the "golden standard" for your project. Drift will flag code that doesn't follow them.
+Approved patterns become the "golden standard" for your project.
 
 ---
 
 ## Connect to AI Agents
 
-### Claude Desktop
+### Quick Setup
 
-Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows):
+```bash
+npm install -g driftdetect-mcp
+```
+
+Add to your AI tool's config:
 
 ```json
 {
@@ -207,51 +197,17 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS)
 }
 ```
 
-### Cursor
+### Config File Locations
 
-Add to `.cursor/mcp.json`:
+| AI Tool | Config File |
+|---------|-------------|
+| **Claude Desktop** | `~/Library/Application Support/Claude/claude_desktop_config.json` (Mac) |
+| **Cursor** | `.cursor/mcp.json` in your project |
+| **Windsurf** | Settings → MCP Servers |
+| **Kiro** | `.kiro/settings/mcp.json` in your project |
+| **VS Code** | `.vscode/mcp.json` in your project |
 
-```json
-{
-  "mcpServers": {
-    "drift": {
-      "command": "driftdetect-mcp"
-    }
-  }
-}
-```
-
-### Windsurf
-
-Add to your Windsurf MCP configuration:
-
-```json
-{
-  "mcpServers": {
-    "drift": {
-      "command": "driftdetect-mcp"
-    }
-  }
-}
-```
-
-### Kiro
-
-Add to `.kiro/settings/mcp.json`:
-
-```json
-{
-  "mcpServers": {
-    "drift": {
-      "command": "driftdetect-mcp",
-      "disabled": false,
-      "autoApprove": []
-    }
-  }
-}
-```
-
-See [[MCP-Setup]] for more options including npx usage and environment variables.
+→ [Full MCP Setup Guide](MCP-Setup)
 
 ---
 
@@ -266,7 +222,7 @@ drift files src/api/users.ts
 # Find where a pattern is used
 drift where api-rest-controller
 
-# Analyze call graph
+# Check call graph status
 drift callgraph status
 ```
 
@@ -274,19 +230,19 @@ drift callgraph status
 
 ```bash
 # TypeScript/JavaScript
+drift ts status
 drift ts routes
 drift ts components
-drift ts hooks
 
 # Python
+drift py status
 drift py routes
-drift py decorators
 
 # Java
+drift java status
 drift java routes
-drift java annotations
 
-# And more: drift go, drift rust, drift cpp, drift php
+# And more: drift go, drift rust, drift cpp, drift php, drift wpf
 ```
 
 ### Build Analysis Data
@@ -366,8 +322,7 @@ Edit `.drift/config.json` to customize:
   "version": "2.0.0",
   "project": {
     "id": "uuid",
-    "name": "my-project",
-    "initializedAt": "2024-01-01T00:00:00.000Z"
+    "name": "my-project"
   },
   "ignore": [
     "node_modules/**",
@@ -386,7 +341,7 @@ Edit `.drift/config.json` to customize:
 }
 ```
 
-See [[Configuration]] for all options.
+→ [Full Configuration Guide](Configuration)
 
 ---
 
@@ -395,10 +350,10 @@ See [[Configuration]] for all options.
 ### Scan is slow
 
 ```bash
-# Use incremental scanning (only changed files)
+# Use incremental scanning
 drift scan --incremental
 
-# Increase timeout (default is 300 seconds / 5 minutes)
+# Increase timeout
 drift scan --timeout 600
 ```
 
@@ -408,7 +363,7 @@ drift scan --timeout 600
 # Check if files are being ignored
 drift troubleshoot
 
-# Force rescan (ignore cache)
+# Force rescan
 drift scan --force
 ```
 
@@ -422,4 +377,17 @@ drift troubleshoot
 driftdetect-mcp --verbose
 ```
 
-See [[Troubleshooting]] for more solutions.
+→ [Full Troubleshooting Guide](Troubleshooting)
+
+---
+
+## Upgrade
+
+```bash
+# Upgrade to latest
+npm install -g driftdetect@latest driftdetect-mcp@latest
+
+# Check versions
+drift --version
+driftdetect-mcp --version
+```

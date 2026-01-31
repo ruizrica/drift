@@ -2,6 +2,38 @@
 
 Connect Drift to AI agents via Model Context Protocol (MCP).
 
+---
+
+## ⚡ Quick Setup
+
+```bash
+# 1. Install
+npm install -g driftdetect driftdetect-mcp
+
+# 2. Scan your project
+cd your-project
+drift init
+drift scan
+
+# 3. Add to your AI tool's config:
+```
+
+```json
+{
+  "mcpServers": {
+    "drift": {
+      "command": "driftdetect-mcp"
+    }
+  }
+}
+```
+
+**4. Restart your AI tool**
+
+**5. Test it:** Ask "What patterns does Drift see in my codebase?"
+
+---
+
 ## What is MCP?
 
 MCP (Model Context Protocol) is a standard for connecting AI agents to external tools. Drift's MCP server gives AI agents like Claude, Cursor, Windsurf, and Kiro deep understanding of your codebase.
@@ -15,27 +47,39 @@ MCP (Model Context Protocol) is a standard for connecting AI agents to external 
 
 ---
 
-## Quick Setup
+## Installation
 
-### Recommended: Global Install
-
-For production use, install globally:
+### Step 1: Install Both Packages
 
 ```bash
+# CLI (for scanning)
+npm install -g driftdetect
+
+# MCP server (for AI integration)
 npm install -g driftdetect-mcp
 ```
 
-This provides two equivalent commands:
-- `driftdetect-mcp` - Full package name
-- `drift-mcp` - Short alias
+### Step 2: Scan Your Project
 
-Then configure your MCP client to use the installed binary.
+```bash
+cd your-project
+drift init
+drift scan
+```
 
-### Claude Desktop
+### Step 3: Configure Your AI Tool
 
-Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows):
+Pick your AI tool below:
 
-**With global install (recommended):**
+---
+
+## Claude Desktop
+
+**Config file location:**
+- **Mac:** `~/Library/Application Support/Claude/claude_desktop_config.json`
+- **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
+
+**Add this:**
 ```json
 {
   "mcpServers": {
@@ -46,22 +90,15 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS)
 }
 ```
 
-**With npx (pinned version):**
-```json
-{
-  "mcpServers": {
-    "drift": {
-      "command": "npx",
-      "args": ["-y", "driftdetect-mcp@0.9.27"]
-    }
-  }
-}
-```
+**Restart Claude Desktop.**
 
-### Cursor
+---
 
-Add to your Cursor MCP settings (`.cursor/mcp.json`):
+## Cursor
 
+**Config file:** `.cursor/mcp.json` in your project folder
+
+**Add this:**
 ```json
 {
   "mcpServers": {
@@ -72,24 +109,25 @@ Add to your Cursor MCP settings (`.cursor/mcp.json`):
 }
 ```
 
-### Windsurf
+**Restart Cursor.**
 
-Add to your Windsurf MCP configuration:
+---
 
-```json
-{
-  "mcpServers": {
-    "drift": {
-      "command": "driftdetect-mcp"
-    }
-  }
-}
-```
+## Windsurf
 
-### Kiro
+**Config:** Settings → MCP Servers
 
-Add to `.kiro/settings/mcp.json`:
+**Add a new server with command:** `driftdetect-mcp`
 
+**Restart Windsurf.**
+
+---
+
+## Kiro
+
+**Config file:** `.kiro/settings/mcp.json` in your project folder
+
+**Add this:**
 ```json
 {
   "mcpServers": {
@@ -102,10 +140,15 @@ Add to `.kiro/settings/mcp.json`:
 }
 ```
 
-### VS Code (with MCP extension)
+**Restart Kiro.**
 
-Add to your VS Code MCP settings:
+---
 
+## VS Code (with MCP extension)
+
+**Config file:** `.vscode/mcp.json` in your project folder
+
+**Add this:**
 ```json
 {
   "mcpServers": {
@@ -116,25 +159,26 @@ Add to your VS Code MCP settings:
 }
 ```
 
+**Restart VS Code.**
+
 ---
 
-## Initialize Your Project
+## Alternative: npx (No Install)
 
-Before the MCP server can help, scan your project:
+If you don't want to install globally, use npx:
 
-```bash
-cd your-project
-drift init
-drift scan
+```json
+{
+  "mcpServers": {
+    "drift": {
+      "command": "npx",
+      "args": ["-y", "driftdetect-mcp@0.9.39"]
+    }
+  }
+}
 ```
 
-For advanced analysis, also build:
-
-```bash
-drift test-topology build
-drift coupling build
-drift error-handling build
-```
+**Note:** Pin the version to avoid unexpected updates.
 
 ---
 
@@ -155,13 +199,6 @@ If connected, it will call `drift_status` and show your pattern summary.
 │   AI Agent      │────▶│   Drift MCP     │────▶│   Your Code     │
 │ (Claude, etc.)  │◀────│    Server       │◀────│   (.drift/)     │
 └─────────────────┘     └─────────────────┘     └─────────────────┘
-        │                       │
-        │  "Add auth endpoint"  │
-        │                       │
-        ▼                       ▼
-   AI understands          Drift returns
-   YOUR patterns           patterns, examples,
-   and conventions         and guidance
 ```
 
 1. AI agent receives your prompt
@@ -173,9 +210,9 @@ If connected, it will call `drift_status` and show your pattern summary.
 
 ## Example Conversation
 
-**You**: "Add a new API endpoint for user preferences"
+**You:** "Add a new API endpoint for user preferences"
 
-**AI (via Drift)**:
+**AI (via Drift):**
 > Based on your codebase patterns:
 > - Routes use `@Controller` decorator with `/api/v1` prefix
 > - Error responses follow `{ error: string, code: number }` format
@@ -188,7 +225,7 @@ If connected, it will call `drift_status` and show your pattern summary.
 
 ## Available MCP Tools
 
-Drift provides **49+ MCP tools** organized in 7 layers:
+Drift provides **50 MCP tools** organized in 7 layers:
 
 | Layer | Tools | Purpose |
 |-------|-------|---------|
@@ -200,7 +237,7 @@ Drift provides **49+ MCP tools** organized in 7 layers:
 | **Analysis** | `drift_test_topology`, `drift_coupling`, etc. | Code health |
 | **Generation** | `drift_suggest_changes`, `drift_validate_change`, etc. | AI assistance |
 
-See [MCP Tools Reference](MCP-Tools-Reference) for full documentation.
+→ [Full MCP Tools Reference](MCP-Tools-Reference)
 
 ### Key Tools
 
@@ -252,9 +289,6 @@ export DRIFT_PROJECT_PATH=/path/to/project
 
 # Enable debug logging
 export DEBUG=drift:*
-
-# Set cache directory
-export DRIFT_CACHE_DIR=/path/to/cache
 ```
 
 ### MCP Server Options
@@ -263,8 +297,7 @@ export DRIFT_CACHE_DIR=/path/to/cache
 {
   "mcpServers": {
     "drift": {
-      "command": "npx",
-      "args": ["-y", "driftdetect-mcp"],
+      "command": "driftdetect-mcp",
       "env": {
         "DRIFT_PROJECT_PATH": "/path/to/project",
         "DEBUG": "drift:mcp"
@@ -274,19 +307,26 @@ export DRIFT_CACHE_DIR=/path/to/cache
 }
 ```
 
+### Command-Line Options
+
+```bash
+driftdetect-mcp                    # Use active project
+driftdetect-mcp /path/to/project   # Analyze specific project
+driftdetect-mcp --no-cache         # Disable response caching
+driftdetect-mcp --verbose          # Enable verbose logging
+```
+
 ---
 
 ## Troubleshooting
 
 ### MCP server not connecting
 
-1. Restart your AI client after config changes
-2. Check the config file path is correct for your OS
-3. Verify the MCP server runs without errors:
+1. **Restart your AI client** after config changes
+2. **Check the config file path** is correct for your OS
+3. **Verify the MCP server runs:**
    ```bash
    driftdetect-mcp --help
-   # or with npx:
-   npx driftdetect-mcp@0.9.27 --help
    ```
 
 ### "Scan required" errors
@@ -297,7 +337,7 @@ Run `drift scan` in your project first. The MCP server needs `.drift/` data to w
 
 - First call may be slow (loading data)
 - Subsequent calls use caching
-- For large codebases, use incremental scans:
+- For large codebases:
   ```bash
   drift scan --incremental
   ```
@@ -323,33 +363,19 @@ drift projects switch <project-name>
 
 ### Debug mode
 
-Enable debug logging to see what's happening:
+Enable debug logging:
 
 ```json
 {
   "mcpServers": {
     "drift": {
-      "command": "npx",
-      "args": ["-y", "driftdetect-mcp@0.9.27"],
+      "command": "driftdetect-mcp",
       "env": {
         "DEBUG": "drift:*"
       }
     }
   }
 }
-```
-
-### MCP Server Command-Line Options
-
-The MCP server supports these flags:
-
-```bash
-driftdetect-mcp                    # Use active project from ~/.drift/projects.json
-driftdetect-mcp /path/to/project   # Analyze specific project
-driftdetect-mcp --no-cache         # Disable response caching
-driftdetect-mcp --no-rate-limit    # Disable rate limiting
-driftdetect-mcp --verbose          # Enable verbose logging
-driftdetect-mcp --skip-warmup      # Skip startup warmup
 ```
 
 ---
@@ -361,3 +387,25 @@ driftdetect-mcp --skip-warmup      # Skip startup warmup
 3. **Use `drift_context`** — Start with this tool for most tasks
 4. **Build analysis data** — Run build commands for full analysis
 5. **Register all projects** — Multi-project support helps with monorepos
+
+---
+
+## Docker Deployment
+
+Run Drift as a containerized HTTP service:
+
+```bash
+# Clone and start
+git clone https://github.com/dadbodgeoff/drift.git
+cd drift
+
+# Start with your project mounted
+PROJECT_PATH=/path/to/your/project docker compose up -d
+
+# Check health
+curl http://localhost:3000/health
+```
+
+Configure your MCP client to connect via HTTP/SSE:
+- SSE endpoint: `http://localhost:3000/sse`
+- Message endpoint: `http://localhost:3000/message`

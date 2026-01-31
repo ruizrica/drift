@@ -1,45 +1,75 @@
 # Language Support
 
-Drift supports **9 programming languages** with full feature parity across all analysis capabilities.
+Drift supports **10 programming languages** with full feature parity across all analysis capabilities.
 
-**As of v1.0, all parsing is done natively in Rust** using tree-sitter bindings, providing 10x faster parsing than the previous WASM-based approach.
+---
+
+## ⚡ Quick Reference
+
+| Language | CLI Command | Frameworks | ORMs |
+|----------|-------------|------------|------|
+| TypeScript/JS | `drift ts` | Express, NestJS, Next.js, Fastify | Prisma, TypeORM, Sequelize, Drizzle, Knex, Mongoose, Supabase |
+| Python | `drift py` | FastAPI, Django, Flask | Django ORM, SQLAlchemy, Supabase |
+| Java | `drift java` | Spring Boot | Spring Data JPA, Hibernate |
+| C# | `drift wpf` | ASP.NET Core, WPF | Entity Framework Core, Dapper |
+| PHP | `drift php` | Laravel | Eloquent, Doctrine |
+| Go | `drift go` | Gin, Echo, Fiber, Chi, net/http | GORM, sqlx, Ent, Bun |
+| Rust | `drift rust` | Actix, Axum, Rocket, Warp | SQLx, Diesel, SeaORM |
+| C++ | `drift cpp` | Crow, Boost.Beast, Qt | SQLite, ODBC, Qt SQL |
+| C | — | — | — |
+
+---
 
 ## Language Matrix
 
-| Language | Native Rust Parser | Call Graph | Data Access | Regex Fallback | Test Topology |
-|----------|-------------------|------------|-------------|----------------|---------------|
-| TypeScript | ✅ | ✅ | ✅ | ✅ | ✅ |
-| JavaScript | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Python | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Java | ✅ | ✅ | ✅ | ✅ | ✅ |
-| C# | ✅ | ✅ | ✅ | ✅ | ✅ |
-| PHP | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Go | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Rust | ✅ | ✅ | ✅ | ✅ | ✅ |
-| C++ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Language | Parser | Call Graph | Data Access | Test Topology |
+|----------|--------|------------|-------------|---------------|
+| TypeScript | ✅ tree-sitter | ✅ | ✅ | ✅ |
+| JavaScript | ✅ tree-sitter | ✅ | ✅ | ✅ |
+| Python | ✅ tree-sitter | ✅ | ✅ | ✅ |
+| Java | ✅ tree-sitter | ✅ | ✅ | ✅ |
+| C# | ✅ tree-sitter | ✅ | ✅ | ✅ |
+| PHP | ✅ tree-sitter | ✅ | ✅ | ✅ |
+| Go | ✅ tree-sitter | ✅ | ✅ | ✅ |
+| Rust | ✅ tree-sitter | ✅ | ✅ | ✅ |
+| C | ✅ tree-sitter | ✅ | ✅ | ✅ |
+| C++ | ✅ tree-sitter | ✅ | ✅ | ✅ |
+
+All parsing is done natively in Rust using tree-sitter bindings.
 
 ---
 
 ## TypeScript / JavaScript
 
-### Frameworks
-- **React** — Component detection, hooks, JSX analysis
-- **Next.js** — App router, API routes, server components
-- **Express** — Middleware chains, route handlers
-- **NestJS** — Decorators, modules, dependency injection
-- **Node.js** — CommonJS/ESM, native modules
+### Quick Start
+```bash
+drift ts status              # Project overview
+drift ts routes              # HTTP routes
+drift ts components          # React components
+drift ts hooks               # React hooks
+drift ts data-access         # Database patterns
+drift ts decorators          # NestJS decorators
+```
 
-### ORMs & Data Access
-- **Prisma** — Schema models, queries, transactions
-- **TypeORM** — Entities, repositories, query builder
-- **Sequelize** — Models, associations, migrations
-- **Drizzle** — Schema, queries, relations
-- **Knex** — Query builder, migrations
-- **Mongoose** — Schemas, models, queries
-- **Supabase** — Client queries, RLS policies
+### Frameworks (4)
+| Framework | Detection Method |
+|-----------|------------------|
+| Next.js | `next` in package.json |
+| Express | `express` in package.json |
+| Fastify | `fastify` in package.json |
+| NestJS | `@nestjs/core` in package.json |
 
-### File Extensions
-`.ts`, `.tsx`, `.js`, `.jsx`, `.mjs`, `.cjs`
+### ORMs & Data Access (8)
+| ORM | Detection | Patterns Detected |
+|-----|-----------|-------------------|
+| Supabase | `@supabase/supabase-js` | `.from()`, `.select()`, `.insert()`, `.update()`, `.delete()` |
+| Prisma | `@prisma/client` | `prisma.model.findMany()`, `prisma.model.create()` |
+| TypeORM | `typeorm` | `@Entity`, `getRepository()`, `Repository<T>` |
+| Sequelize | `sequelize` | `Model.findAll()`, `Model.findOne()`, `Model.create()` |
+| Drizzle | `drizzle-orm` | `db.select()`, `db.insert()`, `db.update()` |
+| Knex | `knex` | `knex('table')`, `.where()`, `.insert()` |
+| Mongoose | `mongoose` | `Schema`, `Model.find()`, `Model.findOne()` |
+| Raw SQL | `pg`, `mysql2`, `better-sqlite3` | Direct SQL queries |
 
 ### Features
 - Full AST parsing via Tree-sitter
@@ -49,22 +79,36 @@ Drift supports **9 programming languages** with full feature parity across all a
 - Express middleware chain analysis
 - Type inference from TypeScript
 
+### File Extensions
+`.ts`, `.tsx`, `.js`, `.jsx`, `.mjs`, `.cjs`
+
 ---
 
 ## Python
 
-### Frameworks
-- **Django** — Views, models, middleware, admin
-- **FastAPI** — Routes, dependencies, Pydantic models
-- **Flask** — Routes, blueprints, extensions
+### Quick Start
+```bash
+drift py status              # Project overview
+drift py routes              # HTTP routes
+drift py errors              # Error handling
+drift py data-access         # Database patterns
+drift py decorators          # Decorator usage
+drift py async               # Async patterns
+```
 
-### ORMs & Data Access
-- **Django ORM** — Models, querysets, managers
-- **SQLAlchemy** — Models, sessions, queries
-- **Tortoise ORM** — Models, queries, relations
+### Frameworks (1)
+| Framework | Detection Method |
+|-----------|------------------|
+| FastAPI | `@app.get`, `@app.post` decorators |
 
-### File Extensions
-`.py`
+*Django and Flask detected via imports*
+
+### ORMs & Data Access (3)
+| ORM | Detection | Patterns Detected |
+|-----|-----------|-------------------|
+| Django ORM | `django` | `Model.objects.filter()`, `Model.objects.get()` |
+| SQLAlchemy | `sqlalchemy` | `session.query()`, `session.add()`, `session.commit()` |
+| Supabase | `supabase` | Same as TypeScript Supabase |
 
 ### Features
 - Full AST parsing via Tree-sitter
@@ -74,21 +118,32 @@ Drift supports **9 programming languages** with full feature parity across all a
 - FastAPI dependency injection
 - Type hint extraction (PEP 484)
 
+### File Extensions
+`.py`
+
 ---
 
 ## Java
 
-### Frameworks
-- **Spring Boot** — Auto-configuration, starters
-- **Spring MVC** — Controllers, services, repositories
-- **Spring Security** — Authentication, authorization
+### Quick Start
+```bash
+drift java status            # Project overview
+drift java routes            # HTTP routes
+drift java errors            # Error handling
+drift java data-access       # Database patterns
+drift java annotations       # Annotation usage
+```
 
-### ORMs & Data Access
-- **JPA / Hibernate** — Entities, repositories, JPQL
-- **Spring Data** — Repository interfaces, query methods
+### Frameworks (1)
+| Framework | Detection Method |
+|-----------|------------------|
+| Spring Boot | `spring-boot` in pom.xml or build.gradle |
 
-### File Extensions
-`.java`
+### ORMs & Data Access (2)
+| ORM | Detection | Patterns Detected |
+|-----|-----------|-------------------|
+| Spring Data JPA | `spring-data-jpa` | `JpaRepository`, `@Query`, `EntityManager` |
+| Hibernate | `hibernate` | `Session`, `@Entity`, `@Table` |
 
 ### Features
 - Full AST parsing via Tree-sitter
@@ -98,22 +153,33 @@ Drift supports **9 programming languages** with full feature parity across all a
 - Interface implementation tracking
 - Lombok annotation support
 
+### File Extensions
+`.java`
+
 ---
 
 ## C#
 
-### Frameworks
-- **ASP.NET Core** — Controllers, middleware, DI
-- **ASP.NET MVC** — Views, controllers, routing
-- **WPF** — MVVM, commands, data binding
+### Quick Start
+```bash
+drift wpf status             # Project overview
+drift wpf bindings           # XAML bindings
+drift wpf mvvm               # MVVM compliance
+drift wpf datacontext        # DataContext resolution
+drift wpf commands           # ICommand implementations
+```
 
-### ORMs & Data Access
-- **Entity Framework Core** — DbContext, entities, migrations
-- **Entity Framework** — Legacy EF support
-- **Dapper** — SQL queries, mapping
+### Frameworks (2)
+| Framework | Detection Method |
+|-----------|------------------|
+| ASP.NET Core | `Microsoft.AspNetCore` in .csproj |
+| WPF | `.xaml` files with WPF namespaces |
 
-### File Extensions
-`.cs`
+### ORMs & Data Access (2)
+| ORM | Detection | Patterns Detected |
+|-----|-----------|-------------------|
+| Entity Framework Core | `Microsoft.EntityFrameworkCore` | `DbContext`, `.Where()`, `.ToList()`, `.SaveChanges()` |
+| Dapper | `Dapper` | `connection.Query()`, `connection.Execute()` |
 
 ### Features
 - Full AST parsing via Tree-sitter
@@ -124,31 +190,32 @@ Drift supports **9 programming languages** with full feature parity across all a
 - LINQ query detection
 - WPF ViewModel and Command patterns
 
-### WPF-Specific Analysis
-
-```bash
-# Analyze WPF patterns
-drift wpf status
-
-# Find MVVM violations
-drift wpf violations
-
-# Analyze data binding
-drift wpf bindings
-```
+### File Extensions
+`.cs`
 
 ---
 
 ## PHP
 
-### Frameworks
-- **Laravel** — Controllers, models, middleware, Blade
+### Quick Start
+```bash
+drift php status             # Project overview
+drift php routes             # HTTP routes
+drift php errors             # Error handling
+drift php data-access        # Database patterns
+drift php traits             # Trait usage
+```
 
-### ORMs & Data Access
-- **Eloquent** — Models, relationships, query builder
+### Frameworks (1)
+| Framework | Detection Method |
+|-----------|------------------|
+| Laravel | `laravel/framework` in composer.json |
 
-### File Extensions
-`.php`
+### ORMs & Data Access (2)
+| ORM | Detection | Patterns Detected |
+|-----|-----------|-------------------|
+| Eloquent | `laravel/framework` | `Model::where()`, `Model::find()`, `->save()` |
+| Doctrine | `doctrine/orm` | `EntityManager`, `Repository`, `@ORM\Entity` |
 
 ### Features
 - Full AST parsing via Tree-sitter
@@ -158,25 +225,39 @@ drift wpf bindings
 - Middleware detection
 - Service provider patterns
 
+### File Extensions
+`.php`
+
 ---
 
 ## Go
 
-### Frameworks
-- **Gin** — Routes, middleware, handlers
-- **Echo** — Routes, middleware, context
-- **Fiber** — Routes, middleware, handlers
-- **Chi** — Router, middleware chains
-- **net/http** — Standard library handlers
+### Quick Start
+```bash
+drift go status              # Project overview
+drift go routes              # HTTP routes
+drift go errors              # Error handling
+drift go interfaces          # Interface analysis
+drift go data-access         # Database patterns
+drift go goroutines          # Concurrency patterns
+```
+
+### Frameworks (5)
+| Framework | Detection Method |
+|-----------|------------------|
+| Gin | `gin.Context`, `gin.Engine` |
+| Echo | `echo.Context`, `echo.Echo` |
+| Fiber | `fiber.Ctx`, `fiber.App` |
+| Chi | `chi.Router`, `chi.Mux` |
+| net/http | `http.HandleFunc`, `http.ListenAndServe` |
 
 ### ORMs & Data Access
-- **GORM** — Models, queries, associations
-- **sqlx** — Queries, scanning, transactions
-- **database/sql** — Standard library
-- **ent** — Schema, queries, edges
-
-### File Extensions
-`.go`
+| ORM | Detection | Patterns Detected |
+|-----|-----------|-------------------|
+| GORM | `gorm.io/gorm` | `db.Create()`, `db.Find()`, `db.Where()` |
+| sqlx | `github.com/jmoiron/sqlx` | `db.Select()`, `db.Get()`, `db.Exec()` |
+| Ent | `entgo.io/ent` | Schema definitions, queries |
+| Bun | `github.com/uptrace/bun` | `db.NewSelect()`, `db.NewInsert()` |
 
 ### Features
 - Full AST parsing via Tree-sitter
@@ -186,37 +267,37 @@ drift wpf bindings
 - Error handling pattern detection (`if err != nil`)
 - Package-level analysis
 
-### Go-Specific Analysis
-
-```bash
-# Analyze Go patterns
-drift go status
-
-# Find error handling gaps
-drift go errors
-
-# Analyze interfaces
-drift go interfaces
-```
+### File Extensions
+`.go`
 
 ---
 
 ## Rust
 
-### Frameworks
-- **Actix-web** — Routes, middleware, extractors
-- **Axum** — Routes, layers, extractors
-- **Rocket** — Routes, guards, fairings
-- **Warp** — Filters, routes, rejections
+### Quick Start
+```bash
+drift rust status            # Project overview
+drift rust routes            # HTTP routes
+drift rust errors            # Error handling
+drift rust traits            # Trait analysis
+drift rust data-access       # Database patterns
+drift rust async             # Async patterns
+```
+
+### Frameworks (4)
+| Framework | Detection Method |
+|-----------|------------------|
+| Actix Web | `#[actix_web::main]`, `#[get]`, `#[post]` |
+| Axum | `axum::Router`, `axum::extract` |
+| Rocket | `#[rocket::main]`, `#[get]`, `#[post]` |
+| Warp | `warp::Filter`, `warp::path` |
 
 ### ORMs & Data Access
-- **SQLx** — Queries, compile-time checking
-- **Diesel** — Schema, queries, associations
-- **SeaORM** — Entities, queries, relations
-- **tokio-postgres** — Async queries
-
-### File Extensions
-`.rs`
+| ORM | Detection | Patterns Detected |
+|-----|-----------|-------------------|
+| SQLx | `sqlx` | `sqlx::query!`, `sqlx::query_as!` |
+| Diesel | `diesel` | Schema macros, `QueryDsl` |
+| SeaORM | `sea-orm` | Entity definitions, queries |
 
 ### Features
 - Full AST parsing via Tree-sitter
@@ -227,36 +308,35 @@ drift go interfaces
 - Macro invocation tracking
 - Lifetime and generic analysis
 
-### Rust-Specific Analysis
-
-```bash
-# Analyze Rust patterns
-drift rust status
-
-# Find unsafe blocks
-drift rust unsafe
-
-# Analyze error handling
-drift rust errors
-```
+### File Extensions
+`.rs`
 
 ---
 
 ## C++
 
-### Frameworks
-- **Unreal Engine** — UObject, UClass, UFUNCTION macros
-- **Qt** — QObject, signals/slots, MOC
-- **Boost** — Beast (HTTP), Asio (async)
-- **STL** — Standard library patterns
+### Quick Start
+```bash
+drift cpp status             # Project overview
+drift cpp classes            # Class analysis
+drift cpp memory             # Memory management
+drift cpp templates          # Template analysis
+drift cpp virtual            # Virtual functions
+```
+
+### Frameworks (3)
+| Framework | Detection Method |
+|-----------|------------------|
+| Crow | `crow::SimpleApp`, `CROW_ROUTE` |
+| Boost.Beast | `boost::beast::http` |
+| Qt Network | `QNetworkAccessManager`, `QHttpServer` |
 
 ### ORMs & Data Access
-- **SQLite** — sqlite3 API, prepared statements
-- **ODBC** — Database connectivity
-- **Qt SQL** — QSqlDatabase, QSqlQuery
-
-### File Extensions
-`.cpp`, `.cc`, `.cxx`, `.c++`, `.hpp`, `.hh`, `.hxx`, `.h`, `.ipp`, `.tpp`
+| Library | Detection | Patterns Detected |
+|---------|-----------|-------------------|
+| SQLite | `sqlite3.h` | `sqlite3_prepare()`, `sqlite3_step()` |
+| ODBC | `sql.h` | `SQLConnect()`, `SQLExecDirect()` |
+| Qt SQL | `QSqlDatabase` | `QSqlQuery`, `QSqlDatabase::open()` |
 
 ### Features
 - Full AST parsing via Tree-sitter
@@ -267,24 +347,28 @@ drift rust errors
 - Preprocessor macro detection
 - Constructor/destructor tracking
 
-### C++-Specific Analysis
+### File Extensions
+`.cpp`, `.cc`, `.cxx`, `.c++`, `.hpp`, `.hh`, `.hxx`, `.h`, `.ipp`, `.tpp`
 
-```bash
-# Analyze C++ patterns
-drift cpp status
+---
 
-# Find memory issues
-drift cpp memory
+## C
 
-# Analyze templates
-drift cpp templates
-```
+### Features
+- Full AST parsing via Tree-sitter
+- Function signature extraction
+- Include analysis
+- Struct definitions
+- Preprocessor macro detection
+
+### File Extensions
+`.c`, `.h`
 
 ---
 
 ## How Parsing Works
 
-### Native Rust Parsing (v1.0+)
+### Native Rust Parsing
 
 Drift uses native Rust tree-sitter bindings for maximum performance:
 
@@ -295,25 +379,9 @@ Drift uses native Rust tree-sitter bindings for maximum performance:
 
 **Performance:** ~0.5ms per file (10x faster than WASM)
 
-Native tree-sitter provides:
-- Fast incremental parsing
-- Error recovery (partial parsing on syntax errors)
-- Language-agnostic queries
-- Consistent API across languages
-- No WASM overhead
-
-### Regex Fallback
-
-When Tree-sitter fails (rare), Drift falls back to regex extraction:
-
-- Catches common patterns
-- Lower accuracy but better than nothing
-- Useful for edge cases and malformed code
-- Confidence tracking distinguishes AST vs regex results
-
 ### Hybrid Extraction
 
-Drift combines both approaches:
+Drift combines AST parsing with regex fallback:
 
 ```
 Source Code
@@ -330,11 +398,6 @@ Source Code
 └────────┬────────┘
          │
          ↓
-┌─────────────────┐
-│  Hybrid Merger  │ ← Combines with confidence scores
-└────────┬────────┘
-         │
-         ↓
    Call Graph + Patterns
 ```
 
@@ -343,17 +406,14 @@ Source Code
 ## Checking Parser Status
 
 ```bash
-# Show parser status for all languages
+# Show parser status
 drift parser
 
 # Test parser functionality
 drift parser --test
-
-# Show detailed parser info
-drift parser --verbose
 ```
 
-Output:
+**Output:**
 ```
 Parser Status
 =============
@@ -366,6 +426,7 @@ C#:         ✅ Ready (tree-sitter-c-sharp)
 PHP:        ✅ Ready (tree-sitter-php)
 Go:         ✅ Ready (tree-sitter-go)
 Rust:       ✅ Ready (tree-sitter-rust)
+C:          ✅ Ready (tree-sitter-c)
 C++:        ✅ Ready (tree-sitter-cpp)
 ```
 
@@ -389,72 +450,19 @@ drift scan --include "**/*.ts" --include "**/*.py"
 ### Cross-Language Call Graph
 
 The call graph connects across languages when possible:
-
 - TypeScript frontend → Python API
 - Go service → Rust library
 - C# backend → C++ native module
 
-This enables:
-- Full data flow tracing across service boundaries
-- API contract verification between frontend and backend
-- Impact analysis across the entire stack
-
 ---
 
-## Adding Language Support
+## Summary
 
-Drift's architecture supports adding new languages:
+| Category | Count |
+|----------|-------|
+| **Languages** | 10 |
+| **Web Frameworks** | 21 |
+| **ORMs / Data Access** | 16 |
+| **Base Pattern Detectors** | 400+ |
 
-1. **Tree-sitter grammar** — Install the grammar package
-2. **Extractor** — Implement function/call extraction
-3. **Data access detector** — Implement ORM pattern detection
-4. **Test regex** — Add test file detection patterns
-5. **Framework detectors** — Add framework-specific patterns
-
-See `packages/core/src/call-graph/extractors/` for examples.
-
----
-
-## Language-Specific CLI & MCP Tools
-
-All 9 languages have dedicated CLI commands and MCP tools:
-
-| Language | CLI Command | MCP Tool | Actions |
-|----------|-------------|----------|---------|
-| TypeScript/JS | `drift ts` | `drift_typescript` | status, routes, components, hooks, errors, data-access, decorators |
-| Python | `drift py` | `drift_python` | status, routes, errors, data-access, decorators, async |
-| Java | `drift java` | `drift_java` | status, routes, errors, data-access, annotations |
-| PHP | `drift php` | `drift_php` | status, routes, errors, data-access, traits |
-| Go | `drift go` | `drift_go` | status, routes, errors, interfaces, data-access, goroutines |
-| Rust | `drift rust` | `drift_rust` | status, routes, errors, traits, data-access, async |
-| C++ | `drift cpp` | `drift_cpp` | status, classes, memory, templates, virtual |
-| WPF (C#) | `drift wpf` | `drift_wpf` | status, bindings, mvvm, datacontext, commands |
-
-### Examples
-
-```bash
-# TypeScript/JavaScript
-drift ts status              # Project overview
-drift ts routes              # HTTP routes (Express, NestJS, Next.js, Fastify)
-drift ts components          # React components
-drift ts hooks               # React hooks usage
-drift ts data-access         # Database patterns (Prisma, TypeORM, etc.)
-
-# Python
-drift py status              # Project overview
-drift py routes              # HTTP routes (Flask, FastAPI, Django)
-drift py decorators          # Decorator usage
-drift py async               # Async patterns
-
-# Java
-drift java status            # Project overview
-drift java routes            # HTTP routes (Spring, JAX-RS, Micronaut)
-drift java annotations       # Annotation usage
-
-# PHP
-drift php status             # Project overview
-drift php routes             # HTTP routes (Laravel, Symfony)
-drift php traits             # Trait definitions and usage
-```
-
-These provide language-specific analysis beyond the general tools.
+→ [Full Framework List](https://github.com/dadbodgeoff/drift/blob/main/SUPPORTED_LANGUAGES_FRAMEWORKS.md)

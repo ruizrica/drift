@@ -62,6 +62,14 @@
 - [FAQ](FAQ)
 - [Troubleshooting](Troubleshooting)
 
+## 📊 Stats (v0.9.40)
+- 10 Languages
+- 21 Frameworks
+- 16 ORMs
+- 400+ Detectors
+- 50 MCP Tools
+- 45+ CLI Commands
+
 ## 🔗 Links
 - [GitHub](https://github.com/dadbodgeoff/drift)
 - [npm](https://www.npmjs.com/package/driftdetect)
