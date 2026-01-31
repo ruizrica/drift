@@ -2,6 +2,30 @@
 
 Drift can mine architectural decisions from your git history and generate Architecture Decision Records (ADRs) automatically.
 
+> **Note:** Decision Mining is currently available via the MCP tool `drift_decisions`. The CLI command `drift decisions` is planned for a future release.
+
+---
+
+## ⚡ Quick Start (MCP)
+
+Use the `drift_decisions` MCP tool to mine and query decisions:
+
+```json
+// Mine decisions from git history
+{ "action": "mine" }
+
+// List all decisions
+{ "action": "list" }
+
+// Get decision details
+{ "action": "get", "id": "ADR-001" }
+
+// Search decisions
+{ "action": "search", "query": "redis caching" }
+```
+
+---
+
 ## What is Decision Mining?
 
 Decision Mining analyzes your git commits to discover implicit architectural decisions:
@@ -50,7 +74,22 @@ Git History
 
 ## Mining Decisions
 
-### Run Decision Mining
+> **Note:** The CLI commands below are planned for a future release. Currently, use the MCP tool `drift_decisions` instead.
+
+### Via MCP Tool (Available Now)
+
+```json
+// Mine decisions
+{ "action": "mine" }
+
+// Mine with date range
+{ "action": "mine", "since": "2024-01-01", "until": "2024-06-30" }
+
+// Mine with confidence threshold
+{ "action": "mine", "minConfidence": 0.7 }
+```
+
+### Via CLI (Planned)
 
 ```bash
 drift decisions mine

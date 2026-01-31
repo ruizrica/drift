@@ -1,92 +1,115 @@
 # Getting Started
 
-Get Drift running in your project in under 5 minutes.
+Get Drift running and understanding your codebase in under 5 minutes.
 
 ---
 
-## ⚡ Quick Start
+## ⚡ Quick Start (30 Seconds)
 
 ```bash
-# Install
+# Install globally
 npm install -g driftdetect
 
-# In your project
+# Initialize and scan your project
 cd your-project
 drift init
 drift scan
 
-# See results
+# See what Drift discovered
 drift status
 ```
 
-**Done!** Drift now understands your codebase.
+**That's it.** Drift now understands your codebase patterns, conventions, and architecture.
 
 ---
 
-## Prerequisites
+## 📋 Prerequisites
 
-- **Node.js 18+** — [Download here](https://nodejs.org/)
-- **npm** — Comes with Node.js
+| Requirement | Version | Check Command |
+|-------------|---------|---------------|
+| Node.js | 18.0.0+ | `node --version` |
+| npm | 9.0.0+ | `npm --version` |
+| pnpm (optional) | 8.0.0+ | `pnpm --version` |
 
-Check your versions:
 ```bash
+# Verify your environment
 node --version   # Should show v18.x.x or higher
 npm --version    # Should show 9.x.x or higher
 ```
 
 ---
 
-## Installation
+## 🔧 Installation Options
 
-### Global Install (Recommended)
+### Option 1: Global Install (Recommended)
 
 ```bash
-# CLI (provides the 'drift' command)
+# CLI tool (provides the 'drift' command)
 npm install -g driftdetect
 
-# MCP server (for AI integration)
+# MCP server (for AI agent integration)
 npm install -g driftdetect-mcp
-```
 
-### Project Install
-
-```bash
-npm install --save-dev driftdetect driftdetect-mcp
-```
-
-### Verify Installation
-
-```bash
+# Verify installation
 drift --version
-# driftdetect v0.9.40
+# Output: driftdetect v0.9.40
+```
+
+### Option 2: Project-Local Install
+
+```bash
+# Add as dev dependencies
+npm install --save-dev driftdetect driftdetect-mcp
+
+# Run via npx
+npx drift --version
+```
+
+### Option 3: From Source (Development)
+
+```bash
+git clone https://github.com/dadbodgeoff/drift.git
+cd drift
+pnpm install
+pnpm build
+
+# Run locally
+node packages/cli/dist/bin/drift.js --version
 ```
 
 ---
 
-## Initialize Your Project
+## 🚀 Initialize Your Project
 
 ```bash
 cd your-project
 drift init
 ```
 
-This creates the `.drift/` directory:
+This creates the `.drift/` directory structure:
 
 ```
 .drift/
-├── config.json          # Project configuration
-├── patterns/            # Pattern storage
-│   ├── discovered/      # Auto-discovered patterns
-│   ├── approved/        # Patterns you've approved
-│   └── ignored/         # Patterns you've ignored
-├── lake/                # Analysis data (call graph, etc.)
-├── cache/               # Analysis cache
-└── history/             # Historical snapshots
+├── config.json              # Project configuration
+├── manifest.json            # Analysis manifest
+├── patterns/
+│   ├── discovered/          # Auto-discovered patterns
+│   ├── approved/            # Patterns you've approved
+│   └── ignored/             # Patterns you've ignored
+├── lake/                    # Analysis data lake
+│   ├── callgraph/           # Function call relationships
+│   ├── patterns/            # Pattern instances
+│   └── security/            # Security analysis data
+├── indexes/                 # Fast lookup indexes
+├── cache/                   # Analysis cache
+├── history/                 # Historical snapshots
+└── memory/                  # Cortex memory database (if initialized)
 ```
 
-**Add to `.gitignore`:**
-```
-# Drift: ignore caches and temporary data
+### Recommended .gitignore Additions
+
+```gitignore
+# Drift: Commit approved patterns, ignore transient data
 .drift/lake/
 .drift/cache/
 .drift/history/
@@ -94,98 +117,188 @@ This creates the `.drift/` directory:
 .drift/patterns/discovered/
 .drift/patterns/ignored/
 .drift/patterns/variants/
+.drift/indexes/
+.drift/memory/
+
+# Keep these in version control:
+# .drift/config.json
+# .drift/patterns/approved/
+# .drift/constraints/approved/
 ```
 
 ---
 
-## Run Your First Scan
+## 🔍 Run Your First Scan
 
 ```bash
 drift scan
 ```
 
-Drift will:
-1. Detect languages and frameworks
-2. Parse all source files with Tree-sitter
-3. Build the call graph
-4. Run 400+ pattern detectors
-5. Store results in `.drift/`
+**What happens during a scan:**
+
+1. **Language Detection** — Identifies TypeScript, Python, Java, C#, PHP, Go, Rust, C++
+2. **Framework Detection** — Recognizes Express, NestJS, Spring Boot, Laravel, FastAPI, etc.
+3. **Tree-sitter Parsing** — Builds AST for all source files
+4. **Pattern Detection** — Runs 400+ detectors across 15 categories
+5. **Call Graph Building** — Maps function calls and data flow
+6. **Security Analysis** — Identifies sensitive data access patterns
+7. **Storage** — Persists results to `.drift/` directory
 
 **Example output:**
+
 ```
 🔍 Drift - Enterprise Pattern Scanner
 
-✓ Discovered 245 files
+✓ Discovered 1,245 files
 ✓ Loaded 156 detectors [4 worker threads]
-✓ Analyzed 245 files in 12.34s
+✓ Analyzed 1,245 files in 23.45s
 
 Patterns detected by category:
-  api: 47 occurrences
-  auth: 23 occurrences
-  errors: 56 occurrences
-  data-access: 31 occurrences
+  api:          147 occurrences
+  auth:          89 occurrences
+  errors:       234 occurrences
+  data-access:  156 occurrences
+  security:      78 occurrences
+  testing:      112 occurrences
 
-✓ Saved 89 new patterns
+✓ Saved 312 new patterns
+✓ Call graph: 2,847 functions, 8,234 call sites
+```
+
+### Scan Options
+
+```bash
+# Incremental scan (only changed files)
+drift scan --incremental
+
+# Generate manifest file
+drift scan --manifest
+
+# Include contract detection
+drift scan --contracts
+
+# Include boundary analysis
+drift scan --boundaries
+
+# Set timeout (milliseconds)
+drift scan --timeout 120000
 ```
 
 ---
 
-## Review What Drift Found
+## 📊 Review Results
+
+### Quick Status
 
 ```bash
 drift status
 ```
 
 **Example output:**
+
 ```
 🔍 Drift - Status
 
-Patterns: 127 total
-  Discovered: 127
-  Approved: 0
-  Ignored: 0
+✔ Patterns loaded
+
+Pattern Summary
+┌─────────────────────────┬───────────────┐
+│ Metric                  │         Count │
+├─────────────────────────┼───────────────┤
+│ Total Patterns          │           312 │
+│   Approved              │             0 │
+│   Discovered            │           312 │
+│   Ignored               │             0 │
+├─────────────────────────┼───────────────┤
+│ Total Violations        │             0 │
+└─────────────────────────┴───────────────┘
 
 Health Score: 85/100
 
-Languages: TypeScript, Python
-Frameworks: Express, Prisma
+By Category
+┌─────────────────────────┬────────────┬────────────┬────────────┐
+│ Category                │   Patterns │ Violations │   Coverage │
+├─────────────────────────┼────────────┼────────────┼────────────┤
+│ api                     │        147 │          0 │        88% │
+│ auth                    │         89 │          0 │        76% │
+│ errors                  │        234 │          0 │        75% │
+│ data-access             │        156 │          0 │        73% │
+└─────────────────────────┴────────────┴────────────┴────────────┘
 ```
 
-For more detail:
+### Detailed Status
+
 ```bash
 drift status --detailed
 ```
 
----
-
-## Approve Patterns
-
-Approve patterns that represent "how we do things":
+### Language-Specific Analysis
 
 ```bash
-# Approve a specific pattern
-drift approve api-rest-controller
+# TypeScript/JavaScript projects
+drift ts status
+drift ts routes          # List HTTP routes
+drift ts components      # List React components
+drift ts hooks           # Analyze React hooks
+
+# Python projects
+drift py status
+drift py routes          # List Flask/FastAPI/Django routes
+
+# Java projects
+drift java status
+drift java routes        # List Spring/JAX-RS routes
+
+# Other languages
+drift go status          # Go projects
+drift rust status        # Rust projects
+drift php status         # PHP/Laravel projects
+drift cpp status         # C++ projects
+drift wpf status         # WPF/C# projects
+```
+
+---
+
+## ✅ Approve Patterns
+
+Approved patterns become the "golden standard" for your project. AI agents and quality gates use approved patterns to ensure consistency.
+
+```bash
+# Approve a specific pattern by ID
+drift approve api-rest-controller-abc123
 
 # Approve all patterns in a category
 drift approve --category api
 
-# Approve high-confidence patterns automatically
+# Auto-approve high-confidence patterns (>95%)
 drift approve --auto
+
+# Skip confirmation prompts
+drift approve api-rest-controller-abc123 --yes
 ```
 
-Approved patterns become the "golden standard" for your project.
+### Finding Pattern IDs
+
+```bash
+# List patterns with IDs
+drift where --category api
+
+# Show patterns in a specific file
+drift files src/api/users.ts
+```
 
 ---
 
-## Connect to AI Agents
+## 🤖 Connect to AI Agents
 
-### Quick Setup
+### Quick MCP Setup
 
 ```bash
+# Install MCP server globally
 npm install -g driftdetect-mcp
 ```
 
-Add to your AI tool's config:
+Add to your AI tool's MCP configuration:
 
 ```json
 {
@@ -197,137 +310,121 @@ Add to your AI tool's config:
 }
 ```
 
-### Config File Locations
+### Configuration File Locations
 
-| AI Tool | Config File |
-|---------|-------------|
-| **Claude Desktop** | `~/Library/Application Support/Claude/claude_desktop_config.json` (Mac) |
-| **Cursor** | `.cursor/mcp.json` in your project |
+| AI Tool | Config File Location |
+|---------|---------------------|
+| **Claude Desktop (Mac)** | `~/Library/Application Support/Claude/claude_desktop_config.json` |
+| **Claude Desktop (Windows)** | `%APPDATA%\Claude\claude_desktop_config.json` |
+| **Cursor** | `.cursor/mcp.json` (project root) |
 | **Windsurf** | Settings → MCP Servers |
-| **Kiro** | `.kiro/settings/mcp.json` in your project |
-| **VS Code** | `.vscode/mcp.json` in your project |
+| **Kiro** | `.kiro/settings/mcp.json` (project root) |
+| **VS Code** | `.vscode/mcp.json` (project root) |
 
 → [Full MCP Setup Guide](MCP-Setup)
 
 ---
 
-## What's Next?
+## 🧠 Initialize Memory System (Optional)
 
-### Explore Your Codebase
+Replace static `AGENTS.md` files with living memory:
 
 ```bash
-# See patterns in a specific file
-drift files src/api/users.ts
+# Initialize Cortex memory
+drift memory init
 
-# Find where a pattern is used
-drift where api-rest-controller
+# Add institutional knowledge
+drift memory add tribal "Always use bcrypt for passwords" --importance critical
+drift memory add tribal "Services should not call controllers" --topic Architecture
 
-# Check call graph status
-drift callgraph status
+# Check memory status
+drift memory status
 ```
 
-### Language-Specific Analysis
+→ [Cortex V2 Overview](Cortex-V2-Overview) | [Memory CLI Reference](Memory-CLI)
+
+---
+
+## 📈 Build Analysis Data
+
+For deeper analysis capabilities, build additional data structures:
 
 ```bash
-# TypeScript/JavaScript
-drift ts status
-drift ts routes
-drift ts components
-
-# Python
-drift py status
-drift py routes
-
-# Java
-drift java status
-drift java routes
-
-# And more: drift go, drift rust, drift cpp, drift php, drift wpf
-```
-
-### Build Analysis Data
-
-```bash
-# Build call graph (for data flow analysis)
+# Build call graph (required for impact analysis)
 drift callgraph build
 
-# Build test topology (for coverage analysis)
+# Build test topology (required for coverage analysis)
 drift test-topology build
 
-# Build coupling graph (for dependency analysis)
+# Build coupling graph (required for dependency analysis)
 drift coupling build
-```
-
-### Get Recommendations
-
-```bash
-# What should I do next?
-drift next-steps
-
-# Diagnose issues
-drift troubleshoot
 ```
 
 ---
 
-## Typical Workflow
+## 🔄 Typical Workflows
 
 ### Daily Development
 
 ```bash
-# Before starting work
+# Morning: Check project status
 drift status
 
-# After making changes
+# Before committing: Check staged files
 drift check --staged
 
-# Before committing
+# Before PR: Run quality gates
 drift gate
 ```
 
 ### Code Review
 
 ```bash
-# Check impact of changes
+# Understand impact of changes
 drift callgraph reach src/api/users.ts
 
 # Find affected tests
 drift test-topology affected src/api/users.ts
 
-# Run quality gates
+# Run strict quality gates
 drift gate --policy strict
 ```
 
-### Onboarding
+### Onboarding New Team Members
 
 ```bash
 # Understand the codebase
 drift status --detailed
+
+# See API routes
 drift ts routes
+
+# See data access patterns
 drift boundaries overview
 
-# Find patterns for a feature area
-drift where --category auth
-drift files src/auth/
+# Get context for a feature area
+drift memory why "authentication"
 ```
 
 ---
 
-## Configuration
+## ⚙️ Configuration
 
-Edit `.drift/config.json` to customize:
+Edit `.drift/config.json` to customize behavior:
 
 ```json
 {
   "version": "2.0.0",
   "project": {
-    "id": "uuid",
+    "id": "uuid-here",
     "name": "my-project"
   },
   "ignore": [
     "node_modules/**",
     "dist/**",
-    "**/*.test.ts"
+    "build/**",
+    "**/*.test.ts",
+    "**/*.spec.ts"
   ],
   "learning": {
     "autoApproveThreshold": 0.95,
@@ -336,7 +433,12 @@ Edit `.drift/config.json` to customize:
   "features": {
     "callGraph": true,
     "boundaries": true,
-    "contracts": true
+    "contracts": true,
+    "testTopology": true
+  },
+  "scan": {
+    "timeout": 120000,
+    "workers": 4
   }
 }
 ```
@@ -345,49 +447,90 @@ Edit `.drift/config.json` to customize:
 
 ---
 
-## Troubleshooting
+## 🔧 Troubleshooting
 
-### Scan is slow
+### Common Issues
+
+```bash
+# Diagnose issues automatically
+drift troubleshoot
+
+# Get personalized recommendations
+drift next-steps
+```
+
+### Scan is Slow
 
 ```bash
 # Use incremental scanning
 drift scan --incremental
 
 # Increase timeout
-drift scan --timeout 600
+drift scan --timeout 300000
+
+# Check what's being scanned
+drift troubleshoot -v
 ```
 
-### No patterns found
+### No Patterns Found
 
 ```bash
 # Check if files are being ignored
 drift troubleshoot
 
-# Force rescan
+# Force full rescan
 drift scan --force
+
+# Check parser status
+drift parser
 ```
 
-### MCP not connecting
+### MCP Not Connecting
 
 ```bash
-# Check MCP server
-drift troubleshoot
-
-# Test MCP manually
+# Test MCP server directly
 driftdetect-mcp --verbose
+
+# Check configuration
+drift troubleshoot
 ```
 
 → [Full Troubleshooting Guide](Troubleshooting)
 
 ---
 
-## Upgrade
+## 🔄 Upgrading
 
 ```bash
-# Upgrade to latest
+# Upgrade to latest version
 npm install -g driftdetect@latest driftdetect-mcp@latest
 
-# Check versions
+# Verify versions
 drift --version
 driftdetect-mcp --version
+
+# Check for storage migrations
+drift migrate-storage status
 ```
+
+---
+
+## 📚 Next Steps
+
+| Goal | Command | Documentation |
+|------|---------|---------------|
+| Connect AI agents | `npm install -g driftdetect-mcp` | [MCP Setup](MCP-Setup) |
+| Add team knowledge | `drift memory init` | [Memory CLI](Memory-CLI) |
+| Analyze call graph | `drift callgraph build` | [Call Graph Analysis](Call-Graph-Analysis) |
+| Set up CI/CD | `drift gate --ci` | [Quality Gates](Quality-Gates) |
+| Explore patterns | `drift where --category api` | [Pattern Categories](Pattern-Categories) |
+
+---
+
+## 🔗 Related Documentation
+
+- [Home](Home) — Project overview
+- [Configuration](Configuration) — Full configuration reference
+- [CLI Reference](CLI-Reference) — All 60+ CLI commands
+- [MCP Tools Reference](MCP-Tools-Reference) — All 50+ MCP tools
+- [Architecture](Architecture) — How Drift works under the hood
