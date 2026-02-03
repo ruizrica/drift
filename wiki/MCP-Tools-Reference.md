@@ -271,6 +271,139 @@ Manage registered projects for multi-project workflows.
 
 **Actions:** `list`, `info`, `switch`, `recent`, `register`
 
+### `drift_setup`
+
+Initialize and configure drift for a project.
+
+```json
+{
+  "action": "status"
+}
+```
+
+**Actions:** `status`, `init`, `scan`, `callgraph`, `full`
+
+### `drift_telemetry`
+
+Manage telemetry settings. Telemetry helps improve pattern detection by sharing anonymized data (no source code is ever sent).
+
+```json
+{
+  "action": "status"
+}
+```
+
+**Actions:**
+- `status` — Check current telemetry settings
+- `enable` — Enable telemetry (opt-in to help improve Drift)
+- `disable` — Disable telemetry
+
+**Privacy Guarantees:**
+- No source code is ever sent
+- Only pattern signatures (SHA-256 hashes), categories, and confidence scores
+- Aggregate statistics (pattern counts, languages detected)
+- Anonymous installation ID (UUID, not tied to identity)
+
+**Returns:**
+
+```json
+{
+  "success": true,
+  "enabled": true,
+  "config": {
+    "sharePatternSignatures": true,
+    "shareAggregateStats": true,
+    "shareUserActions": false,
+    "installationId": "uuid-here",
+    "enabledAt": "2026-02-03T12:00:00Z"
+  },
+  "message": "Telemetry enabled. Thank you for helping improve Drift!"
+}
+```
+
+### `drift_curate`
+
+Curate patterns: approve, ignore, or review with mandatory verification. Prevents AI hallucination through grep-based evidence checking.
+
+```json
+{
+  "action": "review",
+  "category": "api",
+  "minConfidence": 0.7
+}
+```
+
+**Actions:**
+- `review` — Get patterns pending review with evidence requirements
+- `verify` — Verify a pattern exists (REQUIRED before approve for non-high-confidence)
+- `approve` — Approve a verified pattern
+- `ignore` — Ignore a pattern with reason
+- `bulk_approve` — Auto-approve patterns with confidence >= 0.95
+- `audit` — View curation decision history
+
+**Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `action` | enum | Yes | Action to perform |
+| `patternId` | string | For verify/approve/ignore | Pattern ID to act on |
+| `category` | string | No | Filter by pattern category |
+| `minConfidence` | number | No | Minimum confidence filter |
+| `maxConfidence` | number | No | Maximum confidence filter |
+| `limit` | number | No | Max patterns to return (default: 20) |
+| `evidence` | object | For verify/approve | Evidence for verification |
+| `ignoreReason` | string | For ignore | Why ignoring (required) |
+| `approvedBy` | string | No | Who approved |
+| `confidenceThreshold` | number | No | Min confidence for bulk_approve (default: 0.95) |
+| `dryRun` | boolean | No | Preview bulk_approve without changes |
+
+**Evidence Requirements (by confidence level):**
+- High (>=0.85): 1 file, no snippet required
+- Medium (>=0.65): 2 files, snippets required
+- Low (>=0.45): 3 files, snippets required
+- Uncertain (<0.45): 5 files, snippets required
+
+**Workflow:**
+1. Use `action="review"` to see pending patterns
+2. For each pattern, grep the codebase to find evidence
+3. Use `action="verify"` with evidence to validate
+4. If verified, use `action="approve"` to approve
+
+**Example - Review patterns:**
+
+```json
+{
+  "action": "review",
+  "category": "api",
+  "minConfidence": 0.7,
+  "limit": 10
+}
+```
+
+**Example - Verify with evidence:**
+
+```json
+{
+  "action": "verify",
+  "patternId": "api-rest-controller",
+  "evidence": {
+    "files": ["src/api/users.ts", "src/api/posts.ts"],
+    "snippets": ["export class UsersController", "export class PostsController"],
+    "reasoning": "Found consistent controller pattern across API files"
+  }
+}
+```
+
+**Example - Bulk approve high-confidence:**
+
+```json
+{
+  "action": "bulk_approve",
+  "confidenceThreshold": 0.95,
+  "dryRun": true
+}
+```
+
 ---
 
 ## Layer 3: Surgical Tools
