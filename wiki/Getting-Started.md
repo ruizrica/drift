@@ -64,7 +64,6 @@ npm install -g driftdetect-mcp
 
 # Verify installation
 drift --version
-# Output: driftdetect v0.9.40
 ```
 
 ### Option 2: Project-Local Install
@@ -122,13 +121,11 @@ This creates the `.drift/` directory structure:
 │   ├── approved/            # Patterns you've approved
 │   └── ignored/             # Patterns you've ignored
 ├── lake/                    # Analysis data lake
-│   ├── callgraph/           # Function call relationships
-│   ├── patterns/            # Pattern instances
-│   └── security/            # Security analysis data
 ├── indexes/                 # Fast lookup indexes
 ├── cache/                   # Analysis cache
 ├── history/                 # Historical snapshots
 └── memory/                  # Cortex memory database (if initialized)
+    └── cortex.db
 ```
 
 ### Recommended .gitignore Additions
@@ -190,25 +187,6 @@ Patterns detected by category:
 ✓ Call graph: 2,847 functions, 8,234 call sites
 ```
 
-### Scan Options
-
-```bash
-# Incremental scan (only changed files)
-drift scan --incremental
-
-# Generate manifest file
-drift scan --manifest
-
-# Include contract detection
-drift scan --contracts
-
-# Include boundary analysis
-drift scan --boundaries
-
-# Set timeout (milliseconds)
-drift scan --timeout 120000
-```
-
 ---
 
 ## 📊 Review Results
@@ -217,38 +195,6 @@ drift scan --timeout 120000
 
 ```bash
 drift status
-```
-
-**Example output:**
-
-```
-🔍 Drift - Status
-
-✔ Patterns loaded
-
-Pattern Summary
-┌─────────────────────────┬───────────────┐
-│ Metric                  │         Count │
-├─────────────────────────┼───────────────┤
-│ Total Patterns          │           312 │
-│   Approved              │             0 │
-│   Discovered            │           312 │
-│   Ignored               │             0 │
-├─────────────────────────┼───────────────┤
-│ Total Violations        │             0 │
-└─────────────────────────┴───────────────┘
-
-Health Score: 85/100
-
-By Category
-┌─────────────────────────┬────────────┬────────────┬────────────┐
-│ Category                │   Patterns │ Violations │   Coverage │
-├─────────────────────────┼────────────┼────────────┼────────────┤
-│ api                     │        147 │          0 │        88% │
-│ auth                    │         89 │          0 │        76% │
-│ errors                  │        234 │          0 │        75% │
-│ data-access             │        156 │          0 │        73% │
-└─────────────────────────┴────────────┴────────────┴────────────┘
 ```
 
 ### Detailed Status
@@ -264,7 +210,6 @@ drift status --detailed
 drift ts status
 drift ts routes          # List HTTP routes
 drift ts components      # List React components
-drift ts hooks           # Analyze React hooks
 
 # Python projects
 drift py status
@@ -278,15 +223,13 @@ drift java routes        # List Spring/JAX-RS routes
 drift go status          # Go projects
 drift rust status        # Rust projects
 drift php status         # PHP/Laravel projects
-drift cpp status         # C++ projects
-drift wpf status         # WPF/C# projects
 ```
 
 ---
 
 ## ✅ Approve Patterns
 
-Approved patterns become the "golden standard" for your project. AI agents and quality gates use approved patterns to ensure consistency.
+Approved patterns become the "golden standard" for your project.
 
 ```bash
 # Approve a specific pattern by ID
@@ -297,19 +240,6 @@ drift approve --category api
 
 # Auto-approve high-confidence patterns (>95%)
 drift approve --auto
-
-# Skip confirmation prompts
-drift approve api-rest-controller-abc123 --yes
-```
-
-### Finding Pattern IDs
-
-```bash
-# List patterns with IDs
-drift where --category api
-
-# Show patterns in a specific file
-drift files src/api/users.ts
 ```
 
 ---
@@ -350,9 +280,27 @@ Add to your AI tool's MCP configuration:
 
 ---
 
-## 🧠 Initialize Memory System (Optional)
+## 🧠 Initialize Memory System (Recommended)
 
-Replace static `AGENTS.md` files with living memory:
+Replace static `AGENTS.md` files with living memory using the **interactive setup wizard**:
+
+```bash
+# Run the setup wizard (recommended)
+drift memory setup
+```
+
+The wizard walks you through 7 optional sections:
+1. **Core Identity** — Project name, tech stack, preferences
+2. **Tribal Knowledge** — Gotchas, warnings, institutional knowledge
+3. **Workflows** — Deploy, code review, release processes
+4. **Agent Spawns** — Reusable agent configurations
+5. **Entities** — Projects, teams, services
+6. **Skills** — Knowledge domains and proficiency
+7. **Environments** — Production, staging, dev configs
+
+All sections are optional — skip any with 'n'.
+
+**Or initialize manually:**
 
 ```bash
 # Initialize Cortex memory
@@ -366,7 +314,7 @@ drift memory add tribal "Services should not call controllers" --topic Architect
 drift memory status
 ```
 
-→ [Cortex V2 Overview](Cortex-V2-Overview) | [Memory CLI Reference](Memory-CLI)
+→ [Memory Setup Wizard](Cortex-Memory-Setup) | [Cortex V2 Overview](Cortex-V2-Overview) | [Memory CLI Reference](Memory-CLI)
 
 ---
 
@@ -395,6 +343,9 @@ drift coupling build
 # Morning: Check project status
 drift status
 
+# Get context for your task
+drift memory why "authentication" --intent add_feature
+
 # Before committing: Check staged files
 drift check --staged
 
@@ -421,11 +372,11 @@ drift gate --policy strict
 # Understand the codebase
 drift status --detailed
 
-# See API routes
-drift ts routes
+# See tribal knowledge
+drift memory list --type tribal --importance high
 
-# See data access patterns
-drift boundaries overview
+# See active warnings
+drift memory warnings
 
 # Get context for a feature area
 drift memory why "authentication"
@@ -448,8 +399,7 @@ Edit `.drift/config.json` to customize behavior:
     "node_modules/**",
     "dist/**",
     "build/**",
-    "**/*.test.ts",
-    "**/*.spec.ts"
+    "**/*.test.ts"
   ],
   "learning": {
     "autoApproveThreshold": 0.95,
@@ -460,10 +410,6 @@ Edit `.drift/config.json` to customize behavior:
     "boundaries": true,
     "contracts": true,
     "testTopology": true
-  },
-  "scan": {
-    "timeout": 120000,
-    "workers": 4
   }
 }
 ```
@@ -492,9 +438,6 @@ drift scan --incremental
 
 # Increase timeout
 drift scan --timeout 300000
-
-# Check what's being scanned
-drift troubleshoot -v
 ```
 
 ### No Patterns Found
@@ -505,19 +448,6 @@ drift troubleshoot
 
 # Force full rescan
 drift scan --force
-
-# Check parser status
-drift parser
-```
-
-### MCP Not Connecting
-
-```bash
-# Test MCP server directly
-driftdetect-mcp --verbose
-
-# Check configuration
-drift troubleshoot
 ```
 
 → [Full Troubleshooting Guide](Troubleshooting)
@@ -533,9 +463,6 @@ npm install -g driftdetect@latest driftdetect-mcp@latest
 # Verify versions
 drift --version
 driftdetect-mcp --version
-
-# Check for storage migrations
-drift migrate-storage status
 ```
 
 ---
@@ -544,8 +471,8 @@ drift migrate-storage status
 
 | Goal | Command | Documentation |
 |------|---------|---------------|
+| Set up AI memory | `drift memory setup` | [Memory Setup Wizard](Cortex-Memory-Setup) |
 | Connect AI agents | `npm install -g driftdetect-mcp` | [MCP Setup](MCP-Setup) |
-| Add team knowledge | `drift memory init` | [Memory CLI](Memory-CLI) |
 | Analyze call graph | `drift callgraph build` | [Call Graph Analysis](Call-Graph-Analysis) |
 | Set up CI/CD | `drift gate --ci` | [Quality Gates](Quality-Gates) |
 | Explore patterns | `drift where --category api` | [Pattern Categories](Pattern-Categories) |
@@ -558,4 +485,5 @@ drift migrate-storage status
 - [Configuration](Configuration) — Full configuration reference
 - [CLI Reference](CLI-Reference) — All 60+ CLI commands
 - [MCP Tools Reference](MCP-Tools-Reference) — All 50+ MCP tools
+- [Cortex V2 Overview](Cortex-V2-Overview) — Memory system architecture
 - [Architecture](Architecture) — How Drift works under the hood

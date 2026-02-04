@@ -7,7 +7,10 @@ Cortex V2 is Drift's intelligent memory system — a living knowledge base that 
 ## ⚡ Quick Start (30 Seconds)
 
 ```bash
-# Initialize memory system
+# Run the interactive setup wizard (recommended)
+drift memory setup
+
+# Or initialize manually
 drift memory init
 
 # Add institutional knowledge
@@ -31,6 +34,8 @@ Cortex V2 replaces static `AGENTS.md` files with a dynamic memory system that:
 3. **Retrieves intelligently** — Returns context based on intent and focus
 4. **Validates automatically** — Identifies stale or conflicting memories
 5. **Compresses efficiently** — Minimizes token usage with hierarchical compression
+6. **Detects contradictions** — Identifies and resolves conflicting information
+7. **Tracks causality** — Understands "why" decisions were made
 
 ### Why Replace AGENTS.md?
 
@@ -46,13 +51,12 @@ Cortex V2 replaces static `AGENTS.md` files with a dynamic memory system that:
 ### Migration from AGENTS.md
 
 ```bash
-# 1. Initialize Cortex
-drift memory init
+# 1. Run the setup wizard
+drift memory setup
 
-# 2. Add your key knowledge
+# 2. Or add knowledge manually
 drift memory add tribal "Always use bcrypt for passwords" --importance critical
 drift memory add tribal "Services should not call controllers directly" --topic Architecture
-drift memory add procedural "Deploy: 1) Run tests 2) Build 3) Push to main" --topic Deployment
 
 # 3. Delete your AGENTS.md
 rm AGENTS.md  # 🎉
@@ -63,21 +67,47 @@ drift memory why "authentication"
 
 ---
 
-## 🧠 Memory Types
+## 🧠 Memory Types (23 Total)
 
-Cortex supports 9 memory types, each with different decay characteristics:
+Cortex V2 supports **23 memory types** across three categories:
 
-| Type | Icon | Description | Half-Life | Use Case |
-|------|------|-------------|-----------|----------|
-| `core` | 🏠 | Project identity | ∞ (never) | Project name, tech stack |
-| `tribal` | ⚠️ | Institutional knowledge | 365 days | "Never use MD5", gotchas |
-| `procedural` | 📋 | How-to knowledge | 180 days | Deploy process, checklists |
-| `semantic` | 💡 | Consolidated knowledge | 90 days | Auto-generated summaries |
-| `episodic` | 💭 | Interaction records | 7 days | Raw material for consolidation |
-| `pattern_rationale` | 🎯 | Why patterns exist | 180 days | "Repository pattern for testability" |
-| `constraint_override` | ✅ | Approved exceptions | 90 days | "Allow direct DB in migrations" |
-| `decision_context` | 📝 | Architectural decisions | 180 days | "Chose PostgreSQL for ACID" |
-| `code_smell` | 🚫 | Anti-patterns | 90 days | "Avoid any type in TypeScript" |
+### Domain-Agnostic Types (9)
+
+| Type | Icon | Half-Life | Purpose |
+|------|------|-----------|---------|
+| `core` | 🏠 | ∞ (never) | Project identity, preferences, critical constraints |
+| `tribal` | ⚠️ | 365 days | Institutional knowledge, gotchas, warnings |
+| `procedural` | 📋 | 180 days | How-to knowledge, step-by-step procedures |
+| `semantic` | 💡 | 90 days | Consolidated knowledge from episodic memories |
+| `episodic` | 💭 | 7 days | Raw interaction records (auto-consolidated) |
+| `decision` | ⚖️ | 180 days | Standalone decisions with context |
+| `insight` | 💎 | 90 days | Learned observations and discoveries |
+| `reference` | 📚 | 60 days | External references and documentation |
+| `preference` | ⭐ | 120 days | User/team preferences |
+
+### Code-Specific Types (4)
+
+| Type | Icon | Half-Life | Purpose |
+|------|------|-----------|---------|
+| `pattern_rationale` | 🎯 | 180 days | Why patterns exist in the codebase |
+| `constraint_override` | ✅ | 90 days | Approved exceptions to constraints |
+| `decision_context` | 📝 | 180 days | Human context for architectural decisions |
+| `code_smell` | 🚫 | 90 days | Anti-patterns to avoid |
+
+### Universal Memory Types (10) — NEW in V2
+
+| Type | Icon | Half-Life | Purpose |
+|------|------|-----------|---------|
+| `agent_spawn` | 🤖 | 365 days | Reusable agent configurations |
+| `entity` | 📦 | 180 days | Projects, products, teams, systems |
+| `goal` | 🎯 | 90 days | Objectives with progress tracking |
+| `feedback` | 📝 | 120 days | Corrections and learning signals |
+| `workflow` | 📋 | 180 days | Step-by-step processes |
+| `conversation` | 💬 | 30 days | Summarized past discussions |
+| `incident` | 🚨 | 365 days | Postmortems and lessons learned |
+| `meeting` | 📅 | 60 days | Meeting notes and action items |
+| `skill` | 🧠 | 180 days | Knowledge domains and proficiency |
+| `environment` | 🌍 | 90 days | Environment configurations |
 
 ### Half-Life Decay
 
@@ -96,63 +126,74 @@ Usage boosts confidence — frequently accessed memories decay slower.
 ## 🏗️ Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                         Cortex V2                                │
-├─────────────────────────────────────────────────────────────────┤
-│  ┌─────────────────┐  ┌─────────────────┐  ┌──────────────────┐ │
-│  │   Retrieval     │  │    Learning     │  │   Generation     │ │
-│  │  Orchestrator   │  │  Orchestrator   │  │  Orchestrator    │ │
-│  │                 │  │                 │  │                  │ │
-│  │ • Intent-aware  │  │ • Correction    │  │ • Code context   │ │
-│  │ • Compression   │  │   extraction    │  │ • Provenance     │ │
-│  │ • Ranking       │  │ • Fact mining   │  │ • Validation     │ │
-│  │ • Deduplication │  │ • Confidence    │  │ • Feedback       │ │
-│  └────────┬────────┘  └────────┬────────┘  └────────┬─────────┘ │
-│           │                    │                     │           │
-│  ┌────────┴────────────────────┴─────────────────────┴─────────┐ │
-│  │                      Core Services                           │ │
-│  │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────────┐ │ │
-│  │  │ Storage  │  │  Causal  │  │  Decay   │  │ Consolidation│ │ │
-│  │  │ (SQLite) │  │  Graph   │  │Calculator│  │    Engine    │ │ │
-│  │  └──────────┘  └──────────┘  └──────────┘  └──────────────┘ │ │
-│  │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────────┐ │ │
-│  │  │Embedding │  │ Session  │  │Prediction│  │  Validation  │ │ │
-│  │  │ Provider │  │ Context  │  │  Cache   │  │    Engine    │ │ │
-│  │  └──────────┘  └──────────┘  └──────────┘  └──────────────┘ │ │
-│  └──────────────────────────────────────────────────────────────┘ │
-└─────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────┐
+│                         CORTEX V2                                    │
+├─────────────────────────────────────────────────────────────────────┤
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐ │
+│  │  Storage    │  │ Embeddings  │  │  Retrieval  │  │Consolidation│ │
+│  │  (SQLite)   │  │ (Local/API) │  │   Engine    │  │   Engine    │ │
+│  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘ │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐ │
+│  │ Validation  │  │   Decay     │  │Contradiction│  │   Causal    │ │
+│  │   Engine    │  │ Calculator  │  │  Detector   │  │   Graph     │ │
+│  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘ │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐ │
+│  │  Learning   │  │ Prediction  │  │ Generation  │  │   Session   │ │
+│  │Orchestrator │  │   Engine    │  │Orchestrator │  │   Manager   │ │
+│  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘ │
+└─────────────────────────────────────────────────────────────────────┘
                               │
                               ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                   SQLite Storage Backend                         │
-│                  .drift/memory/cortex.db                         │
-│                                                                  │
-│  Tables: memories, causal_links, embeddings, sessions,           │
-│          predictions, validation_history, consolidation_log      │
-└─────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────┐
+│                   SQLite Storage Backend                             │
+│                  .drift/memory/cortex.db                             │
+│                                                                      │
+│  Tables: memories, causal_links, embeddings, sessions,               │
+│          predictions, validation_history, consolidation_log          │
+└─────────────────────────────────────────────────────────────────────┘
 ```
 
 ### Component Responsibilities
 
 | Component | Responsibility |
 |-----------|----------------|
-| **Retrieval Orchestrator** | Intent-aware memory retrieval with compression and ranking |
-| **Learning Orchestrator** | Extracts knowledge from corrections and feedback |
-| **Generation Orchestrator** | Provides context for code generation with provenance |
-| **Storage** | SQLite-based persistence with full-text search |
-| **Causal Graph** | Tracks relationships between memories (derived_from, supersedes, etc.) |
-| **Decay Calculator** | Computes effective confidence based on age and usage |
+| **Storage** | SQLite-based persistence with sqlite-vec for vector search |
+| **Embeddings** | Generates embeddings (local Transformers.js, OpenAI, or Ollama) |
+| **Retrieval Engine** | Intent-aware memory retrieval with compression and ranking |
 | **Consolidation Engine** | Merges episodic memories into semantic knowledge |
-| **Embedding Provider** | Generates embeddings for semantic search (local or OpenAI) |
-| **Session Context** | Tracks what's been sent to avoid duplication |
-| **Prediction Cache** | Pre-fetches likely-needed memories |
 | **Validation Engine** | Identifies stale, conflicting, or invalid memories |
+| **Decay Calculator** | Computes effective confidence based on age and usage |
+| **Contradiction Detector** | Finds and resolves conflicting memories |
+| **Causal Graph** | Tracks relationships between memories (derived_from, supersedes, etc.) |
+| **Learning Orchestrator** | Extracts knowledge from corrections and feedback |
+| **Prediction Engine** | Pre-fetches likely-needed memories |
+| **Generation Orchestrator** | Provides context for code generation with provenance |
+| **Session Manager** | Tracks what's been sent to avoid duplication |
 
 ---
 
 ## 🎯 Key Features
 
-### 1. Causal Memory Graph
+### 1. Interactive Setup Wizard
+
+The easiest way to initialize Cortex:
+
+```bash
+drift memory setup
+```
+
+The wizard walks you through 7 optional sections:
+1. **Core Identity** — Project name, tech stack, preferences
+2. **Tribal Knowledge** — Gotchas, warnings, institutional knowledge
+3. **Workflows** — Deploy, code review, release processes
+4. **Agent Spawns** — Reusable agent configurations
+5. **Entities** — Projects, teams, services
+6. **Skills** — Knowledge domains and proficiency
+7. **Environments** — Production, staging, dev configs
+
+All sections are optional — skip any with 'n'.
+
+### 2. Causal Memory Graph
 
 Memories are linked with causal relationships:
 
@@ -175,31 +216,51 @@ Memories are linked with causal relationships:
 - `supersedes` — Memory replaces an older one
 - `supports` — Memory provides evidence for another
 - `contradicts` — Memory conflicts with another
-- `related_to` — General relationship
+- `owns` — Entity owns Entity/Goal/Workflow
+- `affects` — Incident affects Entity/Environment
+- `blocks` — Incident blocks Goal
+- `requires` — Workflow requires Skill/Environment
+- `learned_from` — Tribal learned from Incident
 
-### 2. Intent-Aware Retrieval
+### 3. Intent-Aware Retrieval
 
 Retrieval adapts based on what you're trying to do:
 
 | Intent | Prioritizes |
 |--------|-------------|
-| `add_feature` | Pattern rationales, procedural knowledge |
-| `fix_bug` | Code smells, tribal knowledge, error patterns |
+| `add_feature` | Pattern rationales, procedural knowledge, workflows |
+| `fix_bug` | Code smells, tribal knowledge, error patterns, incidents |
 | `refactor` | Structural patterns, coupling analysis |
 | `security_audit` | Security patterns, constraint overrides |
 | `understand_code` | Decision context, pattern rationales |
 | `add_test` | Test patterns, coverage requirements |
 
-### 3. Active Learning
+### 4. Contradiction Detection
+
+Cortex automatically detects conflicting memories:
+
+```typescript
+interface ContradictionResult {
+  type: ContradictionType;  // direct, temporal, scope, confidence
+  existingMemoryId: string;
+  similarity: number;
+  explanation: string;
+}
+```
+
+When contradictions are found:
+- Reduces confidence of older memory
+- Propagates confidence changes through relationship graph
+- Alerts you to resolve conflicts
+
+### 5. Active Learning
 
 Cortex learns from corrections automatically:
 
 ```bash
 # AI suggests using MD5
 # You correct it
-drift memory learn \
-  --original "Use MD5 for hashing" \
-  --feedback "MD5 is insecure. Use bcrypt instead."
+drift memory learn "Use bcrypt instead of MD5 for password hashing"
 
 # Cortex creates:
 # 1. New tribal memory: "Use bcrypt, not MD5"
@@ -207,7 +268,7 @@ drift memory learn \
 # 3. Causal link: correction → new memories
 ```
 
-### 4. Token Efficiency
+### 6. Token Efficiency
 
 Hierarchical compression minimizes token usage:
 
@@ -220,7 +281,7 @@ Hierarchical compression minimizes token usage:
 
 Session-based deduplication prevents sending the same memory twice.
 
-### 5. Automatic Consolidation
+### 7. Automatic Consolidation
 
 Episodic memories (7-day half-life) are automatically consolidated:
 
@@ -245,12 +306,24 @@ Episodic memories (7-day half-life) are automatically consolidated:
 ## 💻 CLI Commands
 
 ```bash
-# Initialize
-drift memory init
+# Setup
+drift memory setup              # Interactive wizard (recommended)
+drift memory init               # Initialize memory system
 
 # Add memories
-drift memory add tribal "Always use bcrypt" --importance critical
+drift memory add tribal "..." --importance critical
 drift memory add procedural "Deploy: 1) Test 2) Build 3) Push"
+
+# Universal memory types
+drift memory agent-spawn add    # Add agent configuration
+drift memory workflow add       # Add workflow
+drift memory entity add         # Add entity
+drift memory skill add          # Add skill
+drift memory environment add    # Add environment
+drift memory goal add           # Add goal
+drift memory incident add       # Add incident
+drift memory meeting add        # Add meeting notes
+drift memory conversation add   # Add conversation summary
 
 # Query
 drift memory list
@@ -275,26 +348,49 @@ drift memory import backup.json
 
 ---
 
-## 🤖 MCP Tools
+## 🤖 MCP Tools (25 Total)
 
-Cortex V2 exposes 14 MCP tools for AI agents:
+Cortex V2 exposes 25 MCP tools for AI agents:
+
+### Core Memory Tools
 
 | Tool | Description |
 |------|-------------|
-| `drift_why` | Get causal narrative explaining WHY something exists |
-| `drift_memory_status` | Health overview with recommendations |
-| `drift_memory_for_context` | Get memories for current context with compression |
-| `drift_memory_search` | Semantic search with session deduplication |
-| `drift_memory_add` | Add memory with automatic causal inference |
-| `drift_memory_learn` | Learn from corrections (full pipeline) |
-| `drift_memory_feedback` | Confirm, reject, or modify memories |
-| `drift_memory_health` | Comprehensive health report |
-| `drift_memory_explain` | Get causal explanation for a memory |
-| `drift_memory_predict` | Get predicted memories for context |
-| `drift_memory_conflicts` | Detect conflicting memories |
+| `drift_memory_status` | Memory system health and statistics |
+| `drift_memory_add` | Add new memory with causal inference |
+| `drift_memory_search` | Search memories by text/embedding |
+| `drift_memory_get` | Get memory by ID |
+| `drift_memory_validate` | Validate memory integrity |
+| `drift_memory_for_context` | Get memories for current context |
+| `drift_memory_learn` | Learn from corrections |
+| `drift_why` | Explain why something is the way it is |
+
+### V2 Advanced Tools
+
+| Tool | Description |
+|------|-------------|
+| `drift_memory_explain` | Comprehensive explanation with causal chain |
+| `drift_memory_feedback` | Record feedback for learning |
+| `drift_memory_health` | Detailed health metrics |
+| `drift_memory_predict` | Predict what context will be needed |
+| `drift_memory_conflicts` | Find conflicting memories |
 | `drift_memory_graph` | Visualize memory relationships |
-| `drift_memory_validate` | Validate memories and get healing suggestions |
-| `drift_memory_get` | Get memory with optional causal chain |
+| `drift_memory_query` | Rich graph queries (MGQL) |
+| `drift_memory_contradictions` | Detect and resolve contradictions |
+
+### Universal Memory Tools
+
+| Tool | Description |
+|------|-------------|
+| `drift_agent_spawn` | Create/invoke agent configurations |
+| `drift_goal` | Track objectives with progress |
+| `drift_incident` | Record postmortems |
+| `drift_workflow` | Store step-by-step processes |
+| `drift_entity` | Track projects/teams/systems |
+| `drift_conversation` | Store conversation summaries |
+| `drift_meeting` | Record meeting notes |
+| `drift_skill` | Track knowledge domains |
+| `drift_environment` | Store environment configs |
 
 → [Full MCP Tools Reference](MCP-Tools-Reference)
 
@@ -332,8 +428,6 @@ const why = await cortex.why.getWhy({
   maxDepth: 3
 });
 console.log(why.narrative);
-// "Authentication uses JWT because of the decision to support 
-//  stateless API design. This led to the middleware-auth pattern..."
 
 // Add a memory
 await cortex.storage.add({
@@ -350,15 +444,6 @@ const results = await cortex.storage.search({
   minConfidence: 0.5,
   limit: 10
 });
-
-// Validate memories
-const validation = await cortex.validation.validate({
-  scope: 'stale',
-  autoHeal: true
-});
-
-// Consolidate episodic memories
-const consolidation = await cortex.consolidation.consolidate();
 ```
 
 ### Configuration
@@ -378,10 +463,6 @@ const cortex = await getCortex({
   consolidation: {
     minEpisodes: 3,
     similarityThreshold: 0.8
-  },
-  scheduler: {
-    consolidationInterval: 3600000,  // 1 hour
-    validationInterval: 86400000     // 24 hours
   }
 });
 ```
@@ -452,6 +533,22 @@ drift memory health
 
 ## 🔄 Typical Workflows
 
+### Initial Setup (Recommended)
+
+```bash
+# Run the interactive wizard
+drift memory setup
+
+# The wizard guides you through:
+# 1. Core identity (project name, tech stack, preferences)
+# 2. Tribal knowledge (gotchas, warnings)
+# 3. Workflows (deploy, review, release)
+# 4. Agent spawns (code reviewer, security auditor)
+# 5. Entities (projects, teams, services)
+# 6. Skills (knowledge domains)
+# 7. Environments (prod, staging, dev)
+```
+
 ### Daily Development
 
 ```bash
@@ -459,7 +556,7 @@ drift memory health
 drift memory why "feature area" --intent add_feature
 
 # After code review, learn from feedback
-drift memory learn --original "..." --feedback "..."
+drift memory learn "Always validate input before processing"
 ```
 
 ### Weekly Maintenance
@@ -496,6 +593,8 @@ drift memory why "authentication"
 ## 🔗 Related Documentation
 
 - [Memory CLI Reference](Memory-CLI) — Full CLI command reference
+- [Memory Setup Wizard](Cortex-Memory-Setup) — Detailed setup guide
+- [Universal Memory Types](Cortex-Universal-Memory-Types) — Agent spawns, workflows, entities
 - [Cortex Learning System](Cortex-Learning-System) — How Cortex learns from corrections
 - [Cortex Token Efficiency](Cortex-Token-Efficiency) — Compression and deduplication
 - [Cortex Causal Graphs](Cortex-Causal-Graphs) — Memory relationships and "why" explanations

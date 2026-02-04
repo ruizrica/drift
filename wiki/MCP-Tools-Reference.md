@@ -1363,6 +1363,257 @@ Get memory with optional causal chain.
 }
 ```
 
+### `drift_memory_query`
+
+Rich graph queries using MGQL (Memory Graph Query Language).
+
+```json
+{
+  "query": "MATCH (m:tribal) WHERE m.topic = 'security' RETURN m",
+  "limit": 20
+}
+```
+
+### `drift_memory_contradictions`
+
+Detect and resolve contradictions between memories.
+
+```json
+{
+  "action": "detect",
+  "memoryId": "mem_abc123"
+}
+```
+
+**Actions:** `detect`, `resolve`, `list`
+
+---
+
+## Universal Memory Tools (V2)
+
+These tools manage the 10 universal memory types introduced in Cortex V2.
+
+### `drift_agent_spawn`
+
+Create and invoke reusable agent configurations.
+
+```json
+{
+  "action": "list"
+}
+```
+
+**Actions:**
+- `list` — List all agent spawns
+- `get` — Get agent spawn details
+- `create` — Create new agent spawn
+- `invoke` — Invoke an agent spawn
+- `delete` — Delete an agent spawn
+
+**Create example:**
+```json
+{
+  "action": "create",
+  "name": "Code Reviewer",
+  "slug": "code-reviewer",
+  "description": "Reviews code for quality",
+  "systemPrompt": "You are a thorough code reviewer...",
+  "tools": ["readFile", "grepSearch", "getDiagnostics"],
+  "triggerPatterns": ["review this", "code review"]
+}
+```
+
+### `drift_workflow`
+
+Store and execute step-by-step processes.
+
+```json
+{
+  "action": "list"
+}
+```
+
+**Actions:**
+- `list` — List all workflows
+- `get` — Get workflow details
+- `create` — Create new workflow
+- `execute` — Execute a workflow
+- `delete` — Delete a workflow
+
+**Create example:**
+```json
+{
+  "action": "create",
+  "name": "Deploy to Production",
+  "slug": "deploy-production",
+  "description": "Steps to deploy code to production",
+  "steps": [
+    { "order": 1, "name": "Run tests", "description": "npm test" },
+    { "order": 2, "name": "Build", "description": "npm run build" },
+    { "order": 3, "name": "Deploy", "description": "npm run deploy" }
+  ],
+  "triggerPhrases": ["deploy", "push to prod"]
+}
+```
+
+### `drift_entity`
+
+Track projects, teams, services, and systems.
+
+```json
+{
+  "action": "list",
+  "entityType": "service"
+}
+```
+
+**Actions:**
+- `list` — List all entities
+- `get` — Get entity details
+- `create` — Create new entity
+- `update` — Update entity
+- `delete` — Delete entity
+
+**Create example:**
+```json
+{
+  "action": "create",
+  "entityType": "service",
+  "name": "Auth Service",
+  "keyFacts": ["Handles authentication", "Uses JWT", "Redis for sessions"],
+  "status": "active"
+}
+```
+
+### `drift_goal`
+
+Track objectives with progress.
+
+```json
+{
+  "action": "list",
+  "status": "active"
+}
+```
+
+**Actions:**
+- `list` — List all goals
+- `get` — Get goal details
+- `create` — Create new goal
+- `update` — Update goal progress
+- `complete` — Mark goal as complete
+- `delete` — Delete goal
+
+### `drift_incident`
+
+Record postmortems and lessons learned.
+
+```json
+{
+  "action": "list",
+  "severity": "critical"
+}
+```
+
+**Actions:**
+- `list` — List all incidents
+- `get` — Get incident details
+- `create` — Create new incident
+- `resolve` — Mark incident as resolved
+- `delete` — Delete incident
+
+**Create example:**
+```json
+{
+  "action": "create",
+  "title": "Database outage 2024-01-15",
+  "severity": "critical",
+  "rootCause": "Connection pool exhaustion",
+  "lessonsLearned": ["Always set connection limits", "Monitor pool usage"],
+  "preventionMeasures": ["Add connection pool alerts"]
+}
+```
+
+### `drift_skill`
+
+Track knowledge domains and proficiency.
+
+```json
+{
+  "action": "list",
+  "domain": "frontend"
+}
+```
+
+**Actions:**
+- `list` — List all skills
+- `get` — Get skill details
+- `create` — Create new skill
+- `update` — Update proficiency
+- `delete` — Delete skill
+
+**Proficiency levels:** `learning`, `beginner`, `competent`, `proficient`, `expert`
+
+### `drift_environment`
+
+Store environment configurations.
+
+```json
+{
+  "action": "list"
+}
+```
+
+**Actions:**
+- `list` — List all environments
+- `get` — Get environment details
+- `create` — Create new environment
+- `update` — Update environment
+- `delete` — Delete environment
+
+**Create example:**
+```json
+{
+  "action": "create",
+  "name": "Production",
+  "environmentType": "production",
+  "warnings": ["⚠️ This is PRODUCTION - be careful!"],
+  "endpoints": { "api": "https://api.example.com" }
+}
+```
+
+### `drift_meeting`
+
+Record meeting notes and action items.
+
+```json
+{
+  "action": "list"
+}
+```
+
+**Actions:**
+- `list` — List all meetings
+- `get` — Get meeting details
+- `create` — Create meeting notes
+- `delete` — Delete meeting
+
+### `drift_conversation`
+
+Store conversation summaries.
+
+```json
+{
+  "action": "list"
+}
+```
+
+**Actions:**
+- `list` — List all conversations
+- `get` — Get conversation details
+- `create` — Create conversation summary
+- `delete` — Delete conversation
+
 ---
 
 ## Best Practices for AI Agents

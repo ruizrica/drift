@@ -11,7 +11,9 @@
 
 ## 🧠 Cortex Memory System
 - [Cortex V2 Overview](Cortex-V2-Overview)
+- [Memory Setup Wizard](Cortex-Memory-Setup)
 - [Memory CLI](Memory-CLI)
+- [Universal Memory Types](Cortex-Universal-Memory-Types)
 - [Learning System](Cortex-Learning-System)
 - [Token Efficiency](Cortex-Token-Efficiency)
 - [Causal Graphs](Cortex-Causal-Graphs)
@@ -78,6 +80,7 @@
 - 400+ Detectors
 - 50+ MCP Tools
 - 60+ CLI Commands
+- 23 Memory Types
 
 ## 🔗 Links
 - [GitHub](https://github.com/dadbodgeoff/drift)
