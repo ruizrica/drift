@@ -57,7 +57,7 @@ The Call Graph System (`packages/core/src/call-graph/` + `crates/drift-core/src/
 │   │ JSON + SQLite   │    │                                                │
 │   └─────────────────┘    │                                                │
 ├──────────────────────────┴──────────────────────────────────────────────┤
-│                         N-API BRIDGE (11 functions)                      │
+│                         N-API BRIDGE (12 functions)                      │
 │  build_call_graph │ is_call_graph_available │ get_call_graph_stats      │
 │  get_call_graph_entry_points │ get_call_graph_data_accessors            │
 │  get_call_graph_callers │ get_call_graph_file_callers                   │
@@ -446,7 +446,9 @@ private async detectFormat(): Promise<'sqlite' | 'sharded' | 'legacy' | 'none'> 
 
 **LRU Cache**: 500 entries default for function lookups.
 
-**Native SQLite Queries**: When Rust N-API is available, analysis engines bypass the TS graph entirely.
+**Reachability Caching**: The TS `CallGraphStore` already caches reachability results via `cacheReachability(key, data)` and `getCachedReachability<T>(key)`.
+
+**Native SQLite Queries**: When Rust N-API is available, analysis engines bypass the TS graph entirely (used by ErrorHandlingAnalyzer, ModuleCouplingAnalyzer, TestTopologyAnalyzer).
 
 ---
 
@@ -592,15 +594,18 @@ struct ReachabilityResult {
 | Reverse edges | calledBy: CallSite[] | called_by: Vec<String> | Not stored (computed) |
 | Polymorphism | resolvedCandidates | Not supported | Not supported |
 
+**Note**: Rust reachability module has its own `CallGraph`/`FunctionNode` types separate from `call_graph` module types, optimized for traversal. V2 should unify these to reduce maintenance burden.
+
 ---
 
 ## N-API Bridge
 
-**11 Exported Functions**:
+**12 Exported Functions**:
 
 | Function | Purpose |
 |----------|---------|
 | `build_call_graph(config)` | Build call graph with SQLite storage |
+| `build_call_graph_legacy(config)` | Build call graph (legacy format) |
 | `is_call_graph_available(root_dir)` | Check if call graph exists |
 | `get_call_graph_stats(root_dir)` | Aggregate statistics |
 | `get_call_graph_entry_points(root_dir)` | List entry points |
@@ -854,8 +859,10 @@ The call graph is a **foundational producer** — nearly every analysis subsyste
 - [x] All 8 per-language extractors documented with ORM support
 - [x] Both build pipelines documented (TypeScript and Rust)
 - [x] Storage layer documented (legacy JSON, sharded SQLite, UnifiedProvider)
-- [x] N-API bridge documented (11 functions)
+- [x] N-API bridge documented (12 functions)
 - [x] 12 limitations honestly assessed
 - [x] 11 integration points mapped to other categories
 - [x] V2 migration status documented with priority ordering
 - [x] 10 open questions identified
+- [x] Traceability audit performed — all 8 source documents verified against RECAP, RESEARCH, and RECOMMENDATIONS
+- [x] 10 gaps identified and addressed via supplementary research (S1-S4) and recommendations (R11-R12)

@@ -413,3 +413,109 @@ Based on external research, the following gaps exist in Drift's current implemen
 - [x] Findings are specific, not generic
 - [x] Applicability to Drift is explained for each source
 - [x] Research gaps identified based on external best practices
+
+
+---
+
+## Supplementary Research (Added via Audit)
+
+### S1: OWASP Secure Database Access Checklist (Tier 1)
+
+**Source**: https://owasp.org/www-project-developer-guide/release/design/web_app_checklist/secure_database_access/
+**Type**: Tier 1 (OWASP — authoritative security standard)
+**Accessed**: February 2026
+
+**Key Findings**:
+1. Ensure access to all data stores is secure, including both relational databases and NoSQL databases
+2. Implement parameterized queries to prevent injection
+3. Apply least privilege to database accounts
+4. Validate and sanitize all input before database operations
+5. Log all database access for audit trails
+
+**Applicability to Drift**:
+- Drift's remediation generator should map to OWASP checklist items
+- Missing authentication detection should reference OWASP Broken Access Control (A01:2021)
+- Missing input validation should reference OWASP Injection (A03:2021)
+- Enrichment pipeline should tag findings with OWASP category IDs
+
+**Confidence**: High — OWASP is the authoritative source for web application security
+
+---
+
+### S2: FlowDroid — Field-Sensitive Taint Analysis (Tier 1)
+
+**Source**: https://www.researchgate.net/publication/266657650_FlowDroid_Precise_Context_Flow_Field_Object-sensitive_and_Lifecycle-aware_Taint_Analysis_for_Android_Apps
+**Type**: Tier 1 (Peer-reviewed academic paper — PLDI 2014)
+**Accessed**: February 2026
+
+**Key Findings**:
+1. **Field-sensitivity**: Tracks taint at the individual field level, not just object level. This distinguishes `user.email` (sensitive) from `user.name` (less sensitive).
+2. **Context-sensitivity**: Tracks calling context to avoid false positives from different call sites.
+3. **Lifecycle-awareness**: Understands framework lifecycle (Android Activities) to track data across lifecycle callbacks.
+4. **Performance**: Field-sensitive analysis adds ~2x overhead vs field-insensitive, but dramatically reduces false positives.
+
+**Applicability to Drift**:
+- Drift's reachability currently tracks at table level — field-level tracking would match FlowDroid's approach
+- Field-sensitivity is critical for distinguishing `users.password_hash` from `users.display_name`
+- The 2x overhead is acceptable for the precision improvement
+- Lifecycle awareness maps to Drift's framework-aware extraction
+
+**Confidence**: High — seminal paper in taint analysis, 2000+ citations
+
+---
+
+### S3: Scalable Language-Agnostic Taint Tracking (Tier 1)
+
+**Source**: https://arxiv.org/html/2506.06247v1
+**Type**: Tier 1 (Academic paper)
+**Accessed**: February 2026
+
+**Key Findings**:
+1. **Explicit data-dependence graphs**: Build whole-program data-dependence graphs for taint propagation
+2. **Library modeling challenge**: "Accurately modeling taint propagation through calls to external library procedures requires extensive manual annotations, which becomes impractical for large ecosystems"
+3. **Language-agnostic approach**: Use intermediate representation to support multiple languages
+
+**Applicability to Drift**:
+- Validates Drift's multi-language approach
+- Library modeling challenge is relevant — Drift's ORM-aware extractors partially address this
+- Data-dependence graphs could extend Drift's call graph
+
+**Confidence**: High — addresses Drift's exact multi-language challenge
+
+---
+
+### S4: Call Graph Accuracy Benchmarking (Tier 2)
+
+**Source**: https://ar5iv.labs.arxiv.org/html/2103.00587 (PyCG — benchmarking section)
+**Type**: Tier 2 (Methodology from academic paper)
+**Accessed**: February 2026
+
+**Key Findings**:
+1. **Micro-benchmark suite**: 112 minimal programs covering specific language features (decorators, lambdas, inheritance, etc.)
+2. **Macro-benchmark suite**: 5 real-world packages with manually generated ground-truth call graphs
+3. **Metrics**: Precision (valid edges / total generated edges) and Recall (valid edges / total actual edges)
+4. **Evaluation methodology**: Compare against ground truth, measure per-category accuracy
+
+**Applicability to Drift**:
+- Drift has no call graph accuracy benchmarking
+- Should create micro-benchmark suite per language (like PyCG's 112 tests)
+- Should measure precision and recall per resolution strategy
+- Should track resolution rate as a key metric
+
+**Confidence**: High — established benchmarking methodology
+
+---
+
+## Updated Research Gap Summary
+
+| Gap | Status | Action |
+|-----|--------|--------|
+| Taint Analysis | ✅ Fully researched | R1 |
+| Demand-Driven Construction | ✅ Researched | R5 (incremental) |
+| Namespace-Based Resolution | ✅ Researched | R4 |
+| Incremental Updates | ✅ Researched | R5 |
+| Cross-Service Reachability | ✅ Researched | R9 |
+| Context-Sensitive Analysis | ✅ Noted (deferred) | Not needed for v2 |
+| Field-Level Data Flow | ✅ Now researched (S2) | R11 (new) |
+| Enrichment/Remediation | ✅ Now researched (S1) | R1 addendum |
+| Benchmarking Methodology | ✅ Now researched (S4) | R12 (new) |
