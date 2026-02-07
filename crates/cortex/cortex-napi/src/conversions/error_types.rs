@@ -76,6 +76,9 @@ pub fn to_napi_error(err: CortexError) -> napi::Error {
             codes::DEGRADED_MODE,
             format!("Degraded mode: {component} using fallback: {fallback}"),
         ),
+        CortexError::TemporalError(ref e) => {
+            (codes::CONFIG_ERROR, format!("Temporal error: {e}"))
+        }
     };
 
     napi::Error::new(Status::GenericFailure, format!("[{code}] {message}"))

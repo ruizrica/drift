@@ -7,6 +7,7 @@ pub mod observability_config;
 pub mod privacy_config;
 pub mod retrieval_config;
 pub mod storage_config;
+pub mod temporal_config;
 
 use serde::{Deserialize, Serialize};
 
@@ -18,6 +19,7 @@ pub use observability_config::ObservabilityConfig;
 pub use privacy_config::PrivacyConfig;
 pub use retrieval_config::RetrievalConfig;
 pub use storage_config::StorageConfig;
+pub use temporal_config::TemporalConfig;
 
 /// Top-level configuration aggregating all subsystem configs.
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -31,6 +33,7 @@ pub struct CortexConfig {
     pub privacy: PrivacyConfig,
     pub cloud: CloudConfig,
     pub observability: ObservabilityConfig,
+    pub temporal: TemporalConfig,
 }
 
 impl CortexConfig {

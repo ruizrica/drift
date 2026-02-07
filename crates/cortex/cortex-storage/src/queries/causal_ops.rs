@@ -16,6 +16,17 @@ pub fn add_edge(conn: &Connection, edge: &CausalEdge) -> CortexResult<()> {
     )
     .map_err(|e| to_storage_err(e.to_string()))?;
 
+    // Emit RelationshipAdded temporal event (CR3).
+    let delta = serde_json::json!({
+        "source_id": edge.source_id,
+        "target_id": edge.target_id,
+        "relation": edge.relation,
+        "strength": edge.strength,
+    });
+    let _ = crate::temporal_events::emit_event(
+        conn, &edge.source_id, "relationship_added", &delta, "system", "causal_ops",
+    );
+
     // Insert evidence.
     for ev in &edge.evidence {
         add_evidence_row(conn, &edge.source_id, &edge.target_id, ev)?;
@@ -62,6 +73,15 @@ pub fn get_edges(conn: &Connection, node_id: &str) -> CortexResult<Vec<CausalEdg
 
 /// Remove a causal edge.
 pub fn remove_edge(conn: &Connection, source_id: &str, target_id: &str) -> CortexResult<()> {
+    // Emit RelationshipRemoved temporal event BEFORE deletion (CR3).
+    let delta = serde_json::json!({
+        "source_id": source_id,
+        "target_id": target_id,
+    });
+    let _ = crate::temporal_events::emit_event(
+        conn, source_id, "relationship_removed", &delta, "system", "causal_ops",
+    );
+
     // Evidence is cascade-deleted.
     conn.execute(
         "DELETE FROM causal_edges WHERE source_id = ?1 AND target_id = ?2",
@@ -84,6 +104,17 @@ pub fn update_strength(
         params![source_id, target_id, strength],
     )
     .map_err(|e| to_storage_err(e.to_string()))?;
+
+    // Emit StrengthUpdated temporal event (CR3).
+    let delta = serde_json::json!({
+        "source_id": source_id,
+        "target_id": target_id,
+        "new_strength": strength,
+    });
+    let _ = crate::temporal_events::emit_event(
+        conn, source_id, "strength_updated", &delta, "system", "causal_ops",
+    );
+
     Ok(())
 }
 

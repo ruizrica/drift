@@ -12,6 +12,7 @@ mod v009_embedding_migration;
 mod v010_cloud_sync;
 mod v011_reclassification;
 mod v012_observability;
+mod v014_temporal_tables;
 
 use rusqlite::Connection;
 use tracing::{debug, info, warn};
@@ -21,12 +22,12 @@ use cortex_core::errors::CortexResult;
 use crate::to_storage_err;
 
 /// Total number of migrations.
-pub const LATEST_VERSION: u32 = 12;
+pub const LATEST_VERSION: u32 = 14;
 
 /// All migrations in order. Index 0 = v001, etc.
 type MigrationFn = fn(&Connection) -> CortexResult<()>;
 
-const MIGRATIONS: [(u32, &str, MigrationFn); 12] = [
+const MIGRATIONS: [(u32, &str, MigrationFn); 13] = [
     (1, "initial_schema", v001_initial_schema::migrate),
     (2, "vector_tables", v002_vector_tables::migrate),
     (3, "fts5_index", v003_fts5_index::migrate),
@@ -39,6 +40,7 @@ const MIGRATIONS: [(u32, &str, MigrationFn); 12] = [
     (10, "cloud_sync", v010_cloud_sync::migrate),
     (11, "reclassification", v011_reclassification::migrate),
     (12, "observability", v012_observability::migrate),
+    (14, "temporal_tables", v014_temporal_tables::migrate),
 ];
 
 /// Get the current schema version from the database.

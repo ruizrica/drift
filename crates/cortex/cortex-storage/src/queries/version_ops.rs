@@ -45,6 +45,16 @@ pub fn insert_version(
     )
     .map_err(|e| to_storage_err(e.to_string()))?;
 
+    // Emit ContentUpdated event for version tracking.
+    let delta = serde_json::json!({
+        "new_summary": summary,
+        "version": next_version,
+        "reason": reason,
+    });
+    let _ = crate::temporal_events::emit_event(
+        conn, memory_id, "content_updated", &delta, "system", "version_ops",
+    );
+
     Ok(next_version)
 }
 

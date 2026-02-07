@@ -28,6 +28,17 @@ pub fn insert_audit_entry(conn: &Connection, entry: &AuditEntry) -> CortexResult
         ],
     )
     .map_err(|e| to_storage_err(e.to_string()))?;
+
+    // Emit temporal event alongside audit record (CR3 — same transaction).
+    let delta = serde_json::json!({
+        "operation": operation_str.trim_matches('"'),
+        "details": entry.details,
+    });
+    let actor_id = actor_str.trim_matches('"').to_string();
+    let _ = crate::temporal_events::emit_event(
+        conn, &entry.memory_id, operation_str.trim_matches('"'), &delta, "audit", &actor_id,
+    );
+
     Ok(())
 }
 

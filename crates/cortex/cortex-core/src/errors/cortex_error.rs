@@ -1,4 +1,4 @@
-use super::{CloudError, ConsolidationError, EmbeddingError, StorageError};
+use super::{CloudError, ConsolidationError, EmbeddingError, StorageError, TemporalError};
 
 /// Top-level error type for the Cortex memory system.
 /// All subsystem errors convert into this via `From` impls.
@@ -48,6 +48,9 @@ pub enum CortexError {
 
     #[error("degraded mode: {component} using fallback: {fallback}")]
     DegradedMode { component: String, fallback: String },
+
+    #[error("temporal error: {0}")]
+    TemporalError(#[from] TemporalError),
 }
 
 /// Convenience type alias.

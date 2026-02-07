@@ -9,6 +9,7 @@ mod predictor;
 mod retriever;
 mod sanitizer;
 mod storage;
+mod temporal_engine;
 mod validator;
 
 pub use causal_storage::{CausalEdge, CausalEvidence, ICausalStorage};
@@ -22,4 +23,5 @@ pub use predictor::{IPredictor, PredictionSignals};
 pub use retriever::IRetriever;
 pub use sanitizer::{ISanitizer, Redaction, SanitizedText};
 pub use storage::IMemoryStorage;
+pub use temporal_engine::{ITemporalEngine, TemporalTraversalNode, TemporalTraversalResult};
 pub use validator::IValidator;

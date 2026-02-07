@@ -11,12 +11,13 @@ pub mod migrations;
 pub mod pool;
 pub mod queries;
 pub mod recovery;
+pub mod temporal_events;
 pub mod versioning;
 
 pub use engine::StorageEngine;
 
 /// Helper to convert a string message into a CortexError::Storage.
-pub(crate) fn to_storage_err(msg: String) -> cortex_core::CortexError {
+pub fn to_storage_err(msg: String) -> cortex_core::CortexError {
     cortex_core::CortexError::StorageError(cortex_core::errors::StorageError::SqliteError {
         message: msg,
     })

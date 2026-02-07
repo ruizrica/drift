@@ -15,7 +15,7 @@ fn test_all_migrations_run_on_fresh_db() {
                 |row| row.get(0),
             )
             .unwrap();
-        assert_eq!(version, 12, "schema should be at version 12");
+        assert_eq!(version, 14, "schema should be at version 14");
         Ok(())
     }).unwrap();
 }
@@ -65,6 +65,11 @@ fn test_all_tables_exist() {
         "reclassification_signals",
         "metric_snapshots",
         "query_performance_log",
+        "memory_events",
+        "memory_events_archive",
+        "memory_snapshots",
+        "drift_snapshots",
+        "materialized_views",
     ];
 
     engine.pool().writer.with_conn_sync(|conn| {

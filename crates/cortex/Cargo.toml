@@ -18,6 +18,7 @@ members = [
     "cortex-reclassification",
     "cortex-observability",
     "cortex-cloud",
+    "cortex-temporal",
     "cortex-napi",
     "test-fixtures",
 ]
@@ -109,8 +110,12 @@ cortex-session = { path = "cortex-session" }
 cortex-reclassification = { path = "cortex-reclassification" }
 cortex-observability = { path = "cortex-observability" }
 cortex-cloud = { path = "cortex-cloud" }
+cortex-temporal = { path = "cortex-temporal" }
 cortex-napi = { path = "cortex-napi" }
 test-fixtures = { path = "test-fixtures" }
+
+# Compression
+zstd = "0.13"
 
 [profile.release]
 lto = true

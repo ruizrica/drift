@@ -4,6 +4,7 @@ pub mod dag_enforcement;
 pub mod pruning;
 pub mod stable_graph;
 pub mod sync;
+pub mod temporal_graph;
 
 use std::sync::{Arc, RwLock};
 
