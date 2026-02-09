@@ -13,9 +13,9 @@ fn t1_str_03_migration_v001_schema() {
     apply_pragmas(&conn).unwrap();
     migrations::run_migrations(&conn).unwrap();
 
-    // Verify user_version is 3 (v001 + v002 + v003)
+    // Verify user_version matches latest migration (v001 through v007)
     let version = migrations::current_version(&conn).unwrap();
-    assert_eq!(version, 3, "schema version should be 3 after migration");
+    assert_eq!(version, 7, "schema version should match latest migration");
 
     // Verify file_metadata table exists with correct columns
     let columns = get_table_columns(&conn, "file_metadata");
@@ -122,7 +122,7 @@ fn t1_str_08_migration_idempotent() {
     migrations::run_migrations(&conn).unwrap();
 
     let version = migrations::current_version(&conn).unwrap();
-    assert_eq!(version, 3, "version should still be 3 after double migration");
+    assert_eq!(version, 7, "version should still match latest after double migration");
 }
 
 // ---- Helpers ----

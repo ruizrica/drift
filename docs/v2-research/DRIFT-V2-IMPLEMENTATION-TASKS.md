@@ -1734,118 +1734,118 @@
 
 > Separate crate outside the drift workspace. Depends on both drift-core and cortex-core.
 
-- [ ] `P9-BRG-01` — Create `crates/cortex-drift-bridge/Cargo.toml` — Dependencies on drift-core + cortex-core (workspace dependency versions)
-- [ ] `P9-BRG-02` — Create `crates/cortex-drift-bridge/src/lib.rs` — `pub mod` declarations for all bridge modules
+- [x] `P9-BRG-01` — Create `crates/cortex-drift-bridge/Cargo.toml` — Dependencies on drift-core + cortex-core (workspace dependency versions)
+- [x] `P9-BRG-02` — Create `crates/cortex-drift-bridge/src/lib.rs` — `pub mod` declarations for all bridge modules
 
 ### 9B — Event Mapping — `crates/cortex-drift-bridge/src/event_mapping/`
 
 > 21 Drift event types → Cortex memory types with confidence mappings.
 
-- [ ] `P9-EVT-01` — Create `crates/cortex-drift-bridge/src/event_mapping/mod.rs` — `pub mod` declarations
-- [ ] `P9-EVT-02` — Create `crates/cortex-drift-bridge/src/event_mapping/mapper.rs` — 21 event types → Cortex memory types (on_pattern_approved → PatternRationale/0.8, on_pattern_discovered → Insight/0.5, on_scan_complete → triggers grounding, on_violation_detected → no memory, on_error → logged only, etc.)
-- [ ] `P9-EVT-03` — Create `crates/cortex-drift-bridge/src/event_mapping/memory_types.rs` — Memory type + confidence mappings for all 21 events
+- [x] `P9-EVT-01` — Create `crates/cortex-drift-bridge/src/event_mapping/mod.rs` — `pub mod` declarations
+- [x] `P9-EVT-02` — Create `crates/cortex-drift-bridge/src/event_mapping/mapper.rs` — 21 event types → Cortex memory types (on_pattern_approved → PatternRationale/0.8, on_pattern_discovered → Insight/0.5, on_scan_complete → triggers grounding, on_violation_detected → no memory, on_error → logged only, etc.)
+- [x] `P9-EVT-03` — Create `crates/cortex-drift-bridge/src/event_mapping/memory_types.rs` — Memory type + confidence mappings for all 21 events
 
 ### 9C — Link Translation — `crates/cortex-drift-bridge/src/link_translation/`
 
-- [ ] `P9-LNK-01` — Create `crates/cortex-drift-bridge/src/link_translation/mod.rs` — `pub mod` declarations
-- [ ] `P9-LNK-02` — Create `crates/cortex-drift-bridge/src/link_translation/translator.rs` — Drift `PatternLink` → Cortex `EntityLink`, 5 constructors: from_pattern, from_constraint, from_detector, from_module, from_decision
+- [x] `P9-LNK-01` — Create `crates/cortex-drift-bridge/src/link_translation/mod.rs` — `pub mod` declarations
+- [x] `P9-LNK-02` — Create `crates/cortex-drift-bridge/src/link_translation/translator.rs` — Drift `PatternLink` → Cortex `EntityLink`, 5 constructors: from_pattern, from_constraint, from_detector, from_module, from_decision
 
 ### 9D — Grounding Logic — `crates/cortex-drift-bridge/src/grounding/`
 
 > The killer feature (D7). First AI memory system with empirically validated memory.
 
-- [ ] `P9-GND-01` — Create `crates/cortex-drift-bridge/src/grounding/mod.rs` — `pub mod` declarations
-- [ ] `P9-GND-02` — Create `crates/cortex-drift-bridge/src/grounding/loop_runner.rs` — Grounding loop orchestration: compare Cortex memories against Drift scan results, max 500 memories per loop
-- [ ] `P9-GND-03` — Create `crates/cortex-drift-bridge/src/grounding/scorer.rs` — Grounding score computation, thresholds: Validated ≥0.7, Partial ≥0.4, Weak ≥0.2, Invalidated <0.2
-- [ ] `P9-GND-04` — Create `crates/cortex-drift-bridge/src/grounding/evidence.rs` — 10 evidence types with weights: PatternConfidence, PatternOccurrence, FalsePositiveRate, ConstraintVerification, CouplingMetric, DnaHealth, TestCoverage, ErrorHandlingGaps, DecisionEvidence, BoundaryData. Confidence adjustment: boost_delta=0.05, partial_penalty=0.05, weak_penalty=0.15, invalidated_floor=0.1, contradiction_drop=0.3
-- [ ] `P9-GND-05` — Create `crates/cortex-drift-bridge/src/grounding/scheduler.rs` — 6 trigger types: post-scan incremental (every scan), post-scan full (every 10th), scheduled (daily), on-demand (MCP), memory creation, memory update
-- [ ] `P9-GND-06` — Create `crates/cortex-drift-bridge/src/grounding/classification.rs` — 13 groundable memory types (6 fully: PatternRationale, ConstraintOverride, DecisionContext, CodeSmell, Core, Semantic; 7 partially: Tribal, Decision, Insight, Entity, Feedback, Incident, Environment)
+- [x] `P9-GND-01` — Create `crates/cortex-drift-bridge/src/grounding/mod.rs` — `pub mod` declarations
+- [x] `P9-GND-02` — Create `crates/cortex-drift-bridge/src/grounding/loop_runner.rs` — Grounding loop orchestration: compare Cortex memories against Drift scan results, max 500 memories per loop
+- [x] `P9-GND-03` — Create `crates/cortex-drift-bridge/src/grounding/scorer.rs` — Grounding score computation, thresholds: Validated ≥0.7, Partial ≥0.4, Weak ≥0.2, Invalidated <0.2
+- [x] `P9-GND-04` — Create `crates/cortex-drift-bridge/src/grounding/evidence.rs` — 10 evidence types with weights: PatternConfidence, PatternOccurrence, FalsePositiveRate, ConstraintVerification, CouplingMetric, DnaHealth, TestCoverage, ErrorHandlingGaps, DecisionEvidence, BoundaryData. Confidence adjustment: boost_delta=0.05, partial_penalty=0.05, weak_penalty=0.15, invalidated_floor=0.1, contradiction_drop=0.3
+- [x] `P9-GND-05` — Create `crates/cortex-drift-bridge/src/grounding/scheduler.rs` — 6 trigger types: post-scan incremental (every scan), post-scan full (every 10th), scheduled (daily), on-demand (MCP), memory creation, memory update
+- [x] `P9-GND-06` — Create `crates/cortex-drift-bridge/src/grounding/classification.rs` — 13 groundable memory types (6 fully: PatternRationale, ConstraintOverride, DecisionContext, CodeSmell, Core, Semantic; 7 partially: Tribal, Decision, Insight, Entity, Feedback, Incident, Environment)
 
 ### 9E — Bridge Storage — `crates/cortex-drift-bridge/src/storage/`
 
-- [ ] `P9-STR-01` — Create `crates/cortex-drift-bridge/src/storage/mod.rs` — `pub mod` declarations
-- [ ] `P9-STR-02` — Create `crates/cortex-drift-bridge/src/storage/tables.rs` — 4 bridge-specific SQLite tables: `bridge_grounding_results` (90 days Community, unlimited Enterprise), `bridge_grounding_snapshots` (365 days), `bridge_event_log` (30 days), `bridge_metrics` (7 days)
+- [x] `P9-STR-01` — Create `crates/cortex-drift-bridge/src/storage/mod.rs` — `pub mod` declarations
+- [x] `P9-STR-02` — Create `crates/cortex-drift-bridge/src/storage/tables.rs` — 4 bridge-specific SQLite tables: `bridge_grounding_results` (90 days Community, unlimited Enterprise), `bridge_grounding_snapshots` (365 days), `bridge_event_log` (30 days), `bridge_metrics` (7 days)
 
 ### 9F — License Gating — `crates/cortex-drift-bridge/src/license/`
 
-- [ ] `P9-LIC-01` — Create `crates/cortex-drift-bridge/src/license/mod.rs` — `pub mod` declarations
-- [ ] `P9-LIC-02` — Create `crates/cortex-drift-bridge/src/license/gating.rs` — 3-tier feature gating: Community (5 event types, manual grounding), Team (all 21 events, scheduled grounding, MCP tools), Enterprise (full grounding loop, contradiction generation, cross-DB analytics)
+- [x] `P9-LIC-01` — Create `crates/cortex-drift-bridge/src/license/mod.rs` — `pub mod` declarations
+- [x] `P9-LIC-02` — Create `crates/cortex-drift-bridge/src/license/gating.rs` — 3-tier feature gating: Community (5 event types, manual grounding), Team (all 21 events, scheduled grounding, MCP tools), Enterprise (full grounding loop, contradiction generation, cross-DB analytics)
 
 ### 9G — Intent Extensions — `crates/cortex-drift-bridge/src/intents/`
 
-- [ ] `P9-INT-01` — Create `crates/cortex-drift-bridge/src/intents/mod.rs` — `pub mod` declarations
-- [ ] `P9-INT-02` — Create `crates/cortex-drift-bridge/src/intents/extensions.rs` — 10 code-specific intent extensions registered as Cortex extensions: add_feature, fix_bug, refactor, review_code, debug, understand_code, security_audit, performance_audit, test_coverage, documentation
+- [x] `P9-INT-01` — Create `crates/cortex-drift-bridge/src/intents/mod.rs` — `pub mod` declarations
+- [x] `P9-INT-02` — Create `crates/cortex-drift-bridge/src/intents/extensions.rs` — 10 code-specific intent extensions registered as Cortex extensions: add_feature, fix_bug, refactor, review_code, debug, understand_code, security_audit, performance_audit, test_coverage, documentation
 
 ### 9H — Database Integration
 
-- [ ] `P9-DB-01` — Implement `ATTACH DATABASE 'cortex.db' AS cortex READ ONLY` — cross-DB reads, graceful failure when cortex.db doesn't exist
+- [x] `P9-DB-01` — Implement `ATTACH DATABASE 'cortex.db' AS cortex READ ONLY` — cross-DB reads, graceful failure when cortex.db doesn't exist
 
 ### 9I — Bridge NAPI
 
-- [ ] `P9-NAPI-01` — Create bridge NAPI bindings: 15 functions — `bridge_initialize`, `bridge_shutdown`, `bridge_is_available`, `bridge_ground_memory`, `bridge_ground_all`, `bridge_get_grounding_snapshot`, `bridge_get_grounding_history`, `bridge_translate_links`, `bridge_memories_for_pattern`, `bridge_patterns_for_memory`, `bridge_why`, `bridge_learn`, `bridge_grounding_check`, `bridge_get_metrics`, `bridge_register_event_handler`
+- [x] `P9-NAPI-01` — Create bridge NAPI bindings: 15 functions — `bridge_initialize`, `bridge_shutdown`, `bridge_is_available`, `bridge_ground_memory`, `bridge_ground_all`, `bridge_get_grounding_snapshot`, `bridge_get_grounding_history`, `bridge_translate_links`, `bridge_memories_for_pattern`, `bridge_patterns_for_memory`, `bridge_why`, `bridge_learn`, `bridge_grounding_check`, `bridge_get_metrics`, `bridge_register_event_handler`
 
 ### 9J — Combined MCP Tools
 
-- [ ] `P9-MCP-01` — Implement `drift_why` — synthesizes pattern data + causal memory
-- [ ] `P9-MCP-02` — Implement `drift_memory_learn` — creates memory from Drift analysis
-- [ ] `P9-MCP-03` — Implement `drift_grounding_check` — on-demand grounding verification
+- [x] `P9-MCP-01` — Implement `drift_why` — synthesizes pattern data + causal memory
+- [x] `P9-MCP-02` — Implement `drift_memory_learn` — creates memory from Drift analysis
+- [x] `P9-MCP-03` — Implement `drift_grounding_check` — on-demand grounding verification
 
 ### 9K — Specification Engine Bridge — `crates/cortex-drift-bridge/src/specification/`
 
 > **Source:** SPECIFICATION-ENGINE-NOVEL-LOOP-ENHANCEMENT.md §Phase 9 Additions.
 > **D4 compliance:** All Cortex interaction happens here. The bridge implements `DecompositionPriorProvider` (retrieves priors from Cortex) and `WeightProvider` (retrieves adaptive weights from Cortex Skill memories). It also handles all event→memory mapping and causal edge creation. Nothing in Drift depends on this crate — it's a leaf per D4.
 
-- [ ] `P9-BRIDGE-01` — Implement `SpecCorrection` → CausalEngine edge creation — bridge reads correction from drift.db, creates causal edge in cortex.db. `SpecCorrection` struct includes `correction_id`, `module_id`, `section: SpecSection`, `root_cause: CorrectionRootCause`, `upstream_modules`, `data_sources: Vec<DataSourceAttribution>`
-- [ ] `P9-BRIDGE-02` — Implement `CorrectionRootCause` classification in bridge — 7 variants: MissingCallEdge, MissingBoundary, WrongConvention, LlmHallucination, MissingDataFlow, MissingSensitiveField, DomainKnowledge. Each maps to a specific causal relation type and metadata
-- [ ] `P9-BRIDGE-03` — Implement `DataSourceAttribution` tracking in bridge — records which Drift system produced the data (call_graph, boundary, convention, etc.), confidence at generation time, and whether the data was correct
-- [ ] `P9-BRIDGE-04` — Bridge implements `DriftEventHandler::on_spec_corrected` → creates Feedback memory + causal edge in Cortex. Tags include module ID and spec section. Causal edge links to original spec's Insight memory
-- [ ] `P9-BRIDGE-05` — Bridge implements `DriftEventHandler::on_contract_verified` → creates VerificationFeedback in Cortex. Pass → positive Feedback memory with confidence boost. Fail → Feedback memory with `VerificationFeedback` metadata mapping failure to `SpecSection`, mismatch type, and severity
-- [ ] `P9-BRIDGE-06` — Bridge implements `WeightProvider` trait — reads Cortex Skill memories, computes adaptive weights using formula `adjusted_weight = base_weight × (1 + failure_rate × boost_factor)` where `boost_factor = 0.5`. Minimum sample size of 15-20 enforced. Weights stored as Skill memory with 365-day half-life
-- [ ] `P9-BRIDGE-07` — Bridge implements `DriftEventHandler::on_decomposition_adjusted` → creates DecisionContext memory in Cortex linked to DNA hash. Confidence 0.75 for single project. Confirmations increase confidence (≥ 0.85), rejections decrease (≤ 0.6)
-- [ ] `P9-BRIDGE-08` — Bridge implements `DecompositionPriorProvider` trait — queries Cortex for past decisions by DNA similarity (threshold ≥ 0.6), returns sorted by confidence descending. Consolidated semantic rules returned with higher confidence than episodic decisions
-- [ ] `P9-BRIDGE-09` — Implement causal narrative generation for spec explanations — bridge calls `CausalEngine.narrative()`, `trace_origins()`, `trace_effects()` to produce human-readable explanations of why a spec section was generated a particular way, with chain confidence scoring
+- [x] `P9-BRIDGE-01` — Implement `SpecCorrection` → CausalEngine edge creation — bridge reads correction from drift.db, creates causal edge in cortex.db. `SpecCorrection` struct includes `correction_id`, `module_id`, `section: SpecSection`, `root_cause: CorrectionRootCause`, `upstream_modules`, `data_sources: Vec<DataSourceAttribution>`
+- [x] `P9-BRIDGE-02` — Implement `CorrectionRootCause` classification in bridge — 7 variants: MissingCallEdge, MissingBoundary, WrongConvention, LlmHallucination, MissingDataFlow, MissingSensitiveField, DomainKnowledge. Each maps to a specific causal relation type and metadata
+- [x] `P9-BRIDGE-03` — Implement `DataSourceAttribution` tracking in bridge — records which Drift system produced the data (call_graph, boundary, convention, etc.), confidence at generation time, and whether the data was correct
+- [x] `P9-BRIDGE-04` — Bridge implements `DriftEventHandler::on_spec_corrected` → creates Feedback memory + causal edge in Cortex. Tags include module ID and spec section. Causal edge links to original spec's Insight memory
+- [x] `P9-BRIDGE-05` — Bridge implements `DriftEventHandler::on_contract_verified` → creates VerificationFeedback in Cortex. Pass → positive Feedback memory with confidence boost. Fail → Feedback memory with `VerificationFeedback` metadata mapping failure to `SpecSection`, mismatch type, and severity
+- [x] `P9-BRIDGE-06` — Bridge implements `WeightProvider` trait — reads Cortex Skill memories, computes adaptive weights using formula `adjusted_weight = base_weight × (1 + failure_rate × boost_factor)` where `boost_factor = 0.5`. Minimum sample size of 15-20 enforced. Weights stored as Skill memory with 365-day half-life
+- [x] `P9-BRIDGE-07` — Bridge implements `DriftEventHandler::on_decomposition_adjusted` → creates DecisionContext memory in Cortex linked to DNA hash. Confidence 0.75 for single project. Confirmations increase confidence (≥ 0.85), rejections decrease (≤ 0.6)
+- [x] `P9-BRIDGE-08` — Bridge implements `DecompositionPriorProvider` trait — queries Cortex for past decisions by DNA similarity (threshold ≥ 0.6), returns sorted by confidence descending. Consolidated semantic rules returned with higher confidence than episodic decisions
+- [x] `P9-BRIDGE-09` — Implement causal narrative generation for spec explanations — bridge calls `CausalEngine.narrative()`, `trace_origins()`, `trace_effects()` to produce human-readable explanations of why a spec section was generated a particular way, with chain confidence scoring
 
 ### Phase 9 Tests
 
 #### Event Mapping — Type Correctness & Confidence Values
-- [ ] `T9-EVT-01` — Create `crates/cortex-drift-bridge/tests/event_mapping_test.rs` — Test event mapping creates correct Cortex memory types from all 21 Drift event types
-- [ ] `T9-EVT-02` — Test confidence values match specification for all 21 event types (e.g., `on_pattern_approved` → 0.8, `on_pattern_discovered` → 0.5)
-- [ ] `T9-EVT-03` — Test events that should NOT create memories (e.g., `on_violation_detected`, `on_error`) produce no memory output
-- [ ] `T9-EVT-04` — Test event mapping with malformed event payload — returns error, not panic or corrupted memory
+- [x] `T9-EVT-01` — Create `crates/cortex-drift-bridge/tests/event_mapping_test.rs` — Test event mapping creates correct Cortex memory types from all 21 Drift event types
+- [x] `T9-EVT-02` — Test confidence values match specification for all 21 event types (e.g., `on_pattern_approved` → 0.8, `on_pattern_discovered` → 0.5)
+- [x] `T9-EVT-03` — Test events that should NOT create memories (e.g., `on_violation_detected`, `on_error`) produce no memory output
+- [x] `T9-EVT-04` — Test event mapping with malformed event payload — returns error, not panic or corrupted memory
 
 #### Link Translation — Constructor Coverage
-- [ ] `T9-LNK-01` — Create `crates/cortex-drift-bridge/tests/link_translation_test.rs` — Test link translation produces valid EntityLink from PatternLink for all 5 constructors (from_pattern, from_constraint, from_detector, from_module, from_decision)
-- [ ] `T9-LNK-02` — Test link translation with missing source data (e.g., pattern deleted between link creation and translation) — graceful degradation, not crash
-- [ ] `T9-LNK-03` — Test link translation round-trip: Drift PatternLink → Cortex EntityLink → query back → matches original
+- [x] `T9-LNK-01` — Create `crates/cortex-drift-bridge/tests/link_translation_test.rs` — Test link translation produces valid EntityLink from PatternLink for all 5 constructors (from_pattern, from_constraint, from_detector, from_module, from_decision)
+- [x] `T9-LNK-02` — Test link translation with missing source data (e.g., pattern deleted between link creation and translation) — graceful degradation, not crash
+- [x] `T9-LNK-03` — Test link translation round-trip: Drift PatternLink → Cortex EntityLink → query back → matches original
 
 #### Grounding — Score Computation, Thresholds & Lifecycle
-- [ ] `T9-GND-01` — Create `crates/cortex-drift-bridge/tests/grounding_test.rs` — Test grounding logic computes grounding percentage for pattern memories against scan results
-- [ ] `T9-GND-02` — Test grounding feedback loop adjusts Cortex memory confidence: validated pattern → confidence boosted by 0.05, invalidated → confidence dropped by 0.15
-- [ ] `T9-GND-03` — Test grounding score thresholds: score 0.75 → Validated, 0.45 → Partial, 0.25 → Weak, 0.15 → Invalidated (boundary precision)
-- [ ] `T9-GND-04` — Test max 500 memories per grounding loop — 501st memory deferred to next loop, not dropped
-- [ ] `T9-GND-05` — Test all 13 groundable memory types classified correctly (6 fully groundable, 7 partially groundable)
-- [ ] `T9-GND-06` — Test 6 trigger types fire at correct intervals: post-scan incremental (every scan), post-scan full (every 10th), scheduled (daily), on-demand, memory creation, memory update
-- [ ] `T9-GND-07` — Test contradiction detection: Cortex memory says "always use camelCase", Drift scan shows 80% snake_case → contradiction flagged with confidence_drop=0.3
-- [ ] `T9-GND-08` — Test grounding with stale Cortex data: memory references pattern that no longer exists in Drift → Invalidated, not crash
-- [ ] `T9-GND-09` — Test all 10 evidence types contribute to grounding score with correct weights
-- [ ] `T9-GND-10` — Test invalidated_floor=0.1: even fully invalidated memory retains minimum 0.1 confidence (not zeroed out)
+- [x] `T9-GND-01` — Create `crates/cortex-drift-bridge/tests/grounding_test.rs` — Test grounding logic computes grounding percentage for pattern memories against scan results
+- [x] `T9-GND-02` — Test grounding feedback loop adjusts Cortex memory confidence: validated pattern → confidence boosted by 0.05, invalidated → confidence dropped by 0.15
+- [x] `T9-GND-03` — Test grounding score thresholds: score 0.75 → Validated, 0.45 → Partial, 0.25 → Weak, 0.15 → Invalidated (boundary precision)
+- [x] `T9-GND-04` — Test max 500 memories per grounding loop — 501st memory deferred to next loop, not dropped
+- [x] `T9-GND-05` — Test all 13 groundable memory types classified correctly (6 fully groundable, 7 partially groundable)
+- [x] `T9-GND-06` — Test 6 trigger types fire at correct intervals: post-scan incremental (every scan), post-scan full (every 10th), scheduled (daily), on-demand, memory creation, memory update
+- [x] `T9-GND-07` — Test contradiction detection: Cortex memory says "always use camelCase", Drift scan shows 80% snake_case → contradiction flagged with confidence_drop=0.3
+- [x] `T9-GND-08` — Test grounding with stale Cortex data: memory references pattern that no longer exists in Drift → Invalidated, not crash
+- [x] `T9-GND-09` — Test all 10 evidence types contribute to grounding score with correct weights
+- [x] `T9-GND-10` — Test invalidated_floor=0.1: even fully invalidated memory retains minimum 0.1 confidence (not zeroed out)
 
 #### Database Integration — Cross-DB & Graceful Degradation
-- [ ] `T9-DB-01` — Test `ATTACH DATABASE 'cortex.db' AS cortex READ ONLY` works for cross-DB queries
-- [ ] `T9-DB-02` — Test graceful degradation when cortex.db doesn't exist — all Drift functions work normally, bridge functions return "unavailable" status
-- [ ] `T9-DB-03` — Test graceful degradation when cortex.db is locked by another process — bridge retries with backoff, eventually returns timeout error
-- [ ] `T9-DB-04` — Test cross-DB query with cortex.db containing incompatible schema version — returns version mismatch error, not corrupt data
+- [x] `T9-DB-01` — Test `ATTACH DATABASE 'cortex.db' AS cortex READ ONLY` works for cross-DB queries
+- [x] `T9-DB-02` — Test graceful degradation when cortex.db doesn't exist — all Drift functions work normally, bridge functions return "unavailable" status
+- [x] `T9-DB-03` — Test graceful degradation when cortex.db is locked by another process — bridge retries with backoff, eventually returns timeout error
+- [x] `T9-DB-04` — Test cross-DB query with cortex.db containing incompatible schema version — returns version mismatch error, not corrupt data
 
 #### License Gating — Tier Enforcement
-- [ ] `T9-LIC-01` — Test Community tier: only 5 event types mapped, manual grounding only — verify other events silently dropped
-- [ ] `T9-LIC-02` — Test Team tier: all 21 events, scheduled grounding, MCP tools — verify all features accessible
-- [ ] `T9-LIC-03` — Test Enterprise tier: full grounding loop, contradiction generation, cross-DB analytics — verify advanced features accessible
-- [ ] `T9-LIC-04` — Test tier upgrade: Community → Team — previously dropped events now processed on next scan
+- [x] `T9-LIC-01` — Test Community tier: only 5 event types mapped, manual grounding only — verify other events silently dropped
+- [x] `T9-LIC-02` — Test Team tier: all 21 events, scheduled grounding, MCP tools — verify all features accessible
+- [x] `T9-LIC-03` — Test Enterprise tier: full grounding loop, contradiction generation, cross-DB analytics — verify advanced features accessible
+- [x] `T9-LIC-04` — Test tier upgrade: Community → Team — previously dropped events now processed on next scan
 
 #### MCP Tools — Synthesis & Learning
-- [ ] `T9-MCP-01` — Test `drift_why` synthesizes pattern data + causal memory into coherent explanation
-- [ ] `T9-MCP-02` — Test `drift_memory_learn` creates memory from Drift analysis with correct type and confidence
-- [ ] `T9-MCP-03` — Test `drift_grounding_check` returns grounding status for specific memory with evidence breakdown
+- [x] `T9-MCP-01` — Test `drift_why` synthesizes pattern data + causal memory into coherent explanation
+- [x] `T9-MCP-02` — Test `drift_memory_learn` creates memory from Drift analysis with correct type and confidence
+- [x] `T9-MCP-03` — Test `drift_grounding_check` returns grounding status for specific memory with evidence breakdown
 
 #### Specification Engine Bridge — Causal Corrections, Decomposition Transfer, Adaptive Weights
 > **Source:** SPECIFICATION-ENGINE-TEST-PLAN.md §Phase 9 Tests + Integration Tests.
@@ -1853,74 +1853,74 @@
 > **D4:** This is the ONLY crate that imports both Drift and Cortex. All tests require both systems present.
 
 ##### 9A-Bridge. Causal Correction Graphs — Happy Path
-- [ ] `T9-BRIDGE-01` — **`SpecCorrection` creates a causal edge in CausalEngine.** Create a `SpecCorrection` with `root_cause: MissingCallEdge`. Bridge processes it. Assert: CausalEngine contains an edge from the upstream module's memory to the correction memory with relation `Caused`
-- [ ] `T9-BRIDGE-02` — **`CorrectionRootCause` classification maps to correct causal relation.** For each of the 7 variants, create a `SpecCorrection` and process it. Assert: each produces a causal edge with the correct relation type and metadata
-- [ ] `T9-BRIDGE-03` — **`DataSourceAttribution` tracking records which Drift system was wrong.** Assert: bridge stores attribution metadata on the causal edge, queryable later for system reliability analysis
-- [ ] `T9-BRIDGE-04` — **`DriftEventHandler::on_spec_corrected` creates Feedback memory + causal edge.** Fire the event with a business logic correction. Assert: (1) Feedback memory exists in cortex.db, (2) causal edge links it to the original spec's Insight memory, (3) tags include module ID and spec section
-- [ ] `T9-BRIDGE-05` — **`DriftEventHandler::on_contract_verified` (pass) creates positive Feedback memory.** Assert: Feedback memory created with positive sentiment, linked to the approved spec's Decision memory, confidence boost applied
-- [ ] `T9-BRIDGE-06` — **`DriftEventHandler::on_contract_verified` (fail) creates `VerificationFeedback` with section mapping.** Assert: Feedback memory created with metadata mapping the failure to `SpecSection::DataModel`, mismatch type recorded, severity recorded
-- [ ] `T9-BRIDGE-07` — **`DriftEventHandler::on_decomposition_adjusted` creates DecisionContext memory linked to DNA hash.** Human splits auth from users module. Assert: DecisionContext memory created with `BoundaryAdjustment::Split`, linked to DNA profile hash, confidence 0.75
-- [ ] `T9-BRIDGE-08` — **Causal narrative generation for spec explanation.** Create a chain of 3 corrections. Call bridge's `explain_spec_section()`. Assert: returns a narrative string that mentions upstream corrections, includes chain confidence, and is human-readable
+- [x] `T9-BRIDGE-01` — **`SpecCorrection` creates a causal edge in CausalEngine.** Create a `SpecCorrection` with `root_cause: MissingCallEdge`. Bridge processes it. Assert: CausalEngine contains an edge from the upstream module's memory to the correction memory with relation `Caused`
+- [x] `T9-BRIDGE-02` — **`CorrectionRootCause` classification maps to correct causal relation.** For each of the 7 variants, create a `SpecCorrection` and process it. Assert: each produces a causal edge with the correct relation type and metadata
+- [x] `T9-BRIDGE-03` — **`DataSourceAttribution` tracking records which Drift system was wrong.** Assert: bridge stores attribution metadata on the causal edge, queryable later for system reliability analysis
+- [x] `T9-BRIDGE-04` — **`DriftEventHandler::on_spec_corrected` creates Feedback memory + causal edge.** Fire the event with a business logic correction. Assert: (1) Feedback memory exists in cortex.db, (2) causal edge links it to the original spec's Insight memory, (3) tags include module ID and spec section
+- [x] `T9-BRIDGE-05` — **`DriftEventHandler::on_contract_verified` (pass) creates positive Feedback memory.** Assert: Feedback memory created with positive sentiment, linked to the approved spec's Decision memory, confidence boost applied
+- [x] `T9-BRIDGE-06` — **`DriftEventHandler::on_contract_verified` (fail) creates `VerificationFeedback` with section mapping.** Assert: Feedback memory created with metadata mapping the failure to `SpecSection::DataModel`, mismatch type recorded, severity recorded
+- [x] `T9-BRIDGE-07` — **`DriftEventHandler::on_decomposition_adjusted` creates DecisionContext memory linked to DNA hash.** Human splits auth from users module. Assert: DecisionContext memory created with `BoundaryAdjustment::Split`, linked to DNA profile hash, confidence 0.75
+- [x] `T9-BRIDGE-08` — **Causal narrative generation for spec explanation.** Create a chain of 3 corrections. Call bridge's `explain_spec_section()`. Assert: returns a narrative string that mentions upstream corrections, includes chain confidence, and is human-readable
 
 ##### 9B-Bridge. Causal Correction Graphs — Edge Cases
-- [ ] `T9-BRIDGE-09` — **Correction with zero upstream modules.** `SpecCorrection` with `upstream_modules: []` (pure domain knowledge). Assert: memory created with no causal edges to other modules, no panic
-- [ ] `T9-BRIDGE-10` — **Correction referencing a module that doesn't exist in drift.db.** Assert: bridge logs a warning, creates the correction memory without the invalid causal edge
-- [ ] `T9-BRIDGE-11` — **100 corrections for the same module.** Assert: all 100 create causal edges, narrative generation summarizes rather than listing all 100
-- [ ] `T9-BRIDGE-12` — **Correction chain depth of 20.** Assert: `trace_origins()` traverses the full chain, narrative generation includes a depth summary
-- [ ] `T9-BRIDGE-13` — **Two corrections with identical content but different modules.** Assert: two separate memories created, two separate causal edges, no deduplication
-- [ ] `T9-BRIDGE-14` — **`SpecSection` variant not in the weight table.** Assert: section is added to the table with the static default weight as baseline, then adjusted
+- [x] `T9-BRIDGE-09` — **Correction with zero upstream modules.** `SpecCorrection` with `upstream_modules: []` (pure domain knowledge). Assert: memory created with no causal edges to other modules, no panic
+- [x] `T9-BRIDGE-10` — **Correction referencing a module that doesn't exist in drift.db.** Assert: bridge logs a warning, creates the correction memory without the invalid causal edge
+- [x] `T9-BRIDGE-11` — **100 corrections for the same module.** Assert: all 100 create causal edges, narrative generation summarizes rather than listing all 100
+- [x] `T9-BRIDGE-12` — **Correction chain depth of 20.** Assert: `trace_origins()` traverses the full chain, narrative generation includes a depth summary
+- [x] `T9-BRIDGE-13` — **Two corrections with identical content but different modules.** Assert: two separate memories created, two separate causal edges, no deduplication
+- [x] `T9-BRIDGE-14` — **`SpecSection` variant not in the weight table.** Assert: section is added to the table with the static default weight as baseline, then adjusted
 
 ##### 9C-Bridge. Decomposition Transfer — Happy Path
-- [ ] `T9-BRIDGE-15` — **Bridge `DecompositionPriorProvider` returns priors for DNA-similar project.** Store a DecisionContext memory linked to DNA profile A. Query with DNA profile B (similarity 0.78). Assert: returns the stored decision with `dna_similarity: 0.78`
-- [ ] `T9-BRIDGE-16` — **Bridge filters out low-similarity priors.** Store decisions for DNA profiles with similarities 0.3, 0.5, 0.6, 0.8. Assert: only 0.6 and 0.8 are returned (threshold is 0.6)
-- [ ] `T9-BRIDGE-17` — **Bridge returns consolidated semantic rules with higher confidence than episodic decisions.** Store 6 episodic DecisionContext memories for the same pattern. Trigger consolidation. Assert: returns the semantic rule with confidence > any individual episodic memory
-- [ ] `T9-BRIDGE-18` — **Prior confidence increases when human confirms.** Store a prior with confidence 0.75. Human confirms. Assert: confidence increases to ≥ 0.85
-- [ ] `T9-BRIDGE-19` — **Prior confidence decreases when human rejects.** Store a prior with confidence 0.75. Human rejects. Assert: confidence decreases to ≤ 0.6
+- [x] `T9-BRIDGE-15` — **Bridge `DecompositionPriorProvider` returns priors for DNA-similar project.** Store a DecisionContext memory linked to DNA profile A. Query with DNA profile B (similarity 0.78). Assert: returns the stored decision with `dna_similarity: 0.78`
+- [x] `T9-BRIDGE-16` — **Bridge filters out low-similarity priors.** Store decisions for DNA profiles with similarities 0.3, 0.5, 0.6, 0.8. Assert: only 0.6 and 0.8 are returned (threshold is 0.6)
+- [x] `T9-BRIDGE-17` — **Bridge returns consolidated semantic rules with higher confidence than episodic decisions.** Store 6 episodic DecisionContext memories for the same pattern. Trigger consolidation. Assert: returns the semantic rule with confidence > any individual episodic memory
+- [x] `T9-BRIDGE-18` — **Prior confidence increases when human confirms.** Store a prior with confidence 0.75. Human confirms. Assert: confidence increases to ≥ 0.85
+- [x] `T9-BRIDGE-19` — **Prior confidence decreases when human rejects.** Store a prior with confidence 0.75. Human rejects. Assert: confidence decreases to ≤ 0.6
 
 ##### 9D-Bridge. Decomposition Transfer — Edge Cases
-- [ ] `T9-BRIDGE-20` — **No priors exist in cortex.db.** Fresh Cortex database. Assert: `DecompositionPriorProvider` returns empty vec, no error
-- [ ] `T9-BRIDGE-21` — **1000 priors exist for the same DNA profile.** Assert: bridge returns all applicable priors, sorted by confidence descending
-- [ ] `T9-BRIDGE-22` — **DNA profile with all zero genes.** Assert: similarity to any stored profile is 0.0, no priors returned
-- [ ] `T9-BRIDGE-23` — **Cross-DB ATTACH query (drift.db ↔ cortex.db).** Assert: ATTACH works, query returns correct joined results, DETACH cleans up
+- [x] `T9-BRIDGE-20` — **No priors exist in cortex.db.** Fresh Cortex database. Assert: `DecompositionPriorProvider` returns empty vec, no error
+- [x] `T9-BRIDGE-21` — **1000 priors exist for the same DNA profile.** Assert: bridge returns all applicable priors, sorted by confidence descending
+- [x] `T9-BRIDGE-22` — **DNA profile with all zero genes.** Assert: similarity to any stored profile is 0.0, no priors returned
+- [x] `T9-BRIDGE-23` — **Cross-DB ATTACH query (drift.db ↔ cortex.db).** Assert: ATTACH works, query returns correct joined results, DETACH cleans up
 
 ##### 9E-Bridge. Adaptive Weights — Happy Path
-- [ ] `T9-BRIDGE-24` — **Bridge `WeightProvider` computes adaptive weights from verification failures.** Store 20 Feedback memories: 12 DataModel failures, 4 PublicApi, 2 Security, 2 Conventions. Assert: `data_model` weight is boosted most (≈ 2.34)
-- [ ] `T9-BRIDGE-25` — **Weight adjustment formula is correct.** For `data_model`: base 1.8, failure_rate 0.60, boost_factor 0.5. Assert: `adjusted = 1.8 × (1 + 0.60 × 0.5) = 2.34`
-- [ ] `T9-BRIDGE-26` — **Adaptive weights stored as Skill memory with 365-day half-life.** Assert: Skill memory exists in cortex.db with weight table, MigrationPath as key, and half-life of 365 days
-- [ ] `T9-BRIDGE-27` — **Adaptive weights decay over time.** Store Skill memory, advance time by 365 days. Assert: weights have decayed toward static defaults
-- [ ] `T9-BRIDGE-28` — **Minimum sample size enforced.** Store only 3 verification results (below 15-20 threshold). Assert: returns static weights with "insufficient sample size" note
+- [x] `T9-BRIDGE-24` — **Bridge `WeightProvider` computes adaptive weights from verification failures.** Store 20 Feedback memories: 12 DataModel failures, 4 PublicApi, 2 Security, 2 Conventions. Assert: `data_model` weight is boosted most (≈ 2.34)
+- [x] `T9-BRIDGE-25` — **Weight adjustment formula is correct.** For `data_model`: base 1.8, failure_rate 0.60, boost_factor 0.5. Assert: `adjusted = 1.8 × (1 + 0.60 × 0.5) = 2.34`
+- [x] `T9-BRIDGE-26` — **Adaptive weights stored as Skill memory with 365-day half-life.** Assert: Skill memory exists in cortex.db with weight table, MigrationPath as key, and half-life of 365 days
+- [x] `T9-BRIDGE-27` — **Adaptive weights decay over time.** Store Skill memory, advance time by 365 days. Assert: weights have decayed toward static defaults
+- [x] `T9-BRIDGE-28` — **Minimum sample size enforced.** Store only 3 verification results (below 15-20 threshold). Assert: returns static weights with "insufficient sample size" note
 
 ##### 9F-Bridge. Adaptive Weights — Edge Cases
-- [ ] `T9-BRIDGE-29` — **All verification results are passes (zero failures).** 20 verifications, all pass. Assert: adaptive weights equal static weights. No division by zero
-- [ ] `T9-BRIDGE-30` — **All failures map to a single section.** Assert: that section is heavily boosted, all other weights unchanged. Total weight sum is reasonable
-- [ ] `T9-BRIDGE-31` — **Migration path with no stored Skill memory.** Assert: returns static defaults, no error
-- [ ] `T9-BRIDGE-32` — **Two migration paths with same languages but different frameworks.** Assert: separate weight tables, different adaptive weights
+- [x] `T9-BRIDGE-29` — **All verification results are passes (zero failures).** 20 verifications, all pass. Assert: adaptive weights equal static weights. No division by zero
+- [x] `T9-BRIDGE-30` — **All failures map to a single section.** Assert: that section is heavily boosted, all other weights unchanged. Total weight sum is reasonable
+- [x] `T9-BRIDGE-31` — **Migration path with no stored Skill memory.** Assert: returns static defaults, no error
+- [x] `T9-BRIDGE-32` — **Two migration paths with same languages but different frameworks.** Assert: separate weight tables, different adaptive weights
 
 ##### 9G-Bridge. Event→Memory Mapping — Adversarial
-- [ ] `T9-BRIDGE-33` — **`on_spec_corrected` with SQL injection in correction text.** Assert: correction stored safely (parameterized query), `memories` table still exists
-- [ ] `T9-BRIDGE-34` — **`on_contract_verified` with NaN severity score.** Assert: bridge rejects or clamps the severity, does not store NaN
-- [ ] `T9-BRIDGE-35` — **`on_decomposition_adjusted` with contradictory adjustment.** Assert: bridge detects the no-op, stores the confirmation (not a split)
-- [ ] `T9-BRIDGE-36` — **Rapid-fire events: 1000 corrections in 1 second.** Assert: all 1000 processed, causal graph has 1000 new nodes, total processing time < 10s
-- [ ] `T9-BRIDGE-37` — **Event with empty module_id.** Assert: event is rejected with a clear error, no empty-key memory created
+- [x] `T9-BRIDGE-33` — **`on_spec_corrected` with SQL injection in correction text.** Assert: correction stored safely (parameterized query), `memories` table still exists
+- [x] `T9-BRIDGE-34` — **`on_contract_verified` with NaN severity score.** Assert: bridge rejects or clamps the severity, does not store NaN
+- [x] `T9-BRIDGE-35` — **`on_decomposition_adjusted` with contradictory adjustment.** Assert: bridge detects the no-op, stores the confirmation (not a split)
+- [x] `T9-BRIDGE-36` — **Rapid-fire events: 1000 corrections in 1 second.** Assert: all 1000 processed, causal graph has 1000 new nodes, total processing time < 10s
+- [x] `T9-BRIDGE-37` — **Event with empty module_id.** Assert: event is rejected with a clear error, no empty-key memory created
 
 ##### 9H-Bridge. Concurrency
-- [ ] `T9-BRIDGE-38` — **Parallel `on_spec_corrected` and `on_contract_verified` for same module.** Assert: both memories created, both causal edges created, no deadlock
-- [ ] `T9-BRIDGE-39` — **Parallel `DecompositionPriorProvider` queries from 4 threads.** Assert: all 4 get consistent results, no torn reads
-- [ ] `T9-BRIDGE-40` — **Concurrent weight table read and write.** Assert: reader sees a consistent snapshot — either all old or all new weights
-- [ ] `T9-BRIDGE-41` — **Cross-DB ATTACH under concurrent access.** Two threads both ATTACH cortex.db simultaneously. Assert: both succeed, queries return correct results
+- [x] `T9-BRIDGE-38` — **Parallel `on_spec_corrected` and `on_contract_verified` for same module.** Assert: both memories created, both causal edges created, no deadlock
+- [x] `T9-BRIDGE-39` — **Parallel `DecompositionPriorProvider` queries from 4 threads.** Assert: all 4 get consistent results, no torn reads
+- [x] `T9-BRIDGE-40` — **Concurrent weight table read and write.** Assert: reader sees a consistent snapshot — either all old or all new weights
+- [x] `T9-BRIDGE-41` — **Cross-DB ATTACH under concurrent access.** Two threads both ATTACH cortex.db simultaneously. Assert: both succeed, queries return correct results
 
 ##### 9I-Bridge. Corruption Recovery
-- [ ] `T9-BRIDGE-42` — **cortex.db is missing (Drift standalone mode).** Assert: all `DriftEventHandler` methods are no-ops, `DecompositionPriorProvider` returns empty vec, `WeightProvider` returns static defaults. No panics
-- [ ] `T9-BRIDGE-43` — **cortex.db exists but `memories` table is corrupted.** Assert: bridge catches the SQLite error, falls back to no-op behavior for affected operations
-- [ ] `T9-BRIDGE-44` — **Causal graph has a corrupted edge (invalid node reference).** Assert: traversal skips the dangling edge, narrative generation excludes it, no panic
-- [ ] `T9-BRIDGE-45` — **Interrupted `on_spec_corrected` leaves no partial state.** Assert: on restart, the orphaned Feedback memory is detected and either the causal edge is created retroactively or the memory is flagged as "unlinked"
-- [ ] `T9-BRIDGE-46` — **Skill memory with corrupted weight JSON.** Assert: `WeightProvider` falls back to static defaults with a warning
+- [x] `T9-BRIDGE-42` — **cortex.db is missing (Drift standalone mode).** Assert: all `DriftEventHandler` methods are no-ops, `DecompositionPriorProvider` returns empty vec, `WeightProvider` returns static defaults. No panics
+- [x] `T9-BRIDGE-43` — **cortex.db exists but `memories` table is corrupted.** Assert: bridge catches the SQLite error, falls back to no-op behavior for affected operations
+- [x] `T9-BRIDGE-44` — **Causal graph has a corrupted edge (invalid node reference).** Assert: traversal skips the dangling edge, narrative generation excludes it, no panic
+- [x] `T9-BRIDGE-45` — **Interrupted `on_spec_corrected` leaves no partial state.** Assert: on restart, the orphaned Feedback memory is detected and either the causal edge is created retroactively or the memory is flagged as "unlinked"
+- [x] `T9-BRIDGE-46` — **Skill memory with corrupted weight JSON.** Assert: `WeightProvider` falls back to static defaults with a warning
 
 ##### 9J-Bridge. Regression
-- [ ] `T9-BRIDGE-47` — **All 10 event→memory mappings from the Appendix are implemented.** For each row (spec generated→Insight, spec corrected→Feedback, spec corrected boundary→DecisionContext, spec approved→Decision, module boundary adjusted→DecisionContext, contract verify pass→Feedback, contract verify fail→Feedback, adaptive weight update→Skill, decomposition prior applied→Procedural, consolidation→Semantic), fire the event and assert the correct memory type is created
-- [ ] `T9-BRIDGE-48` — **Causal edge direction is always cause→effect, never reversed.** Create 10 corrections with known causal relationships. Assert: every edge points from cause to effect
-- [ ] `T9-BRIDGE-49` — **`WeightProvider` returns weights that sum to a reasonable total.** Assert: sum of all 11 weights is between 5.0 and 30.0. No single weight exceeds 5.0
-- [ ] `T9-BRIDGE-50` — **Bridge does not import from `drift-analysis` or `drift-context` internals.** Static analysis: bridge's `Cargo.toml` depends on `drift-core` (for traits) and `cortex-*` crates. NOT on `drift-analysis` or `drift-context` directly
+- [x] `T9-BRIDGE-47` — **All 10 event→memory mappings from the Appendix are implemented.** For each row (spec generated→Insight, spec corrected→Feedback, spec corrected boundary→DecisionContext, spec approved→Decision, module boundary adjusted→DecisionContext, contract verify pass→Feedback, contract verify fail→Feedback, adaptive weight update→Skill, decomposition prior applied→Procedural, consolidation→Semantic), fire the event and assert the correct memory type is created
+- [x] `T9-BRIDGE-48` — **Causal edge direction is always cause→effect, never reversed.** Create 10 corrections with known causal relationships. Assert: every edge points from cause to effect
+- [x] `T9-BRIDGE-49` — **`WeightProvider` returns weights that sum to a reasonable total.** Assert: sum of all 11 weights is between 5.0 and 30.0. No single weight exceeds 5.0
+- [x] `T9-BRIDGE-50` — **Bridge does not import from `drift-analysis` or `drift-context` internals.** Static analysis: bridge's `Cargo.toml` depends on `drift-core` (for traits) and `cortex-*` crates. NOT on `drift-analysis` or `drift-context` directly
 
 #### End-to-End Specification Loop Integration Tests
 > **Source:** SPECIFICATION-ENGINE-TEST-PLAN.md §Integration Tests.
@@ -1928,66 +1928,66 @@
 > **Purpose:** Verify the three enhancements work together as a closed loop (Drift standalone → Bridge → Cortex → Bridge → Drift).
 
 ##### Full Loop — Happy Path
-- [ ] `TINT-LOOP-01` — **Complete correction→causal→narrative loop.** (1) Generate spec for Module A. (2) Human corrects business logic. (3) Bridge creates Feedback memory + causal edge. (4) Generate spec for Module B (same data dependencies). (5) Assert: Module B's spec includes a hint derived from Module A's correction, with causal narrative
-- [ ] `TINT-LOOP-02` — **Complete decomposition→transfer→confirmation loop.** (1) Decompose Project A, human splits auth from users. (2) Decompose Project B (similar DNA). Assert: suggests splitting. (3) Human confirms. Assert: confidence increases. (4) Decompose Project C. Assert: prior applied with higher confidence
-- [ ] `TINT-LOOP-03` — **Complete verification→weight→spec loop.** (1) Generate specs for 20 modules. (2) Simulate verification: 12 DataModel failures, 4 PublicApi, 4 passes. (3) Bridge computes adaptive weights. (4) Generate spec for Module 21. Assert: larger Data Model section than Module 1
-- [ ] `TINT-LOOP-04` — **All three enhancements compound on the same module.** Module X in Project B: decomposition priors, causal corrections, and adaptive weights all influence the spec. Assert: spec reflects all three, causal narrative explains all three sources
+- [x] `TINT-LOOP-01` — **Complete correction→causal→narrative loop.** (1) Generate spec for Module A. (2) Human corrects business logic. (3) Bridge creates Feedback memory + causal edge. (4) Generate spec for Module B (same data dependencies). (5) Assert: Module B's spec includes a hint derived from Module A's correction, with causal narrative
+- [x] `TINT-LOOP-02` — **Complete decomposition→transfer→confirmation loop.** (1) Decompose Project A, human splits auth from users. (2) Decompose Project B (similar DNA). Assert: suggests splitting. (3) Human confirms. Assert: confidence increases. (4) Decompose Project C. Assert: prior applied with higher confidence
+- [x] `TINT-LOOP-03` — **Complete verification→weight→spec loop.** (1) Generate specs for 20 modules. (2) Simulate verification: 12 DataModel failures, 4 PublicApi, 4 passes. (3) Bridge computes adaptive weights. (4) Generate spec for Module 21. Assert: larger Data Model section than Module 1
+- [x] `TINT-LOOP-04` — **All three enhancements compound on the same module.** Module X in Project B: decomposition priors, causal corrections, and adaptive weights all influence the spec. Assert: spec reflects all three, causal narrative explains all three sources
 
 ##### Full Loop — Edge Cases
-- [ ] `TINT-LOOP-05` — **First-ever project (empty Cortex).** No prior corrections, no decisions, no adaptive weights. Assert: full pipeline works with all defaults, identical to Drift standalone mode
-- [ ] `TINT-LOOP-06` — **Project with 100 modules, 500 corrections, 200 verifications.** Assert: all 100 specs generate in < 60s, causal graph has ≤ 500 nodes, no memory leaks (RSS < 500MB)
-- [ ] `TINT-LOOP-07` — **Bridge disabled mid-pipeline.** Generate specs 1-10 with bridge active. Disable bridge. Generate specs 11-20. Assert: modules 11-20 use static weights and no priors (graceful degradation)
-- [ ] `TINT-LOOP-08` — **Correction contradicts a prior.** Project A's prior says "merge auth+users." Project B's correction says "split auth from users." Assert: contradiction detected, prior confidence decreases, both stored for human resolution
+- [x] `TINT-LOOP-05` — **First-ever project (empty Cortex).** No prior corrections, no decisions, no adaptive weights. Assert: full pipeline works with all defaults, identical to Drift standalone mode
+- [x] `TINT-LOOP-06` — **Project with 100 modules, 500 corrections, 200 verifications.** Assert: all 100 specs generate in < 60s, causal graph has ≤ 500 nodes, no memory leaks (RSS < 500MB)
+- [x] `TINT-LOOP-07` — **Bridge disabled mid-pipeline.** Generate specs 1-10 with bridge active. Disable bridge. Generate specs 11-20. Assert: modules 11-20 use static weights and no priors (graceful degradation)
+- [x] `TINT-LOOP-08` — **Correction contradicts a prior.** Project A's prior says "merge auth+users." Project B's correction says "split auth from users." Assert: contradiction detected, prior confidence decreases, both stored for human resolution
 
 ##### Full Loop — Adversarial
-- [ ] `TINT-LOOP-09` — **Malicious project poisons the prior pool.** Project A stores 50 bogus decisions (confidence 0.99). Assert: human rejections decrease confidence rapidly, after 5 rejections bogus priors drop below threshold
-- [ ] `TINT-LOOP-10` — **Feedback loop amplification attack.** Create a cycle: verification failure → boost weight → over-emphasize section → different failure → repeat 10 iterations. Assert: weights are bounded (no single weight exceeds 5.0), system converges
-- [ ] `TINT-LOOP-11` — **Stale corrections from a deleted codebase.** Project A deleted from drift.db but corrections remain in cortex.db. Assert: stale corrections returned but flagged as "source project no longer available" with reduced confidence
+- [x] `TINT-LOOP-09` — **Malicious project poisons the prior pool.** Project A stores 50 bogus decisions (confidence 0.99). Assert: human rejections decrease confidence rapidly, after 5 rejections bogus priors drop below threshold
+- [x] `TINT-LOOP-10` — **Feedback loop amplification attack.** Create a cycle: verification failure → boost weight → over-emphasize section → different failure → repeat 10 iterations. Assert: weights are bounded (no single weight exceeds 5.0), system converges
+- [x] `TINT-LOOP-11` — **Stale corrections from a deleted codebase.** Project A deleted from drift.db but corrections remain in cortex.db. Assert: stale corrections returned but flagged as "source project no longer available" with reduced confidence
 
 ##### Full Loop — Concurrency
-- [ ] `TINT-LOOP-12` — **Two projects decomposing simultaneously with shared priors.** Assert: both get the same priors, both apply independently, no interference
-- [ ] `TINT-LOOP-13` — **Spec generation and verification running in parallel for different modules.** Assert: no deadlock, spec generation sees consistent weight snapshot
+- [x] `TINT-LOOP-12` — **Two projects decomposing simultaneously with shared priors.** Assert: both get the same priors, both apply independently, no interference
+- [x] `TINT-LOOP-13` — **Spec generation and verification running in parallel for different modules.** Assert: no deadlock, spec generation sees consistent weight snapshot
 
 ##### Full Loop — Corruption Recovery
-- [ ] `TINT-LOOP-14` — **cortex.db corrupted mid-pipeline, then restored.** (1) Generate specs 1-5 with bridge. (2) Corrupt cortex.db. (3) Generate specs 6-10 → graceful fallback. (4) Restore cortex.db. (5) Generate specs 11-15 → bridge reconnects
-- [ ] `TINT-LOOP-15` — **drift.db and cortex.db have inconsistent state.** drift.db says Module A is `spec_approved`, cortex.db has no Decision memory. Assert: bridge detects inconsistency, logs warning, flags for re-approval
+- [x] `TINT-LOOP-14` — **cortex.db corrupted mid-pipeline, then restored.** (1) Generate specs 1-5 with bridge. (2) Corrupt cortex.db. (3) Generate specs 6-10 → graceful fallback. (4) Restore cortex.db. (5) Generate specs 11-15 → bridge reconnects
+- [x] `TINT-LOOP-15` — **drift.db and cortex.db have inconsistent state.** drift.db says Module A is `spec_approved`, cortex.db has no Decision memory. Assert: bridge detects inconsistency, logs warning, flags for re-approval
 
 ##### Full Loop — Regression
-- [ ] `TINT-LOOP-16` — **D1 compliance: Drift crates have zero Cortex imports.** Static analysis of all Drift crate Cargo.toml files. Assert: none list any `cortex-*` dependency
-- [ ] `TINT-LOOP-17` — **D4 compliance: Nothing depends on `cortex-drift-bridge`.** Assert: bridge appears only in workspace members list, never as a dependency of any other crate
-- [ ] `TINT-LOOP-18` — **Loop convergence: spec quality improves over 5 iterations.** Generate spec → correct → re-generate → correct → re-generate. Assert: correction count monotonically decreases
-- [ ] `TINT-LOOP-19` — **Memory type mapping is exhaustive.** For each of the 10 events in the Appendix table, assert: the bridge produces exactly the memory type specified. Cross-reference with `cortex-core`'s `MemoryType` enum
+- [x] `TINT-LOOP-16` — **D1 compliance: Drift crates have zero Cortex imports.** Static analysis of all Drift crate Cargo.toml files. Assert: none list any `cortex-*` dependency
+- [x] `TINT-LOOP-17` — **D4 compliance: Nothing depends on `cortex-drift-bridge`.** Assert: bridge appears only in workspace members list, never as a dependency of any other crate
+- [x] `TINT-LOOP-18` — **Loop convergence: spec quality improves over 5 iterations.** Generate spec → correct → re-generate → correct → re-generate. Assert: correction count monotonically decreases
+- [x] `TINT-LOOP-19` — **Memory type mapping is exhaustive.** For each of the 10 events in the Appendix table, assert: the bridge produces exactly the memory type specified. Cross-reference with `cortex-core`'s `MemoryType` enum
 
 #### Integration & Performance Contracts
-- [ ] `T9-INT-01` — Performance: event mapping <5ms per event, grounding single memory <50ms, full loop (500 memories) <10s
-- [ ] `T9-INT-02` — Test bridge crate compiles with both drift-core and cortex-core as dependencies (no version conflicts)
-- [ ] `T9-INT-03` — Test bridge storage tables respect retention policies: Community 90 days, Enterprise unlimited
+- [x] `T9-INT-01` — Performance: event mapping <5ms per event, grounding single memory <50ms, full loop (500 memories) <10s
+- [x] `T9-INT-02` — Test bridge crate compiles with both drift-core and cortex-core as dependencies (no version conflicts)
+- [x] `T9-INT-03` — Test bridge storage tables respect retention policies: Community 90 days, Enterprise unlimited
 
 #### Build & Coverage Gate
-- [ ] `T9-INT-04` — `cargo tarpaulin -p cortex-drift-bridge` reports ≥80% line coverage
-- [ ] `T9-INT-05` — `cargo clippy -p cortex-drift-bridge` passes with zero warnings
+- [x] `T9-INT-04` — `cargo tarpaulin -p cortex-drift-bridge` reports ≥80% line coverage
+- [x] `T9-INT-05` — `cargo clippy -p cortex-drift-bridge` passes with zero warnings
 
 ### QG-9: Phase 9 Quality Gate (Milestone 7: "It Grounds")
 
-- [ ] Bridge crate compiles with both drift-core and cortex-core as dependencies
-- [ ] Event mapping creates correct Cortex memory types from Drift events
-- [ ] Link translation produces valid EntityLink from PatternLink
-- [ ] Grounding logic computes grounding percentage for pattern memories
-- [ ] Grounding feedback loop adjusts Cortex memory confidence based on scan results
-- [ ] `drift_why` synthesizes pattern data + causal memory
-- [ ] `drift_memory_learn` creates memory from Drift analysis
-- [ ] ATTACH cortex.db works for cross-DB queries
-- [ ] Graceful degradation when cortex.db doesn't exist
-- [ ] ≥1 grounding result per groundable type (13/23)
-- [ ] Threshold tiers classify correctly (≥0.7/≥0.4/≥0.2/<0.2)
-- [ ] `SpecCorrection` creates causal edges in CausalEngine (Enhancement 1)
-- [ ] Bridge `DecompositionPriorProvider` returns priors for DNA-similar projects (Enhancement 2)
-- [ ] Bridge `WeightProvider` computes adaptive weights from verification failures (Enhancement 3)
-- [ ] All 10 event→memory mappings from the Appendix are implemented
-- [ ] Causal narrative generation produces human-readable spec explanations
-- [ ] End-to-end loop: correction→causal→narrative produces improved specs
-- [ ] D1 compliance: Drift crates have zero Cortex imports
-- [ ] D4 compliance: Nothing depends on `cortex-drift-bridge`
+- [x] Bridge crate compiles with both drift-core and cortex-core as dependencies
+- [x] Event mapping creates correct Cortex memory types from Drift events
+- [x] Link translation produces valid EntityLink from PatternLink
+- [x] Grounding logic computes grounding percentage for pattern memories
+- [x] Grounding feedback loop adjusts Cortex memory confidence based on scan results
+- [x] `drift_why` synthesizes pattern data + causal memory
+- [x] `drift_memory_learn` creates memory from Drift analysis
+- [x] ATTACH cortex.db works for cross-DB queries
+- [x] Graceful degradation when cortex.db doesn't exist
+- [x] ≥1 grounding result per groundable type (13/23)
+- [x] Threshold tiers classify correctly (≥0.7/≥0.4/≥0.2/<0.2)
+- [x] `SpecCorrection` creates causal edges in CausalEngine (Enhancement 1)
+- [x] Bridge `DecompositionPriorProvider` returns priors for DNA-similar projects (Enhancement 2)
+- [x] Bridge `WeightProvider` computes adaptive weights from verification failures (Enhancement 3)
+- [x] All 10 event→memory mappings from the Appendix are implemented
+- [x] Causal narrative generation produces human-readable spec explanations
+- [x] End-to-end loop: correction→causal→narrative produces improved specs
+- [x] D1 compliance: Drift crates have zero Cortex imports
+- [x] D4 compliance: Nothing depends on `cortex-drift-bridge`
 
 ---
 

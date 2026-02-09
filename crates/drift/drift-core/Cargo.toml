@@ -16,6 +16,9 @@ tracing-subscriber = { workspace = true }
 rustc-hash = { workspace = true }
 smallvec = { workspace = true }
 lasso = { workspace = true }
+rusqlite = { workspace = true, features = ["bundled", "backup"] }
+fd-lock = { workspace = true }
+glob = { workspace = true }
 
 [dev-dependencies]
 rayon = { workspace = true }

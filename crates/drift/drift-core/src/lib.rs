@@ -10,9 +10,11 @@ pub mod config;
 pub mod constants;
 pub mod errors;
 pub mod events;
+pub mod licensing;
 pub mod tracing;
 pub mod traits;
 pub mod types;
+pub mod workspace;
 
 // Re-export the most commonly used types at the crate root.
 pub use config::DriftConfig;
