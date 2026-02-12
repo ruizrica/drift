@@ -22,12 +22,10 @@ use cortex_drift_bridge::types::GroundingDataSource;
 use cortex_drift_bridge::BridgeRuntime;
 
 use cortex_core::MemoryType;
+use cortex_drift_bridge::traits::IBridgeStorage;
 
-fn setup_bridge_db() -> rusqlite::Connection {
-    let conn = rusqlite::Connection::open_in_memory().unwrap();
-    cortex_drift_bridge::storage::configure_connection(&conn).unwrap();
-    cortex_drift_bridge::storage::create_bridge_tables(&conn).unwrap();
-    conn
+fn setup_bridge_db() -> cortex_drift_bridge::storage::engine::BridgeStorageEngine {
+    cortex_drift_bridge::storage::engine::BridgeStorageEngine::open_in_memory().unwrap()
 }
 
 fn make_memory(id: &str, conf: f64, pat_conf: f64) -> MemoryForGrounding {
@@ -80,7 +78,7 @@ fn phase9_bridge_ground_memory_single() {
     let config = GroundingConfig::default();
     let memory = make_memory("mem-single-1", 0.7, 0.85);
 
-    let result = functions::bridge_ground_memory(&memory, &config, None, Some(&db));
+    let result = functions::bridge_ground_memory(&memory, &config, None, Some(&db as &dyn cortex_drift_bridge::traits::IBridgeStorage));
     assert!(result.is_ok(), "bridge_ground_memory should succeed");
     let json = result.unwrap();
     eprintln!("[Phase9:NAPI] bridge_ground_memory: {}", json);
@@ -137,7 +135,7 @@ fn phase9_bridge_ground_all_batch() {
         .map(|i| make_memory(&format!("batch-mem-{}", i), 0.6 + i as f64 * 0.03, 0.7 + i as f64 * 0.02))
         .collect();
 
-    let result = functions::bridge_ground_all(&memories, &config, None, Some(&db));
+    let result = functions::bridge_ground_all(&memories, &config, None, Some(&db as &dyn cortex_drift_bridge::traits::IBridgeStorage));
     assert!(result.is_ok(), "bridge_ground_all should succeed");
     let json = result.unwrap();
     eprintln!("[Phase9:NAPI] bridge_ground_all (10 memories): {}", json);
@@ -167,10 +165,10 @@ fn phase9_bridge_grounding_history() {
     // Insert some grounding results first
     let config = GroundingConfig::default();
     let memory = make_memory("hist-mem-1", 0.7, 0.85);
-    let _ = functions::bridge_ground_memory(&memory, &config, None, Some(&db));
-    let _ = functions::bridge_ground_memory(&memory, &config, None, Some(&db));
+    let _ = functions::bridge_ground_memory(&memory, &config, None, Some(&db as &dyn cortex_drift_bridge::traits::IBridgeStorage));
+    let _ = functions::bridge_ground_memory(&memory, &config, None, Some(&db as &dyn cortex_drift_bridge::traits::IBridgeStorage));
 
-    let result = functions::bridge_grounding_history("hist-mem-1", 10, &db);
+    let result = functions::bridge_grounding_history("hist-mem-1", 10, &db as &dyn cortex_drift_bridge::traits::IBridgeStorage);
     assert!(result.is_ok(), "bridge_grounding_history should succeed");
     let json = result.unwrap();
     eprintln!("[Phase9:NAPI] bridge_grounding_history: {}", json);
@@ -182,7 +180,7 @@ fn phase9_bridge_grounding_history() {
 #[test]
 fn phase9_bridge_grounding_history_empty() {
     let db = setup_bridge_db();
-    let result = functions::bridge_grounding_history("nonexistent-mem", 10, &db);
+    let result = functions::bridge_grounding_history("nonexistent-mem", 10, &db as &dyn cortex_drift_bridge::traits::IBridgeStorage);
     assert!(result.is_ok());
     let json = result.unwrap();
     assert!(json["history"].as_array().unwrap().is_empty());
@@ -516,7 +514,7 @@ fn phase9_grounding_loop_full_pipeline() {
         evidence_context: None,        },
     ];
 
-    let snapshot = runner.run(&memories, None, Some(&db), TriggerType::OnDemand).unwrap();
+    let snapshot = runner.run(&memories, None, Some(&db as &dyn cortex_drift_bridge::traits::IBridgeStorage), TriggerType::OnDemand).unwrap();
     eprintln!(
         "[Phase9:Grounding] Loop: checked={}, validated={}, partial={}, weak={}, invalidated={}, not_groundable={}, insufficient={}",
         snapshot.total_checked, snapshot.validated, snapshot.partial, snapshot.weak,
@@ -536,14 +534,13 @@ fn phase9_grounding_single_memory() {
     let runner = GroundingLoopRunner::new(config);
 
     let memory = make_memory("single-ground", 0.7, 0.85);
-    let result = runner.ground_single(&memory, None, Some(&db)).unwrap();
+    let result = runner.ground_single(&memory, None, Some(&db as &dyn cortex_drift_bridge::traits::IBridgeStorage)).unwrap();
 
     eprintln!(
         "[Phase9:Grounding] Single: verdict={:?}, score={:.3}, contradiction={}",
         result.verdict, result.grounding_score, result.generates_contradiction
     );
 
-    assert!(!result.id.is_empty(), "Result should have UUID");
     assert_eq!(result.memory_id, "single-ground");
     assert!(!result.evidence.is_empty(), "Should have evidence");
     assert!(result.grounding_score >= 0.0 && result.grounding_score <= 1.0);
@@ -702,7 +699,7 @@ fn phase9_grounding_data_sources_all_12() {
 }
 
 // ============================================================================
-// Evidence Types — all 10
+// Evidence Types — all 12
 // ============================================================================
 
 #[test]
@@ -718,15 +715,17 @@ fn phase9_evidence_types_coverage() {
         GroundingEvidence::new(EvidenceType::ErrorHandlingGaps, "desc".to_string(), 2.0, None, 0.98),
         GroundingEvidence::new(EvidenceType::DecisionEvidence, "desc".to_string(), 0.7, None, 0.7),
         GroundingEvidence::new(EvidenceType::BoundaryData, "desc".to_string(), 0.6, None, 0.6),
+        GroundingEvidence::new(EvidenceType::TaintAnalysis, "desc".to_string(), 0.2, None, 0.8),
+        GroundingEvidence::new(EvidenceType::CallGraphCoverage, "desc".to_string(), 0.75, None, 0.75),
     ];
 
-    assert_eq!(evidence_items.len(), 10, "Should test all 10 evidence types");
+    assert_eq!(evidence_items.len(), 12, "Should test all 12 evidence types");
 
     let config = GroundingConfig::default();
     let scorer = GroundingScorer::new(config);
     let score = scorer.compute_score(&evidence_items);
     assert!((0.0..=1.0).contains(&score), "Score should be in [0,1], got {}", score);
-    eprintln!("[Phase9:Evidence] 10 evidence types → score={:.3}", score);
+    eprintln!("[Phase9:Evidence] 12 evidence types → score={:.3}", score);
 
     let verdict = scorer.score_to_verdict(score);
     eprintln!("[Phase9:Evidence] verdict={:?}", verdict);
@@ -763,14 +762,13 @@ fn phase9_storage_bridge_tables() {
     let db = setup_bridge_db();
 
     // Verify all tables exist
-    let tables: Vec<String> = {
-        let mut stmt = db.prepare(
+    let tables: Vec<String> = db.with_reader(|conn| {
+        let mut stmt = conn.prepare(
             "SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'bridge_%'"
-        ).unwrap();
-        stmt.query_map([], |row| row.get(0)).unwrap()
-            .filter_map(|r| r.ok())
-            .collect()
-    };
+        )?;
+        let mapped = stmt.query_map([], |row| row.get(0))?;
+        Ok(mapped.filter_map(|r| r.ok()).collect())
+    }).unwrap();
 
     eprintln!("[Phase9:Storage] Bridge tables: {:?}", tables);
     assert!(tables.contains(&"bridge_grounding_results".to_string()));
@@ -783,8 +781,8 @@ fn phase9_storage_bridge_tables() {
 fn phase9_storage_log_event_and_metric() {
     let db = setup_bridge_db();
 
-    cortex_drift_bridge::storage::log_event(&db, "test_event", Some("TestType"), Some("mem-1"), Some(0.8)).unwrap();
-    cortex_drift_bridge::storage::record_metric(&db, "test_metric", 42.0).unwrap();
+    db.insert_event("test_event", Some("TestType"), Some("mem-1"), Some(0.8)).unwrap();
+    db.insert_metric("test_metric", 42.0).unwrap();
 
     // Verify data persisted
     let event_count: i64 = db.query_row(

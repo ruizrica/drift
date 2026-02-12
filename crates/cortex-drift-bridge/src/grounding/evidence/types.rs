@@ -1,8 +1,8 @@
-//! 10 evidence types with weights for grounding score computation.
+//! 12 evidence types with weights for grounding score computation.
 
 use serde::{Deserialize, Serialize};
 
-/// The 10 evidence types that contribute to grounding scores.
+/// The 12 evidence types that contribute to grounding scores.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum EvidenceType {
     /// Pattern confidence from Drift's Bayesian scoring.
@@ -25,11 +25,15 @@ pub enum EvidenceType {
     DecisionEvidence,
     /// Boundary detection data.
     BoundaryData,
+    /// Taint analysis: unsanitized data flow count for a file.
+    TaintAnalysis,
+    /// Call graph: resolution quality (ratio of non-fuzzy edges).
+    CallGraphCoverage,
 }
 
 impl EvidenceType {
-    /// All 10 evidence types.
-    pub const ALL: [EvidenceType; 10] = [
+    /// All 12 evidence types.
+    pub const ALL: [EvidenceType; 12] = [
         Self::PatternConfidence,
         Self::PatternOccurrence,
         Self::FalsePositiveRate,
@@ -40,21 +44,25 @@ impl EvidenceType {
         Self::ErrorHandlingGaps,
         Self::DecisionEvidence,
         Self::BoundaryData,
+        Self::TaintAnalysis,
+        Self::CallGraphCoverage,
     ];
 
     /// Default weight for this evidence type in grounding score computation.
     pub fn default_weight(&self) -> f64 {
         match self {
-            Self::PatternConfidence => 0.20,
-            Self::PatternOccurrence => 0.15,
-            Self::FalsePositiveRate => 0.10,
-            Self::ConstraintVerification => 0.10,
-            Self::CouplingMetric => 0.08,
-            Self::DnaHealth => 0.08,
-            Self::TestCoverage => 0.10,
-            Self::ErrorHandlingGaps => 0.07,
+            Self::PatternConfidence => 0.18,
+            Self::PatternOccurrence => 0.13,
+            Self::FalsePositiveRate => 0.09,
+            Self::ConstraintVerification => 0.09,
+            Self::CouplingMetric => 0.07,
+            Self::DnaHealth => 0.07,
+            Self::TestCoverage => 0.09,
+            Self::ErrorHandlingGaps => 0.06,
             Self::DecisionEvidence => 0.07,
             Self::BoundaryData => 0.05,
+            Self::TaintAnalysis => 0.05,
+            Self::CallGraphCoverage => 0.05,
         }
     }
 }

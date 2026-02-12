@@ -8,15 +8,28 @@
 
 use super::evidence::GroundingEvidence;
 use super::{AdjustmentMode, ConfidenceAdjustment, GroundingConfig, GroundingVerdict};
+use crate::config::EvidenceConfig;
 
 /// Grounding score computation engine.
 pub struct GroundingScorer {
     config: GroundingConfig,
+    evidence_config: EvidenceConfig,
 }
 
 impl GroundingScorer {
     pub fn new(config: GroundingConfig) -> Self {
-        Self { config }
+        Self {
+            config,
+            evidence_config: EvidenceConfig::default(),
+        }
+    }
+
+    /// Create a scorer with custom evidence weight overrides.
+    pub fn with_evidence_config(config: GroundingConfig, evidence_config: EvidenceConfig) -> Self {
+        Self {
+            config,
+            evidence_config,
+        }
     }
 
     /// Compute the grounding score from evidence items.
@@ -37,14 +50,17 @@ impl GroundingScorer {
             return 0.0;
         }
 
-        let total_weight: f64 = valid.iter().map(|e| e.weight).sum();
+        let total_weight: f64 = valid
+            .iter()
+            .map(|e| self.evidence_config.weight_for(&e.evidence_type))
+            .sum();
         if total_weight <= 0.0 {
             return 0.0;
         }
 
         let weighted_sum: f64 = valid
             .iter()
-            .map(|e| e.support_score * e.weight)
+            .map(|e| e.support_score * self.evidence_config.weight_for(&e.evidence_type))
             .sum();
 
         (weighted_sum / total_weight).clamp(0.0, 1.0)
@@ -138,5 +154,53 @@ impl GroundingScorer {
 impl Default for GroundingScorer {
     fn default() -> Self {
         Self::new(GroundingConfig::default())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::grounding::evidence::{EvidenceType, GroundingEvidence};
+
+    #[test]
+    fn evidence_config_overrides_change_score() {
+        let evidence = vec![
+            GroundingEvidence::new(
+                EvidenceType::PatternConfidence,
+                "high",
+                0.9,
+                None,
+                0.9,
+            ),
+            GroundingEvidence::new(
+                EvidenceType::BoundaryData,
+                "low",
+                0.1,
+                None,
+                0.1,
+            ),
+        ];
+
+        // Default weights: PatternConfidence=0.20, BoundaryData=0.05
+        let default_scorer = GroundingScorer::default();
+        let default_score = default_scorer.compute_score(&evidence);
+
+        // Override: make BoundaryData dominate
+        let mut ec = EvidenceConfig::defaults();
+        ec.set_weight("PatternConfidence", 0.05);
+        ec.set_weight("BoundaryData", 0.95);
+        let override_scorer = GroundingScorer::with_evidence_config(
+            GroundingConfig::default(),
+            ec,
+        );
+        let override_score = override_scorer.compute_score(&evidence);
+
+        // Default should favor high PatternConfidence → higher score
+        // Override should favor low BoundaryData → lower score
+        assert!(
+            override_score < default_score,
+            "Override score {} should be less than default score {} because BoundaryData (0.1) dominates",
+            override_score, default_score
+        );
     }
 }

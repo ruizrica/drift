@@ -1,7 +1,7 @@
 //! Engine coverage tests — exercise visitor engine, resolution index,
 //! call graph resolution, DI support, and parser language dispatch.
 
-#![allow(dead_code, unused)]
+#![allow(dead_code, unused, clippy::field_reassign_with_default, clippy::cloned_ref_to_slice_refs, clippy::manual_range_contains, clippy::comparison_to_empty)]
 
 use std::path::Path;
 use smallvec::SmallVec;

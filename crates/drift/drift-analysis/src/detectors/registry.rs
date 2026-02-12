@@ -2,7 +2,6 @@
 
 use std::collections::HashSet;
 
-use drift_core::types::collections::FxHashMap;
 
 use super::traits::{Detector, DetectorCategory};
 use crate::engine::types::PatternMatch;

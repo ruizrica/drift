@@ -13,6 +13,7 @@ import { runAnalysis, type CiAgentConfig } from './agent.js';
 import { generatePrComment } from './pr_comment.js';
 import { writeSarifFile } from './sarif_upload.js';
 import { loadNapi } from './napi.js';
+import { resolveProjectRoot } from '@drift/napi-contracts';
 import * as fs from 'node:fs';
 
 // Re-export public API
@@ -61,6 +62,9 @@ function parseArgs(args: string[]): {
       case '--output-json':
         outputJson = args[++i];
         break;
+      case '--no-bridge':
+        config.bridgeEnabled = false;
+        break;
     }
   }
 
@@ -89,15 +93,15 @@ async function main(): Promise<void> {
     return;
   }
 
-  // Initialize NAPI
+  // Initialize NAPI with project root so analyze can resolve file paths
   const napi = loadNapi();
-  try {
-    napi.driftInitialize();
-  } catch {
-    // Non-fatal
-  }
-
   const { config, outputSarif, outputJson } = parseArgs(args.slice(1));
+  const projectRoot = resolveProjectRoot(config.path);
+  try {
+    napi.driftInitialize(undefined, projectRoot);
+  } catch {
+    // Non-fatal — may already be initialized
+  }
 
   // Run analysis
   const result = await runAnalysis(config);

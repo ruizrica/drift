@@ -101,16 +101,17 @@ impl ParserManager {
         let content_hash = hash_content(source);
 
         // Check cache
-        if let Some(cached) = self.cache.get(content_hash) {
+        if let Some(cached) = self.cache.get(content_hash, lang) {
             return Ok(cached);
         }
 
-        // Parse
+        // Parse (fallback parsers may set the wrong language, e.g. CSharp for C files)
         let parser = self.parser_for(lang);
-        let result = parser.parse(source, path)?;
+        let mut result = parser.parse(source, path)?;
+        result.language = lang;
 
         // Cache the result
-        self.cache.insert(content_hash, result.clone());
+        self.cache.insert(content_hash, lang, result.clone());
 
         Ok(result)
     }
@@ -124,13 +125,14 @@ impl ParserManager {
     ) -> Result<ParseResult, ParseError> {
         let content_hash = hash_content(source);
 
-        if let Some(cached) = self.cache.get(content_hash) {
+        if let Some(cached) = self.cache.get(content_hash, lang) {
             return Ok(cached);
         }
 
         let parser = self.parser_for(lang);
-        let result = parser.parse(source, path)?;
-        self.cache.insert(content_hash, result.clone());
+        let mut result = parser.parse(source, path)?;
+        result.language = lang;
+        self.cache.insert(content_hash, lang, result.clone());
         Ok(result)
     }
 
@@ -161,7 +163,7 @@ impl ParserManager {
         )?;
 
         let content_hash = hash_content(source);
-        self.cache.insert(content_hash, result.clone());
+        self.cache.insert(content_hash, lang, result.clone());
 
         Ok((result, tree))
     }
@@ -171,9 +173,9 @@ impl ParserManager {
         self.cache.entry_count()
     }
 
-    /// Invalidate a cache entry by content hash.
-    pub fn invalidate_cache(&self, content_hash: u64) {
-        self.cache.invalidate(content_hash);
+    /// Invalidate a cache entry by content hash and language.
+    pub fn invalidate_cache(&self, content_hash: u64, lang: Language) {
+        self.cache.invalidate(content_hash, lang);
     }
 }
 

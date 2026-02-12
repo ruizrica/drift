@@ -8,12 +8,11 @@
 use std::time::Instant;
 
 use crate::parsers::types::ParseResult;
-use crate::scanner::language_detect::Language;
 
 use super::regex_engine::RegexEngine;
 use super::resolution::ResolutionIndex;
 use super::string_extraction;
-use super::types::{AnalysisPhase, AnalysisResult};
+use super::types::AnalysisResult;
 use super::visitor::{DetectionContext, DetectionEngine};
 
 /// The 4-phase analysis pipeline.

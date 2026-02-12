@@ -1,4 +1,4 @@
-//! CompositeCollector: runs all 10 evidence collectors and merges results.
+//! CompositeCollector: runs all 12 evidence collectors and merges results.
 
 use rusqlite::Connection;
 
@@ -6,7 +6,7 @@ use super::collector::{collect_one, EvidenceContext};
 use super::types::{EvidenceType, GroundingEvidence};
 use crate::errors::BridgeResult;
 
-/// Run all 10 evidence collectors against drift.db for a single memory.
+/// Run all 12 evidence collectors against drift.db for a single memory.
 /// Silently skips collectors that fail or return no data.
 pub fn collect_all(
     ctx: &EvidenceContext,
@@ -89,6 +89,10 @@ pub fn context_from_tags(
             ctx.decision_id = Some(val.to_string());
         } else if let Some(val) = tag.strip_prefix("boundary:") {
             ctx.boundary_id = Some(val.to_string());
+        } else if let Some(val) = tag.strip_prefix("function:") {
+            ctx.function_id = Some(val.to_string());
+        } else if let Some(val) = tag.strip_prefix("file:") {
+            ctx.file_path = Some(val.to_string());
         }
     }
 

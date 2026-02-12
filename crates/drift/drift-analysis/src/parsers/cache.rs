@@ -1,13 +1,23 @@
 //! Parse cache: Moka LRU in-memory + optional SQLite persistence.
-//! Keyed by content hash — same content always produces same parse result.
+//! Keyed by (content_hash, language) — same content parsed as different
+//! languages produces separate cache entries.
 
 use moka::sync::Cache;
 
 use super::types::ParseResult;
+use crate::scanner::language_detect::Language;
+
+/// Cache key combining content hash with language discriminant.
+/// This prevents cross-language collisions (e.g. identical content in .c and .cs).
+type CacheKey = (u64, std::mem::Discriminant<Language>);
+
+fn make_key(content_hash: u64, lang: Language) -> CacheKey {
+    (content_hash, std::mem::discriminant(&lang))
+}
 
 /// In-memory parse cache using Moka (TinyLFU admission).
 pub struct ParseCache {
-    inner: Cache<u64, ParseResult>,
+    inner: Cache<CacheKey, ParseResult>,
 }
 
 impl ParseCache {
@@ -18,14 +28,14 @@ impl ParseCache {
         }
     }
 
-    /// Get a cached parse result by content hash.
-    pub fn get(&self, content_hash: u64) -> Option<ParseResult> {
-        self.inner.get(&content_hash)
+    /// Get a cached parse result by content hash and language.
+    pub fn get(&self, content_hash: u64, lang: Language) -> Option<ParseResult> {
+        self.inner.get(&make_key(content_hash, lang))
     }
 
     /// Insert a parse result into the cache.
-    pub fn insert(&self, content_hash: u64, result: ParseResult) {
-        self.inner.insert(content_hash, result);
+    pub fn insert(&self, content_hash: u64, lang: Language, result: ParseResult) {
+        self.inner.insert(make_key(content_hash, lang), result);
     }
 
     /// Returns the number of entries in the cache.
@@ -34,8 +44,8 @@ impl ParseCache {
     }
 
     /// Invalidate a cache entry.
-    pub fn invalidate(&self, content_hash: u64) {
-        self.inner.invalidate(&content_hash);
+    pub fn invalidate(&self, content_hash: u64, lang: Language) {
+        self.inner.invalidate(&make_key(content_hash, lang));
     }
 }
 

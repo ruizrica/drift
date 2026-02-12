@@ -24,32 +24,33 @@ pub enum FeatureGate {
 
 impl LicenseTier {
     /// Check if a feature is allowed at this tier.
+    ///
+    /// Routes through `feature_matrix::is_allowed()` as the single source of truth,
+    /// with a legacy fallback for features not yet in the matrix.
     pub fn check(&self, feature: &str) -> FeatureGate {
-        match feature {
-            // Community features (available to all)
-            "event_mapping_basic" | "manual_grounding" => FeatureGate::Allowed,
-
-            // Team features
-            "event_mapping_full" | "scheduled_grounding" | "mcp_tools" => {
-                if matches!(self, Self::Team | Self::Enterprise) {
-                    FeatureGate::Allowed
-                } else {
-                    FeatureGate::Denied
+        if super::feature_matrix::is_allowed(feature, self) {
+            FeatureGate::Allowed
+        } else {
+            // Fall back to legacy matching for features not yet in the matrix
+            match feature {
+                "event_mapping_basic" | "manual_grounding" => FeatureGate::Allowed,
+                "event_mapping_full" | "scheduled_grounding" | "mcp_tools" => {
+                    if matches!(self, Self::Team | Self::Enterprise) {
+                        FeatureGate::Allowed
+                    } else {
+                        FeatureGate::Denied
+                    }
                 }
-            }
-
-            // Enterprise features
-            "full_grounding_loop" | "contradiction_generation" | "cross_db_analytics"
-            | "adaptive_weights" | "decomposition_transfer" | "causal_corrections" => {
-                if matches!(self, Self::Enterprise) {
-                    FeatureGate::Allowed
-                } else {
-                    FeatureGate::Denied
+                "full_grounding_loop" | "contradiction_generation" | "cross_db_analytics"
+                | "adaptive_weights" | "decomposition_transfer" | "causal_corrections" => {
+                    if matches!(self, Self::Enterprise) {
+                        FeatureGate::Allowed
+                    } else {
+                        FeatureGate::Denied
+                    }
                 }
+                _ => FeatureGate::Denied,
             }
-
-            // Unknown features default to denied
-            _ => FeatureGate::Denied,
         }
     }
 

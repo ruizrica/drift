@@ -4,7 +4,7 @@
 
 use std::path::Path;
 
-use super::types::{CommitSummary, Decision, DecisionCategory};
+use super::types::{CommitSummary, Decision};
 use super::categorizer::DecisionCategorizer;
 
 /// Git history analyzer using git2.

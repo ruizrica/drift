@@ -2,14 +2,14 @@
 
 use drift_analysis::engine::types::PatternCategory;
 use drift_analysis::patterns::aggregation::types::{AggregatedPattern, PatternLocation};
-use drift_analysis::patterns::confidence::types::{ConfidenceScore, ConfidenceTier, MomentumDirection};
+use drift_analysis::patterns::confidence::types::{ConfidenceScore, MomentumDirection};
 use drift_analysis::patterns::learning::discovery::ConventionDiscoverer;
 use drift_analysis::patterns::learning::promotion::{self, PromotionConfig};
 use drift_analysis::patterns::learning::relearning;
 use drift_analysis::patterns::learning::dirichlet::DirichletMultinomial;
 use drift_analysis::patterns::learning::expiry;
 use drift_analysis::patterns::learning::types::{
-    Convention, ConventionCategory, ConventionScope, LearningConfig, PromotionStatus,
+    Convention, ConventionCategory, ConventionScope, PromotionStatus,
 };
 
 fn make_pattern(id: &str, locations: u32, files: u32) -> AggregatedPattern {
@@ -278,7 +278,7 @@ fn t3_lrn_07_contested_not_promoted() {
 
     // Try to promote
     let config = PromotionConfig::default();
-    let promoted = promotion::promote_batch(&mut conventions, &config);
+    let _promoted = promotion::promote_batch(&mut conventions, &config);
 
     // Contested conventions should not be promoted (their confidence is too low)
     let contested_promoted: Vec<_> = conventions.iter()

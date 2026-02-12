@@ -105,9 +105,9 @@ export class SimulationOrchestrator {
 
     // Get confidence interval from Rust or estimate
     const ci = rustResult?.effort_estimate ?? {
-      p10: approaches[0]?.estimatedEffortHours * 0.6 ?? 4,
+      p10: (approaches[0]?.estimatedEffortHours ?? 4) * 0.6,
       p50: approaches[0]?.estimatedEffortHours ?? 8,
-      p90: approaches[0]?.estimatedEffortHours * 1.8 ?? 16,
+      p90: (approaches[0]?.estimatedEffortHours ?? 16) * 1.8,
     };
 
     return {

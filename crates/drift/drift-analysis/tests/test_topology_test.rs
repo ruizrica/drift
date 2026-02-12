@@ -1,3 +1,4 @@
+#![allow(clippy::field_reassign_with_default)]
 //! T4-TST-01 through T4-TST-04: Test topology tests.
 
 use drift_analysis::call_graph::types::{CallEdge, CallGraph, FunctionNode, Resolution};

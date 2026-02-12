@@ -3,10 +3,10 @@
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Mutex;
 
-use drift_core::types::collections::{FxHashMap, FxHashSet};
+use drift_core::types::collections::FxHashMap;
 use petgraph::graph::NodeIndex;
 
-use super::types::{ReachabilityResult, SensitivityCategory, TraversalDirection, ReachabilityEngine};
+use super::types::{ReachabilityResult, TraversalDirection};
 
 /// Cache key: (node, direction).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

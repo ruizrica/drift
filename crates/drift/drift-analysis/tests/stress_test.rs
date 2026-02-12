@@ -351,7 +351,7 @@ fn stress_beta_extreme_parameters() {
     for (a, b) in &cases {
         let mean = BetaPosterior::posterior_mean(*a, *b);
         assert!(mean.is_finite(), "NaN/Inf mean for alpha={}, beta={}", a, b);
-        assert!(mean >= 0.0 && mean <= 1.0, "Out of range for alpha={}, beta={}", a, b);
+        assert!((0.0..=1.0).contains(&mean), "Out of range for alpha={}, beta={}", a, b);
 
         let var = BetaPosterior::posterior_variance(*a, *b);
         assert!(var.is_finite(), "NaN/Inf variance for alpha={}, beta={}", a, b);

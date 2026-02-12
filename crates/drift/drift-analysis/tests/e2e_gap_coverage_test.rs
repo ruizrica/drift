@@ -1,3 +1,4 @@
+#![allow(clippy::assertions_on_constants, clippy::needless_range_loop)]
 //! E2E Gap Coverage Tests
 //!
 //! Covers the 5 categories missing from the main e2e_full_pipeline_test:
@@ -14,8 +15,8 @@ use std::thread;
 
 use drift_analysis::boundaries::detector::BoundaryDetector;
 use drift_analysis::call_graph::builder::CallGraphBuilder;
-use drift_analysis::enforcement::audit::{HealthScorer, PatternAuditData, PatternStatus};
-use drift_analysis::enforcement::gates::{GateInput, GateOrchestrator, GateStatus};
+use drift_analysis::enforcement::audit::HealthScorer;
+use drift_analysis::enforcement::gates::{GateInput, GateOrchestrator};
 use drift_analysis::enforcement::policy::{Policy, PolicyEngine};
 use drift_analysis::enforcement::reporters;
 use drift_analysis::enforcement::rules::{
@@ -74,7 +75,7 @@ fn adversarial_empty_file_survives_full_pipeline() {
 
     let scanner = Scanner::new(ScanConfig::default());
     let diff = scanner.scan(dir.path(), &FxHashMap::default(), &NoOpHandler).unwrap();
-    assert!(diff.added.len() >= 1);
+    assert!(!diff.added.is_empty());
 
     let parser = ParserManager::new();
     let source = b"";
@@ -287,7 +288,7 @@ fn isolation_health_scorer_zero_patterns() {
     let scorer = HealthScorer::new();
     let (score, breakdown) = scorer.compute(&[], &[]);
     assert!(score.is_finite(), "Health score should be finite, got {score}");
-    assert!(score >= 0.0 && score <= 100.0, "Health score out of range: {score}");
+    assert!((0.0..=100.0).contains(&score), "Health score out of range: {score}");
     eprintln!("[Isolation] Zero-pattern health score: {:.1}", score);
     eprintln!("  confidence={:.2} approval={:.2} compliance={:.2}",
         breakdown.avg_confidence, breakdown.approval_ratio, breakdown.compliance_rate);
@@ -688,8 +689,8 @@ fn storage_roundtrip_suppressed_violation() {
 
     enforcement::insert_violation(&conn, &v).unwrap();
     let rows = enforcement::query_all_violations(&conn).unwrap();
-    assert_eq!(rows[0].suppressed, true, "suppressed=true must survive roundtrip");
-    assert_eq!(rows[0].is_new, false, "is_new=false must survive roundtrip");
+    assert!(rows[0].suppressed, "suppressed=true must survive roundtrip");
+    assert!(!rows[0].is_new, "is_new=false must survive roundtrip");
     eprintln!("[StorageRoundtrip] Suppressed violation: booleans survived");
 }
 
@@ -753,7 +754,7 @@ fn storage_roundtrip_gate_result_with_error() {
     enforcement::insert_gate_result(&conn, &g).unwrap();
     let rows = enforcement::query_gate_results(&conn).unwrap();
     assert_eq!(rows[0].error.as_deref(), Some("timeout after 30s — coverage tool unresponsive"));
-    assert_eq!(rows[0].passed, false);
+    assert!(!rows[0].passed);
     eprintln!("[StorageRoundtrip] Gate with error: error field survived");
 }
 
@@ -865,8 +866,8 @@ fn storage_roundtrip_functions_via_batch_writer() {
     assert_eq!(f.line, 42);
     assert_eq!(f.end_line, 78);
     assert_eq!(f.parameter_count, 3);
-    assert_eq!(f.is_exported, true);
-    assert_eq!(f.is_async, true);
+    assert!(f.is_exported);
+    assert!(f.is_async);
 
     eprintln!("[StorageRoundtrip] Function via batch writer: all fields match");
 }

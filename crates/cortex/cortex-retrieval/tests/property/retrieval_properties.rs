@@ -113,7 +113,7 @@ proptest! {
             all_lists.push(list);
         }
 
-        let fts5 = all_lists.get(0);
+        let fts5 = all_lists.first();
         let vector = all_lists.get(1);
         let entity = all_lists.get(2);
         let candidates = rrf_fusion::fuse(fts5, vector, entity, &memories, k);

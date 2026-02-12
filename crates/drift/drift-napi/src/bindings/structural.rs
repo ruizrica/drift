@@ -3,6 +3,7 @@
 //! Exposes coupling, constraints, contracts, constants, wrappers, DNA,
 //! OWASP/CWE, crypto, and decomposition analysis to TypeScript/JavaScript.
 
+#[allow(unused_imports)]
 use napi::bindgen_prelude::*;
 use napi_derive::napi;
 use serde::{Deserialize, Serialize};
@@ -44,14 +45,14 @@ pub struct JsCouplingResult {
 }
 
 #[napi]
-pub fn drift_coupling_analysis(root: String) -> napi::Result<JsCouplingResult> {
+pub fn drift_coupling_analysis(_root: String) -> napi::Result<JsCouplingResult> {
     let rt = runtime::get()?;
 
-    let rows = rt.db.with_reader(|conn| {
+    let rows = rt.storage.with_reader(|conn| {
         drift_storage::queries::structural::get_all_coupling_metrics(conn)
     }).map_err(storage_err)?;
 
-    let cycles = rt.db.with_reader(|conn| {
+    let cycles = rt.storage.with_reader(|conn| {
         drift_storage::queries::structural::query_coupling_cycles(conn)
     }).map_err(storage_err)?;
 
@@ -100,10 +101,10 @@ pub struct JsConstraintResult {
 }
 
 #[napi]
-pub fn drift_constraint_verification(root: String) -> napi::Result<JsConstraintResult> {
+pub fn drift_constraint_verification(_root: String) -> napi::Result<JsConstraintResult> {
     let rt = runtime::get()?;
 
-    let constraints = rt.db.with_reader(|conn| {
+    let constraints = rt.storage.with_reader(|conn| {
         drift_storage::queries::structural::get_enabled_constraints(conn)
     }).map_err(storage_err)?;
 
@@ -111,7 +112,7 @@ pub fn drift_constraint_verification(root: String) -> napi::Result<JsConstraintR
     let mut all_violations = Vec::new();
     let mut passing = 0u32;
     for c in &constraints {
-        let verifications = rt.db.with_reader(|conn| {
+        let verifications = rt.storage.with_reader(|conn| {
             drift_storage::queries::structural::query_constraint_verifications(conn, &c.id)
         }).map_err(storage_err)?;
         for v in &verifications {
@@ -368,14 +369,14 @@ pub struct JsConstantsResult {
 }
 
 #[napi]
-pub fn drift_constants_analysis(root: String) -> napi::Result<JsConstantsResult> {
+pub fn drift_constants_analysis(_root: String) -> napi::Result<JsConstantsResult> {
     let rt = runtime::get()?;
 
-    let constant_count = rt.db.with_reader(|conn| {
+    let constant_count = rt.storage.with_reader(|conn| {
         drift_storage::queries::constants::count(conn)
     }).map_err(storage_err)? as u32;
 
-    let secrets = rt.db.with_reader(|conn| {
+    let secrets = rt.storage.with_reader(|conn| {
         drift_storage::queries::structural::get_secrets_by_severity(conn, "critical")
     }).map_err(storage_err)?;
 
@@ -387,7 +388,7 @@ pub fn drift_constants_analysis(root: String) -> napi::Result<JsConstantsResult>
         confidence: s.confidence,
     }).collect();
 
-    let magic_numbers = rt.db.with_reader(|conn| {
+    let magic_numbers = rt.storage.with_reader(|conn| {
         drift_storage::queries::constants::query_magic_numbers(conn)
     }).map_err(storage_err)?;
 
@@ -398,13 +399,13 @@ pub fn drift_constants_analysis(root: String) -> napi::Result<JsConstantsResult>
         suggested_name: None,
     }).collect();
 
-    let missing_env = rt.db.with_reader(|conn| {
+    let missing_env = rt.storage.with_reader(|conn| {
         drift_storage::queries::env_variables::query_missing(conn)
     }).map_err(storage_err)?;
 
     let missing_env_vars: Vec<String> = missing_env.iter().map(|e| e.name.clone()).collect();
 
-    let unused = rt.db.with_reader(|conn| {
+    let unused = rt.storage.with_reader(|conn| {
         drift_storage::queries::constants::query_unused(conn)
     }).map_err(storage_err)?;
 
@@ -451,10 +452,10 @@ pub struct JsWrapperResult {
 }
 
 #[napi]
-pub fn drift_wrapper_detection(root: String) -> napi::Result<JsWrapperResult> {
+pub fn drift_wrapper_detection(_root: String) -> napi::Result<JsWrapperResult> {
     let rt = runtime::get()?;
 
-    let rows = rt.db.with_reader(|conn| {
+    let rows = rt.storage.with_reader(|conn| {
         conn.prepare_cached("SELECT id, name, file, line, category, wrapped_primitives, framework, confidence, is_multi_primitive, is_exported, usage_count FROM wrappers")
             .map_err(|e| drift_core::errors::StorageError::SqliteError { message: e.to_string() })
             .and_then(|mut stmt| {
@@ -561,14 +562,14 @@ pub struct JsDnaResult {
 }
 
 #[napi]
-pub fn drift_dna_analysis(root: String) -> napi::Result<JsDnaResult> {
+pub fn drift_dna_analysis(_root: String) -> napi::Result<JsDnaResult> {
     let rt = runtime::get()?;
 
-    let gene_rows = rt.db.with_reader(|conn| {
+    let gene_rows = rt.storage.with_reader(|conn| {
         drift_storage::queries::structural::get_all_dna_genes(conn)
     }).map_err(storage_err)?;
 
-    let mutation_rows = rt.db.with_reader(|conn| {
+    let mutation_rows = rt.storage.with_reader(|conn| {
         drift_storage::queries::structural::get_unresolved_mutations(conn)
     }).map_err(storage_err)?;
 
@@ -655,11 +656,11 @@ pub struct JsOwaspResult {
 }
 
 #[napi]
-pub fn drift_owasp_analysis(root: String) -> napi::Result<JsOwaspResult> {
+pub fn drift_owasp_analysis(_root: String) -> napi::Result<JsOwaspResult> {
     let rt = runtime::get()?;
 
     // Read violations that have CWE/OWASP mappings
-    let violations = rt.db.with_reader(|conn| {
+    let violations = rt.storage.with_reader(|conn| {
         drift_storage::queries::enforcement::query_all_violations(conn)
     }).map_err(storage_err)?;
 
@@ -740,10 +741,10 @@ pub struct JsCryptoResult {
 }
 
 #[napi]
-pub fn drift_crypto_analysis(root: String) -> napi::Result<JsCryptoResult> {
+pub fn drift_crypto_analysis(_root: String) -> napi::Result<JsCryptoResult> {
     let rt = runtime::get()?;
 
-    let rows = rt.db.with_reader(|conn| {
+    let rows = rt.storage.with_reader(|conn| {
         conn.prepare_cached(
             "SELECT id, file, line, category, description, code, confidence, cwe_id, owasp, remediation, language FROM crypto_findings"
         )
@@ -825,15 +826,15 @@ pub struct JsDecompositionResult {
 }
 
 #[napi]
-pub fn drift_decomposition(root: String) -> napi::Result<JsDecompositionResult> {
+pub fn drift_decomposition(_root: String) -> napi::Result<JsDecompositionResult> {
     let rt = runtime::get()?;
 
     // Use coupling_metrics as a proxy for module decomposition
-    let metrics = rt.db.with_reader(|conn| {
+    let metrics = rt.storage.with_reader(|conn| {
         drift_storage::queries::structural::get_all_coupling_metrics(conn)
     }).map_err(storage_err)?;
 
-    let file_count = rt.db.with_reader(|conn| {
+    let file_count = rt.storage.with_reader(|conn| {
         drift_storage::queries::files::count_files(conn)
     }).map_err(storage_err)? as u32;
 

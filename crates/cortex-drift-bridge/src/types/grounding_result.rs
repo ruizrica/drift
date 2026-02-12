@@ -9,8 +9,6 @@ use crate::grounding::GroundingEvidence;
 /// Result of grounding a single memory against Drift scan data.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GroundingResult {
-    /// Unique ID for this grounding check.
-    pub id: String,
     /// The memory being grounded.
     pub memory_id: String,
     /// The grounding verdict.

@@ -12,6 +12,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
 import { registerTools } from './tools/index.js';
 import { loadNapi } from './napi.js';
+import { resolveProjectRoot } from '@drift/napi-contracts';
 import type { McpConfig, InternalTool } from './types.js';
 import { DEFAULT_MCP_CONFIG } from './types.js';
 import { InfrastructureLayer } from './infrastructure/index.js';
@@ -40,20 +41,18 @@ export function createDriftMcpServer(
   config: Partial<McpConfig> = {},
 ): DriftMcpServer {
   const mergedConfig = { ...DEFAULT_MCP_CONFIG, ...config };
+  const projectRoot = resolveProjectRoot(mergedConfig.projectRoot);
 
   // Initialize infrastructure layer
   const infrastructure = new InfrastructureLayer({
-    projectRoot: mergedConfig.projectRoot,
+    projectRoot,
     maxResponseTokens: mergedConfig.maxResponseTokens,
   });
 
   // Initialize NAPI bindings
   const napi = loadNapi();
   try {
-    napi.driftInitialize(
-      undefined,
-      mergedConfig.projectRoot,
-    );
+    napi.driftInitialize(undefined, projectRoot);
   } catch {
     // Non-fatal — NAPI may already be initialized or not available
   }

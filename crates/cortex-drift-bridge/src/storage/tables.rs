@@ -20,7 +20,27 @@ pub fn create_bridge_tables(conn: &Connection) -> BridgeResult<()> {
 }
 
 /// Store a memory in the bridge_memories table.
+/// Deduplicates by (summary, memory_type) — if a memory with the same summary
+/// and type already exists, the insert is skipped to prevent bloat on re-analyze.
 pub fn store_memory(conn: &Connection, memory: &cortex_core::memory::BaseMemory) -> BridgeResult<()> {
+    let memory_type_str = format!("{:?}", memory.memory_type);
+
+    // Cross-process dedup: skip if same summary+type already exists
+    let exists: bool = conn.query_row(
+        "SELECT EXISTS(SELECT 1 FROM bridge_memories WHERE summary = ?1 AND memory_type = ?2)",
+        params![memory.summary, memory_type_str],
+        |row| row.get(0),
+    ).unwrap_or(false);
+
+    if exists {
+        tracing::debug!(
+            summary = %memory.summary,
+            memory_type = %memory_type_str,
+            "Skipping duplicate memory — same summary+type already exists"
+        );
+        return Ok(());
+    }
+
     let content_json = serde_json::to_string(&memory.content)?;
     let tags_json = serde_json::to_string(&memory.tags)?;
     let patterns_json = serde_json::to_string(&memory.linked_patterns)?;
@@ -30,7 +50,7 @@ pub fn store_memory(conn: &Connection, memory: &cortex_core::memory::BaseMemory)
          VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
         params![
             memory.id,
-            format!("{:?}", memory.memory_type),
+            memory_type_str,
             content_json,
             memory.summary,
             memory.confidence.value(),
@@ -77,8 +97,8 @@ pub fn record_grounding_result(conn: &Connection, result: &GroundingResult) -> B
 pub fn record_grounding_snapshot(conn: &Connection, snapshot: &GroundingSnapshot) -> BridgeResult<()> {
     conn.execute(
         "INSERT INTO bridge_grounding_snapshots
-         (total_memories, grounded_count, validated_count, partial_count, weak_count, invalidated_count, avg_score)
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+         (total_memories, grounded_count, validated_count, partial_count, weak_count, invalidated_count, avg_score, error_count, trigger_type)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
         params![
             snapshot.total_checked,
             snapshot.validated + snapshot.partial + snapshot.weak + snapshot.invalidated,
@@ -87,6 +107,8 @@ pub fn record_grounding_snapshot(conn: &Connection, snapshot: &GroundingSnapshot
             snapshot.weak,
             snapshot.invalidated,
             snapshot.avg_grounding_score,
+            snapshot.error_count,
+            snapshot.trigger_type,
         ],
     )?;
     Ok(())
@@ -97,6 +119,16 @@ pub fn record_metric(conn: &Connection, name: &str, value: f64) -> BridgeResult<
     conn.execute(
         "INSERT INTO bridge_metrics (metric_name, metric_value) VALUES (?1, ?2)",
         params![name, value],
+    )?;
+    Ok(())
+}
+
+/// Update a memory's confidence in bridge_memories after grounding adjustment.
+/// Clamps to [0.0, 1.0] range.
+pub fn update_memory_confidence(conn: &Connection, memory_id: &str, delta: f64) -> BridgeResult<()> {
+    conn.execute(
+        "UPDATE bridge_memories SET confidence = MIN(MAX(confidence + ?1, 0.0), 1.0) WHERE id = ?2",
+        params![delta, memory_id],
     )?;
     Ok(())
 }

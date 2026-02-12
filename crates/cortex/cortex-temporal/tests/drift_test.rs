@@ -407,7 +407,7 @@ fn ttd1_09_evidence_freshness_bounds() {
         let freshness =
             cortex_temporal::drift::evidence_freshness::compute_evidence_freshness(&factors);
         assert!(
-            freshness >= 0.0 && freshness <= 1.0,
+            (0.0..=1.0).contains(&freshness),
             "Freshness {} out of bounds for factors {:?}",
             freshness,
             factors
@@ -421,7 +421,7 @@ fn ttd1_09_evidence_freshness_bounds() {
         let freshness =
             cortex_temporal::drift::evidence_freshness::user_validation_freshness(validated_at, now);
         assert!(
-            freshness >= 0.0 && freshness <= 1.0,
+            (0.0..=1.0).contains(&freshness),
             "User validation freshness {} out of bounds for {} days ago",
             freshness,
             days_ago

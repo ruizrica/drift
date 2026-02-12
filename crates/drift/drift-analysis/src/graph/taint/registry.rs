@@ -3,7 +3,6 @@
 //! Extensible without code changes — users can add custom sources, sinks,
 //! and sanitizers via TOML configuration.
 
-use drift_core::types::collections::FxHashMap;
 use serde::{Deserialize, Serialize};
 
 use super::types::{SanitizerType, SinkType, SourceType};

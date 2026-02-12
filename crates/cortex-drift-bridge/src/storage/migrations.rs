@@ -16,22 +16,41 @@ pub const CURRENT_VERSION: u32 = 1;
 
 /// Get the current bridge schema version from the database.
 ///
-/// Uses a bridge-specific approach: we store the bridge schema version
-/// in the `bridge_metrics` table to avoid conflicting with drift-core's
-/// own use of `PRAGMA user_version` on shared databases.
+/// Checks the dedicated `bridge_schema_version` table first. Falls back to
+/// the legacy `bridge_metrics` location for backward compatibility with
+/// databases created before INF-07.
 pub fn get_schema_version(conn: &Connection) -> BridgeResult<u32> {
-    // First check if bridge_metrics table exists
-    let table_exists: bool = conn.query_row(
+    // Check dedicated version table first
+    let dedicated_exists: bool = conn.query_row(
+        "SELECT COUNT(*) > 0 FROM sqlite_master WHERE type='table' AND name='bridge_schema_version'",
+        [],
+        |row| row.get(0),
+    )?;
+
+    if dedicated_exists {
+        let result = conn.query_row(
+            "SELECT version FROM bridge_schema_version LIMIT 1",
+            [],
+            |row| row.get::<_, u32>(0),
+        );
+        match result {
+            Ok(version) => return Ok(version),
+            Err(rusqlite::Error::QueryReturnedNoRows) => { /* empty table, fall through */ }
+            Err(e) => return Err(e.into()),
+        }
+    }
+
+    // Legacy fallback: check bridge_metrics
+    let metrics_exists: bool = conn.query_row(
         "SELECT COUNT(*) > 0 FROM sqlite_master WHERE type='table' AND name='bridge_metrics'",
         [],
         |row| row.get(0),
     )?;
 
-    if !table_exists {
+    if !metrics_exists {
         return Ok(0);
     }
 
-    // Check for version marker in bridge_metrics
     let result = conn.query_row(
         "SELECT CAST(metric_value AS INTEGER) FROM bridge_metrics WHERE metric_name = 'schema_version' ORDER BY recorded_at DESC LIMIT 1",
         [],
@@ -54,10 +73,19 @@ pub fn get_schema_version(conn: &Connection) -> BridgeResult<u32> {
 }
 
 /// Set the bridge schema version in the database.
+/// Uses a dedicated single-row table that is immune to retention cleanup.
 fn set_schema_version(conn: &Connection, version: u32) -> BridgeResult<()> {
+    // Create dedicated version table if it doesn't exist
+    conn.execute_batch(
+        "CREATE TABLE IF NOT EXISTS bridge_schema_version (
+            version INTEGER NOT NULL
+        ) STRICT;",
+    )?;
+    // Upsert: delete old row, insert new
+    conn.execute("DELETE FROM bridge_schema_version", [])?;
     conn.execute(
-        "INSERT INTO bridge_metrics (metric_name, metric_value) VALUES ('schema_version', ?1)",
-        rusqlite::params![version as f64],
+        "INSERT INTO bridge_schema_version (version) VALUES (?1)",
+        rusqlite::params![version],
     )?;
     Ok(())
 }
@@ -76,12 +104,6 @@ pub fn migrate(conn: &Connection) -> BridgeResult<u32> {
         info!("Migrating bridge schema: 0 → 1 (initial tables)");
         conn.execute_batch(BRIDGE_TABLES_V1)?;
         set_schema_version(conn, 1)?;
-
-        // Log the migration event
-        conn.execute(
-            "INSERT INTO bridge_event_log (event_type, memory_type) VALUES ('schema_migration', 'v0_to_v1')",
-            [],
-        )?;
     }
 
     // Future migrations go here:
@@ -126,7 +148,7 @@ mod tests {
                 |row| row.get(0),
             )
             .unwrap();
-        assert_eq!(count, 5, "Expected 5 bridge tables");
+        assert_eq!(count, 6, "Expected 6 bridge tables (5 data + 1 schema_version)");
     }
 
     #[test]
@@ -147,17 +169,17 @@ mod tests {
     }
 
     #[test]
-    fn test_migration_logged_in_event_log() {
+    fn test_migration_does_not_pollute_event_log() {
         let conn = fresh_db();
         migrate(&conn).unwrap();
 
         let count: i64 = conn
             .query_row(
-                "SELECT COUNT(*) FROM bridge_event_log WHERE event_type = 'schema_migration'",
+                "SELECT COUNT(*) FROM bridge_event_log",
                 [],
                 |row| row.get(0),
             )
             .unwrap();
-        assert_eq!(count, 1);
+        assert_eq!(count, 0, "migrate() should not insert any events");
     }
 }

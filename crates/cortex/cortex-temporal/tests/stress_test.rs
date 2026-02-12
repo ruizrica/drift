@@ -1,3 +1,4 @@
+#![allow(clippy::assertions_on_constants)]
 //! Stress tests for cortex-temporal — adversarial, edge-case, and silent-failure exposure.
 //!
 //! Organized by tier from the STRESS-TEST-PLAN.md:
@@ -501,7 +502,7 @@ async fn reconstruct_at_before_first_event() {
     let event = make_event_at(
         mid,
         MemoryEventType::Created,
-        serde_json::to_value(&make_test_memory(mid)).unwrap(),
+        serde_json::to_value(make_test_memory(mid)).unwrap(),
         now,
     );
     cortex_temporal::event_store::append::append(&writer, &event).await.unwrap();
@@ -646,7 +647,7 @@ async fn diff_identity_always_empty() {
     ensure_memory_row(&writer, "diff-id").await;
 
     // Insert some events so the DB isn't empty
-    let e = make_event("diff-id", MemoryEventType::Created, serde_json::to_value(&make_test_memory("diff-id")).unwrap());
+    let e = make_event("diff-id", MemoryEventType::Created, serde_json::to_value(make_test_memory("diff-id")).unwrap());
     cortex_temporal::event_store::append::append(&writer, &e).await.unwrap();
 
     let now = Utc::now();
@@ -1137,8 +1138,8 @@ fn epistemic_aggregation_empty_evidences() {
         &AggregationStrategy::GodelTNorm,
     );
     // Empty evidences — both should return a sensible default
-    assert!(wa >= 0.0 && wa <= 1.0, "WeightedAverage empty should be in [0,1]: {}", wa);
-    assert!(gt >= 0.0 && gt <= 1.0, "GodelTNorm empty should be in [0,1]: {}", gt);
+    assert!((0.0..=1.0).contains(&wa), "WeightedAverage empty should be in [0,1]: {}", wa);
+    assert!((0.0..=1.0).contains(&gt), "GodelTNorm empty should be in [0,1]: {}", gt);
 }
 
 #[test]
@@ -1271,7 +1272,7 @@ async fn memory_id_with_sql_injection() {
     let e = make_event(
         evil_id,
         MemoryEventType::Created,
-        serde_json::to_value(&make_test_memory(evil_id)).unwrap(),
+        serde_json::to_value(make_test_memory(evil_id)).unwrap(),
     );
     let result = cortex_temporal::event_store::append::append(&writer, &e).await;
     assert!(result.is_ok(), "SQL injection in memory_id should be safely parameterized");
@@ -1295,7 +1296,7 @@ async fn memory_id_with_unicode() {
     let e = make_event(
         unicode_id,
         MemoryEventType::Created,
-        serde_json::to_value(&make_test_memory(unicode_id)).unwrap(),
+        serde_json::to_value(make_test_memory(unicode_id)).unwrap(),
     );
     let result = cortex_temporal::event_store::append::append(&writer, &e).await;
     assert!(result.is_ok(), "Unicode memory_id should work");
@@ -1309,7 +1310,7 @@ async fn memory_id_empty_string() {
     let e = make_event(
         "",
         MemoryEventType::Created,
-        serde_json::to_value(&make_test_memory("")).unwrap(),
+        serde_json::to_value(make_test_memory("")).unwrap(),
     );
     // Empty string as ID — should either work or error gracefully
     let _result = cortex_temporal::event_store::append::append(&writer, &e).await;

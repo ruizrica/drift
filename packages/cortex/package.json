@@ -17,7 +17,8 @@
     "typecheck": "tsc --noEmit"
   },
   "optionalDependencies": {
-    "drift-cortex-napi": "*"
+    "drift-cortex-napi": "*",
+    "@drift/core": "*"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

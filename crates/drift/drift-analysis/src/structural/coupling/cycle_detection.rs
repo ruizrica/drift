@@ -57,7 +57,7 @@ pub fn detect_cycles(graph: &ImportGraph) -> Vec<CycleInfo> {
 fn suggest_cycle_breaks(
     pg: &DiGraph<String, ()>,
     scc: &[NodeIndex],
-    members: &[String],
+    _members: &[String],
 ) -> Vec<CycleBreakSuggestion> {
     use petgraph::visit::EdgeRef;
 

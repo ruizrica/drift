@@ -2,7 +2,6 @@
 
 use std::collections::HashMap;
 
-use super::counter::TokenCounter;
 
 /// Token budget configuration for context generation.
 #[derive(Debug, Clone)]

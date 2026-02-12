@@ -18,7 +18,10 @@ pub fn add_correction_edge(
     let relation = root_cause.to_causal_relation();
     engine
         .add_edge(upstream, correction, relation, 0.8, vec![], None)
-        .map_err(|e| crate::errors::BridgeError::Config(format!("Causal edge failed: {}", e)))?;
+        .map_err(|e| crate::errors::BridgeError::Causal {
+            operation: "add_correction_edge".to_string(),
+            reason: e.to_string(),
+        })?;
     Ok(())
 }
 
@@ -32,10 +35,12 @@ pub fn add_grounding_edge(
 ) -> BridgeResult<()> {
     let relation = if grounding_result.grounding_score >= 0.7 {
         CausalRelation::Supports
-    } else if grounding_result.grounding_score < 0.2 {
-        CausalRelation::Contradicts
-    } else {
+    } else if grounding_result.grounding_score >= 0.4 {
+        // Partial: weakly supports — still a positive signal but not strong
         CausalRelation::Supports
+    } else {
+        // Weak (< 0.4) and Invalidated (< 0.2): negative signal
+        CausalRelation::Contradicts
     };
 
     engine
@@ -47,7 +52,10 @@ pub fn add_grounding_edge(
             vec![],
             None,
         )
-        .map_err(|e| crate::errors::BridgeError::Config(format!("Grounding edge failed: {}", e)))?;
+        .map_err(|e| crate::errors::BridgeError::Causal {
+            operation: "add_grounding_edge".to_string(),
+            reason: e.to_string(),
+        })?;
     Ok(())
 }
 

@@ -1,3 +1,4 @@
+#![allow(clippy::for_kv_map)]
 //! Phase 6 tests: Audit System — Health Scoring & Degradation Detection
 //! T6-AUD-01 through T6-AUD-08
 

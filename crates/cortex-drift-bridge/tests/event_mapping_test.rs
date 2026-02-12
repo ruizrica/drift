@@ -7,23 +7,19 @@ use drift_core::events::handler::DriftEventHandler;
 use drift_core::events::types::*;
 
 /// Helper: create an in-memory SQLite DB with bridge tables.
-fn setup_bridge_db() -> rusqlite::Connection {
-    let conn = rusqlite::Connection::open_in_memory().unwrap();
-    cortex_drift_bridge::storage::create_bridge_tables(&conn).unwrap();
-    conn
+fn setup_bridge_db() -> cortex_drift_bridge::storage::engine::BridgeStorageEngine {
+    cortex_drift_bridge::storage::engine::BridgeStorageEngine::open_in_memory().unwrap()
 }
 
 /// Helper: create a BridgeEventHandler with an in-memory DB.
-fn handler_with_db(tier: LicenseTier) -> (BridgeEventHandler, rusqlite::Connection) {
-    let conn = setup_bridge_db();
-    // We need a separate connection for the handler since it takes ownership via Mutex
-    let handler_conn = rusqlite::Connection::open_in_memory().unwrap();
-    cortex_drift_bridge::storage::create_bridge_tables(&handler_conn).unwrap();
+fn handler_with_db(tier: LicenseTier) -> (BridgeEventHandler, cortex_drift_bridge::storage::engine::BridgeStorageEngine) {
+    let engine = setup_bridge_db();
+    let handler_engine = setup_bridge_db();
     let handler = BridgeEventHandler::new(
-        Some(std::sync::Mutex::new(handler_conn)),
+        Some(std::sync::Arc::new(handler_engine) as std::sync::Arc<dyn cortex_drift_bridge::traits::IBridgeStorage>),
         tier,
     );
-    (handler, conn)
+    (handler, engine)
 }
 
 // ---- T9-EVT-01: Test event mapping creates correct Cortex memory types from all 21 Drift event types ----

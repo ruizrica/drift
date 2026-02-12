@@ -307,6 +307,7 @@ fn t1_napi_08_scan_options_config_merging() {
     let opts = ScanOptions {
         force_full: Some(true),
         max_file_size: Some(10_000_000),
+        include: None,
         extra_ignore: Some(vec!["*.log".to_string(), "dist/".to_string()]),
         follow_symlinks: Some(false),
     };

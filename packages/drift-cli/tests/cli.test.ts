@@ -55,7 +55,7 @@ describe('CLI', () => {
     expect(commands).toContain('gc');
     expect(commands).toContain('setup');
     expect(commands).toContain('doctor');
-    expect(commands).toHaveLength(26);
+    expect(commands).toHaveLength(30);
   });
 
   // T8-CLI-03: Test all output formats produce valid output
@@ -114,7 +114,7 @@ describe('CLI', () => {
   it('T8-CLI-10: program handles unknown commands', () => {
     const program = createProgram();
     // Commander handles unknown commands with help text
-    expect(program.commands.length).toBe(26);
+    expect(program.commands.length).toBe(30);
   });
 });
 

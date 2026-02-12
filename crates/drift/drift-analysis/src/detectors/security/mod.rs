@@ -46,12 +46,12 @@ impl Detector for SecurityDetector {
                 | "Start"  // Process.Start
                 // Go
                 | "Command" | "CombinedOutput" | "Output"  // exec.Command
-                // Ruby
-                | "system" | "backtick" | "Open3"
+                // Ruby (system already listed above)
+                | "backtick" | "Open3"
                 // PHP
                 | "shell_exec" | "passthru" | "proc_open"
-                // Rust
-                | "Command" | "output" | "spawn"  // std::process::Command
+                // Rust (Command/spawn already listed above)
+                | "output"  // std::process::Command
             ) {
                 matches.push(PatternMatch {
                     file: ctx.file.to_string(),

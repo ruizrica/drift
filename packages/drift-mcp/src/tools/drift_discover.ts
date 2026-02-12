@@ -65,13 +65,20 @@ const INTENT_KEYWORDS: Record<string, string[]> = {
   test: ['test_topology', 'coverage', 'impact', 'check'],
   commit: ['check', 'violations', 'impact', 'prevalidate', 'quality_gate'],
   performance: ['coupling', 'decomposition', 'impact', 'constants'],
-  memory: ['cortex_memory', 'cortex_search', 'cortex_context', 'cortex_learn', 'cortex_feedback', 'cortex_export', 'cortex_import', 'cortex_validate'],
+  memory: ['cortex_memory', 'cortex_search', 'cortex_context', 'cortex_learn', 'cortex_feedback', 'cortex_export', 'cortex_import', 'cortex_validate', 'bridge_status', 'bridge_memories', 'bridge_ground', 'bridge_events'],
   agent: ['cortex_agent', 'cortex_agent_register', 'cortex_agent_share', 'cortex_agent_trust', 'cortex_agent_provenance', 'cortex_agent_project'],
   cortex: ['cortex_status', 'cortex_metrics', 'cortex_search', 'cortex_memory', 'cortex_learn', 'cortex_consolidate', 'cortex_gc', 'cortex_validate'],
   knowledge: ['cortex_knowledge', 'cortex_time', 'cortex_search', 'cortex_why', 'cortex_explain', 'cortex_related'],
   temporal: ['cortex_time_travel', 'cortex_time_diff', 'cortex_time_replay', 'cortex_knowledge_health', 'cortex_knowledge_timeline'],
   predict: ['cortex_predict', 'cortex_preload', 'cortex_gen_context'],
   consolidate: ['cortex_consolidate', 'cortex_gc', 'cortex_reembed', 'cortex_validate_system'],
+  // Bridge-specific intents
+  grounding: ['bridge_ground', 'bridge_ground_all', 'bridge_memories', 'bridge_grounding_history', 'bridge_status', 'bridge_health'],
+  why: ['bridge_why', 'bridge_narrative', 'bridge_counterfactual', 'bridge_intervention', 'cortex_why', 'cortex_explain'],
+  causal: ['bridge_why', 'bridge_narrative', 'bridge_counterfactual', 'bridge_intervention', 'cortex_causal', 'cortex_related'],
+  learn: ['bridge_learn', 'cortex_learn', 'cortex_feedback', 'bridge_events'],
+  teach: ['bridge_learn', 'cortex_learn', 'cortex_feedback', 'bridge_events'],
+  bridge: ['bridge_status', 'bridge_health', 'bridge_ground', 'bridge_ground_all', 'bridge_memories', 'bridge_why', 'bridge_learn', 'bridge_events', 'bridge_narrative'],
 };
 
 /**

@@ -2,7 +2,7 @@
 
 use std::collections::VecDeque;
 
-use drift_core::types::collections::{FxHashMap, FxHashSet};
+use drift_core::types::collections::FxHashSet;
 use petgraph::graph::NodeIndex;
 use petgraph::Direction;
 

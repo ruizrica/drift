@@ -100,74 +100,84 @@ pub static SECRET_PATTERNS: &[SecretPattern] = &[
     SecretPattern { name: "linear_api_key", pattern: r"lin_api_[A-Za-z0-9]{40}", severity: SecretSeverity::High, format_prefix: Some("lin_api_"), cwe_ids: &[798], min_entropy: 0.0 },
 ];
 
-/// Detect secrets in source code content.
-pub fn detect_secrets(content: &str, file_path: &str) -> Vec<Secret> {
-    let mut results = Vec::new();
+/// Pre-compiled secret detector — compiles all 45+ regex patterns once.
+/// Use this for batch detection across many files (avoids ~76,500 regex recompilations).
+pub struct CompiledSecretDetector {
+    compiled: Vec<(&'static SecretPattern, regex::Regex)>,
+}
 
-    // Skip binary-looking files
-    if content.bytes().any(|b| b == 0) {
-        return results;
+impl Default for CompiledSecretDetector {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl CompiledSecretDetector {
+    /// Compile all secret patterns once. Call once, reuse across all files.
+    pub fn new() -> Self {
+        let compiled = SECRET_PATTERNS
+            .iter()
+            .filter_map(|p| regex::Regex::new(p.pattern).ok().map(|re| (p, re)))
+            .collect();
+        Self { compiled }
     }
 
-    // Compile patterns lazily (in production, these would be pre-compiled RegexSet)
-    for pattern_def in SECRET_PATTERNS {
-        let re = match regex::Regex::new(pattern_def.pattern) {
-            Ok(r) => r,
-            Err(_) => continue,
-        };
+    /// Detect secrets using pre-compiled patterns (no regex recompilation).
+    pub fn detect(&self, content: &str, file_path: &str) -> Vec<Secret> {
+        let mut results = Vec::new();
 
-        for (line_num, line) in content.lines().enumerate() {
-            // Skip comment lines
-            let trimmed = line.trim();
-            if trimmed.starts_with("//") || trimmed.starts_with('#') || trimmed.starts_with("/*")
-                || trimmed.starts_with('*')
-            {
-                // Still check — secrets in comments are still secrets
-            }
+        if content.bytes().any(|b| b == 0) {
+            return results;
+        }
 
-            for mat in re.find_iter(line) {
-                let matched = mat.as_str();
+        for (pattern_def, re) in &self.compiled {
+            for (line_num, line) in content.lines().enumerate() {
+                for mat in re.find_iter(line) {
+                    let matched = mat.as_str();
 
-                // Format validation (3rd confidence signal)
-                if let Some(prefix) = pattern_def.format_prefix {
-                    if !matched.contains(prefix) {
+                    if let Some(prefix) = pattern_def.format_prefix {
+                        if !matched.contains(prefix) {
+                            continue;
+                        }
+                    }
+
+                    let ent = shannon_entropy(matched);
+                    if pattern_def.min_entropy > 0.0 && ent < pattern_def.min_entropy {
                         continue;
                     }
-                }
 
-                // Entropy check
-                let ent = shannon_entropy(matched);
-                if pattern_def.min_entropy > 0.0 && ent < pattern_def.min_entropy {
-                    continue;
-                }
+                    let mut confidence: f64 = 0.7;
+                    if pattern_def.format_prefix.is_some() {
+                        confidence += 0.15;
+                    }
+                    if ent > 3.5 {
+                        confidence += 0.15;
+                    }
 
-                // Compute confidence: base 0.7, +0.15 for format match, +0.15 for entropy
-                let mut confidence: f64 = 0.7;
-                if pattern_def.format_prefix.is_some() {
-                    confidence += 0.15;
-                }
-                if ent > 3.5 {
-                    confidence += 0.15;
-                }
+                    let redacted = redact_value(matched);
 
-                // Redact the value for storage
-                let redacted = redact_value(matched);
-
-                results.push(Secret {
-                    pattern_name: pattern_def.name.to_string(),
-                    redacted_value: redacted,
-                    file: file_path.to_string(),
-                    line: (line_num + 1) as u32,
-                    severity: pattern_def.severity,
-                    entropy: ent,
-                    confidence: confidence.min(1.0),
-                    cwe_ids: pattern_def.cwe_ids.to_vec(),
-                });
+                    results.push(Secret {
+                        pattern_name: pattern_def.name.to_string(),
+                        redacted_value: redacted,
+                        file: file_path.to_string(),
+                        line: (line_num + 1) as u32,
+                        severity: pattern_def.severity,
+                        entropy: ent,
+                        confidence: confidence.min(1.0),
+                        cwe_ids: pattern_def.cwe_ids.to_vec(),
+                    });
+                }
             }
         }
-    }
 
-    results
+        results
+    }
+}
+
+/// Detect secrets in source code content.
+/// NOTE: Compiles regexes per call — use CompiledSecretDetector for batch.
+pub fn detect_secrets(content: &str, file_path: &str) -> Vec<Secret> {
+    CompiledSecretDetector::new().detect(content, file_path)
 }
 
 /// Redact a secret value, keeping only the first 4 and last 4 characters.

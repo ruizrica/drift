@@ -15,7 +15,7 @@
 import { Command } from 'commander';
 import { registerAllCommands } from './commands/index.js';
 import { loadNapi } from './napi.js';
-import { isNapiStub } from '@drift/napi-contracts';
+import { isNapiStub, resolveProjectRoot } from '@drift/napi-contracts';
 
 // Re-export public API
 export { registerAllCommands } from './commands/index.js';
@@ -35,8 +35,9 @@ export function createProgram(): Command {
     .description('Drift — AI-native code analysis and quality enforcement')
     .version('2.0.0')
     .option('-q, --quiet', 'Suppress all output except errors')
-    .option('-f, --format <format>', 'Output format: table, json, sarif', 'table')
-    .option('--require-native', 'Error if native binary is unavailable (instead of using stubs)');
+    .option('--require-native', 'Error if native binary is unavailable (instead of using stubs)')
+    .enablePositionalOptions()
+    .passThroughOptions();
 
   registerAllCommands(program);
 
@@ -47,15 +48,24 @@ export function createProgram(): Command {
  * Main entry point — parses args and runs the appropriate command.
  */
 async function main(): Promise<void> {
-  // Initialize NAPI
+  // Initialize NAPI with project root from cwd.
+  // The project root determines where .drift/drift.db and .drift/bridge.db live.
+  // We use process.cwd() unconditionally — attempting to detect paths from CLI
+  // args is fragile because command names ('bridge'), subcommand names ('ground'),
+  // and option values ('json') can collide with directory names in the repo.
+  // Individual commands (scan, analyze) handle their own path arguments internally.
   const napi = loadNapi();
-  try {
-    napi.driftInitialize();
-  } catch {
-    // Non-fatal — may not be initialized yet (drift setup handles this)
-  }
+  const isSetup = process.argv.includes('setup');
 
   const program = createProgram();
+
+  if (!isSetup) {
+    try {
+      napi.driftInitialize(undefined, resolveProjectRoot());
+    } catch {
+      // Non-fatal — may already be initialized or not available yet
+    }
+  }
 
   // Check --require-native before executing any command
   const opts = program.opts();

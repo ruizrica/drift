@@ -690,6 +690,6 @@ proptest! {
         for _ in 0..num_validations {
             trust = (trust + bonus).clamp(0.0, 1.0);
         }
-        prop_assert!(trust >= 0.0 && trust <= 1.0, "Trust {trust} out of bounds");
+        prop_assert!((0.0..=1.0).contains(&trust), "Trust {trust} out of bounds");
     }
 }

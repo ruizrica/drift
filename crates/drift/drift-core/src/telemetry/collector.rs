@@ -2,7 +2,7 @@
 //! Buffers events locally and flushes to endpoint on interval.
 //! All telemetry is strictly opt-in. No PII is ever collected.
 
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::sync::{Arc, Mutex};
 
 use serde_json::json;

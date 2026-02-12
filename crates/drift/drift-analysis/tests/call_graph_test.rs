@@ -1,3 +1,4 @@
+#![allow(clippy::field_reassign_with_default, clippy::redundant_closure, clippy::useless_vec, unused_variables, unused_imports)]
 //! Call Graph tests — T2-CG-01 through T2-CG-12.
 //!
 //! Tests for the call graph builder: 6 resolution strategies, BFS traversal,

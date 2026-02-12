@@ -1,3 +1,4 @@
+#![allow(clippy::field_reassign_with_default, clippy::redundant_closure, unused_variables, unused_imports, unused_mut)]
 //! Call Graph & Graph Intelligence Hardening Tests
 //!
 //! Covers all 5 phases from CALL-GRAPH-AND-GRAPH-INTELLIGENCE-HARDENING-TASKS.md:
@@ -7,13 +8,11 @@
 //! - Phase D: Impact, Coverage & Coupling Accuracy (CT-IMP-01 through CT-IMP-10)
 //! - Phase E: Cross-System Integration & Regression (CT-INT-01 through CT-INT-20)
 
-#![allow(unused_variables)]
-
 use std::path::Path;
 
 use drift_analysis::call_graph::builder::CallGraphBuilder;
 use drift_analysis::call_graph::resolution::{is_fuzzy_blocked, ResolutionDiagnostics};
-use drift_analysis::call_graph::traversal::{bfs_forward, bfs_inverse, detect_entry_points};
+use drift_analysis::call_graph::traversal::bfs_forward;
 use drift_analysis::call_graph::types::{CallEdge, CallGraph, FunctionNode, Resolution};
 use drift_analysis::graph::impact;
 use drift_analysis::graph::impact::dead_code;
@@ -23,7 +22,6 @@ use drift_analysis::parsers::manager::ParserManager;
 use drift_analysis::parsers::types::*;
 use drift_analysis::scanner::language_detect::Language;
 use drift_analysis::structural::coupling::import_graph::ImportGraphBuilder;
-use drift_core::types::collections::FxHashMap;
 
 use smallvec::{smallvec, SmallVec};
 
@@ -227,7 +225,8 @@ function b() { return 42; }
     let (_, stats) = builder.build(&[pr]).unwrap();
 
     // Diagnostics should be populated
-    assert!(stats.diagnostics.total_call_sites >= 0, "Diagnostics tracked");
+    // Diagnostics should be populated (total_call_sites is usize, always >= 0)
+    let _ = stats.diagnostics.total_call_sites;
 }
 
 // CT-RES-08: Fuzzy blocklist prevents common name matching
@@ -368,11 +367,9 @@ function internalHelper() { return 2; }
 // CT-EP-03: Main function patterns
 #[test]
 fn ct_ep_03_main_patterns() {
-    let sources = vec![
-        ("main.ts", "function main() { console.log('start'); }"),
+    let sources = [("main.ts", "function main() { console.log('start'); }"),
         ("app.ts", "function createApp() { return {}; }"),
-        ("server.ts", "function start() { return {}; }"),
-    ];
+        ("server.ts", "function start() { return {}; }")];
 
     let prs: Vec<ParseResult> = sources.iter().map(|(f, s)| parse_file(s, f)).collect();
     let builder = CallGraphBuilder::new();
@@ -545,7 +542,8 @@ fn ct_taint_02_true_positive() {
     // req is tainted from req.body, and req.query uses tainted receiver
     // Whether this finds a flow depends on if req.query matches a sink pattern
     // The test validates the analysis completes correctly
-    assert!(flows.len() >= 0, "Analysis should complete");
+    // Analysis should complete without panic
+    let _ = flows;
 }
 
 // CT-TAINT-03: Registry anchored matching — no "open" matching "openDialog"
@@ -848,7 +846,8 @@ function internalHelper() {
     let dead = impact::detect_dead_code(&graph);
     // publicApi is exported (entry point), internalHelper may or may not be dead
     // depending on whether the call edge was resolved
-    assert!(dead.len() >= 0, "Dead code analysis should complete");
+    // Dead code analysis should complete without panic
+    let _ = &dead;
 }
 
 // CT-INT-02: Multi-language codebase
@@ -929,7 +928,8 @@ function c() { return a(); }
 
     // Dead code should handle cycles
     let dead = impact::detect_dead_code(&graph);
-    assert!(dead.len() >= 0, "Dead code should handle cycles");
+    // Dead code should handle cycles without panic
+    let _ = &dead;
 
     // Blast radius should handle cycles
     if let Some(start) = graph.get_node("cycle.ts::a") {
@@ -1044,7 +1044,8 @@ fn ct_int_12_coverage_disconnected() {
 
     let coverage = test_topology::compute_coverage(&g);
     // Should handle disconnected graph without panic
-    assert!(coverage.total_source_functions >= 0);
+    // Should handle disconnected graph without panic
+    let _ = coverage.total_source_functions;
 }
 
 // CT-INT-13: Taint propagation context

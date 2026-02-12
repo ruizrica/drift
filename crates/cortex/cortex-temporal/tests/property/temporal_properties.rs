@@ -466,13 +466,13 @@ proptest! {
             &evidences,
             &cortex_core::models::AggregationStrategy::WeightedAverage,
         );
-        prop_assert!(wa >= 0.0 && wa <= 1.0, "WeightedAverage out of bounds: {}", wa);
+        prop_assert!((0.0..=1.0).contains(&wa), "WeightedAverage out of bounds: {}", wa);
 
         let gt = cortex_temporal::epistemic::aggregate_confidence(
             &evidences,
             &cortex_core::models::AggregationStrategy::GodelTNorm,
         );
-        prop_assert!(gt >= 0.0 && gt <= 1.0, "GodelTNorm out of bounds: {}", gt);
+        prop_assert!((0.0..=1.0).contains(&gt), "GodelTNorm out of bounds: {}", gt);
 
         // GodelTNorm should always be <= WeightedAverage (min <= mean)
         prop_assert!(gt <= wa + 0.0001, "GodelTNorm {} > WeightedAverage {}", gt, wa);

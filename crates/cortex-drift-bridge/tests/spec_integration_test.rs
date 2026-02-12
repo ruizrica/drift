@@ -14,12 +14,11 @@ use cortex_drift_bridge::specification::decomposition_provider::BridgeDecomposit
 use cortex_drift_bridge::tools;
 use drift_core::traits::decomposition::DecompositionPriorProvider;
 use drift_core::traits::weight_provider::{AdaptiveWeightTable, MigrationPath, WeightProvider};
+use cortex_drift_bridge::traits::IBridgeStorage;
 
 /// Helper: create an in-memory bridge DB.
-fn setup_bridge_db() -> rusqlite::Connection {
-    let conn = rusqlite::Connection::open_in_memory().unwrap();
-    cortex_drift_bridge::storage::create_bridge_tables(&conn).unwrap();
-    conn
+fn setup_bridge_db() -> cortex_drift_bridge::storage::engine::BridgeStorageEngine {
+    cortex_drift_bridge::storage::engine::BridgeStorageEngine::open_in_memory().unwrap()
 }
 
 // ---- TINT-LOOP-01: Complete correction→causal→narrative loop ----
@@ -43,7 +42,7 @@ fn tint_loop_01_correction_causal_narrative_loop() {
     };
 
     // Step 2: Bridge creates Feedback memory + causal edge
-    let memory_id = events::on_spec_corrected(&correction, &engine, Some(&db)).unwrap();
+    let memory_id = events::on_spec_corrected(&correction, &engine, Some(&db as &dyn cortex_drift_bridge::traits::IBridgeStorage)).unwrap();
     assert!(!memory_id.is_empty());
 
     // Step 3: Generate narrative
@@ -256,7 +255,7 @@ fn t9_mcp_01_drift_why() {
     let db = setup_bridge_db();
     let engine = CausalEngine::new();
 
-    let result = tools::handle_drift_why("pattern", "pat_001", Some(&db), Some(&engine)).unwrap();
+    let result = db.with_reader(|conn| tools::handle_drift_why("pattern", "pat_001", Some(conn), Some(&engine))).unwrap();
     assert!(result.get("entity_type").is_some());
     assert!(result.get("explanation").is_some());
 }
@@ -267,13 +266,13 @@ fn t9_mcp_01_drift_why() {
 fn t9_mcp_02_drift_memory_learn() {
     let db = setup_bridge_db();
 
-    let result = tools::handle_drift_memory_learn(
+    let result = db.with_writer(|conn| tools::handle_drift_memory_learn(
         "pattern",
         "pat_001",
         "This pattern should use async/await",
         "convention",
-        Some(&db),
-    )
+        Some(conn),
+    ))
     .unwrap();
 
     assert_eq!(result["status"], "created");
@@ -309,7 +308,7 @@ fn t9_mcp_03_drift_grounding_check() {
         boundary_data: None,
         evidence_context: None,    };
 
-    let result = tools::handle_drift_grounding_check(&memory, &config, None, Some(&db)).unwrap();
+    let result = tools::handle_drift_grounding_check(&memory, &config, None, Some(&db as &dyn cortex_drift_bridge::traits::IBridgeStorage)).unwrap();
     assert!(result.get("verdict").is_some());
     assert!(result.get("grounding_score").is_some());
     assert!(result.get("evidence").is_some());
@@ -405,11 +404,11 @@ fn t9_int_03_retention_policies() {
     let db = setup_bridge_db();
 
     // Insert some test data
-    cortex_drift_bridge::storage::log_event(&db, "test", None, None, None).unwrap();
-    cortex_drift_bridge::storage::record_metric(&db, "test_metric", 1.0).unwrap();
+    db.insert_event("test", None, None, None).unwrap();
+    db.insert_metric("test_metric", 1.0).unwrap();
 
     // Apply retention (community tier)
-    cortex_drift_bridge::storage::apply_retention(&db, true).unwrap();
+    db.with_writer(|conn| cortex_drift_bridge::storage::apply_retention(conn, true)).unwrap();
 
     // Data should still be there (it's fresh)
     let count: i64 = db

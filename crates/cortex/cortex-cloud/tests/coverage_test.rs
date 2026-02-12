@@ -1,3 +1,4 @@
+#![allow(clippy::single_match, clippy::field_reassign_with_default)]
 //! Targeted coverage tests for cortex-cloud uncovered paths.
 //!
 //! Focuses on: engine sync paths, quota enforcement, offline mode,
@@ -13,7 +14,7 @@ use cortex_cloud::conflict::conflict_log::{
     ConflictLog, ConflictRecord, ConflictResolver as ConflictResolverActor,
 };
 use cortex_cloud::conflict::detection::{detect_conflicts, DetectedConflict};
-use cortex_cloud::conflict::resolution::{self, ResolutionOutcome, ResolutionStrategy};
+use cortex_cloud::conflict::resolution::{self, ResolutionStrategy};
 use cortex_cloud::conflict::ConflictResolver;
 use cortex_cloud::engine::{CloudEngine, CloudStatus, SyncResultStatus};
 use cortex_cloud::quota::{QuotaCheck, QuotaLimits, QuotaManager, QuotaUsage};

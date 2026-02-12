@@ -1,3 +1,4 @@
+#![allow(clippy::unnecessary_get_then_check)]
 //! Production stress tests for the coupling module.
 //! Targets: Martin metrics edge cases, zone classification boundaries,
 //! cycle detection, import graph builder, trend computation.

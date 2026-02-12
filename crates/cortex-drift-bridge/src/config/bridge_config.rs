@@ -1,5 +1,7 @@
 //! BridgeConfig: all bridge settings from drift.toml [bridge] section.
 
+use crate::config::EventConfig;
+use crate::config::EvidenceConfig;
 use crate::grounding::GroundingConfig;
 use crate::license::LicenseTier;
 
@@ -16,6 +18,10 @@ pub struct BridgeConfig {
     pub license_tier: LicenseTier,
     /// Grounding configuration.
     pub grounding: GroundingConfig,
+    /// Per-event enable/disable toggles.
+    pub event_config: EventConfig,
+    /// Per-evidence-type weight overrides.
+    pub evidence_config: EvidenceConfig,
 }
 
 impl Default for BridgeConfig {
@@ -26,6 +32,8 @@ impl Default for BridgeConfig {
             enabled: true,
             license_tier: LicenseTier::Community,
             grounding: GroundingConfig::default(),
+            event_config: EventConfig::default(),
+            evidence_config: EvidenceConfig::default(),
         }
     }
 }

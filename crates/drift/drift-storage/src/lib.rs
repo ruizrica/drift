@@ -10,6 +10,7 @@
 
 pub mod connection;
 pub mod batch;
+pub mod engine;
 pub mod migrations;
 pub mod queries;
 pub mod pagination;
@@ -18,3 +19,4 @@ pub mod retention;
 
 pub use connection::DatabaseManager;
 pub use batch::BatchWriter;
+pub use engine::DriftStorageEngine;

@@ -15,4 +15,11 @@ pub struct GroundingSnapshot {
     pub avg_grounding_score: f64,
     pub contradictions_generated: u32,
     pub duration_ms: u32,
+    /// Number of non-fatal errors encountered during the grounding loop.
+    /// Individual error details are collected via ErrorChain in the runner.
+    #[serde(default)]
+    pub error_count: u32,
+    /// Trigger type that initiated this grounding loop.
+    #[serde(default)]
+    pub trigger_type: Option<String>,
 }

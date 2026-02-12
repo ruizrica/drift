@@ -1,10 +1,11 @@
+#![allow(unused_variables, unused_assignments)]
 //! Tests for the benchmark report system: telemetry collection, KPI computation,
 //! JSON serialization, regression detection, and full pipeline report generation.
 
 use std::time::Duration;
 
 use drift_bench::report::{
-    BenchmarkRegistry, BenchmarkReport, EnvironmentInfo, FixtureInfo, KpiSummary, PhaseMetric,
+    BenchmarkRegistry, BenchmarkReport, EnvironmentInfo, FixtureInfo, PhaseMetric,
     RegressionVerdict,
 };
 
@@ -349,7 +350,7 @@ fn report_summary_contains_key_info() {
 
 #[test]
 fn report_summary_with_regressions() {
-    let mut reg = make_sample_registry();
+    let reg = make_sample_registry();
     let mut report = reg.build_report();
     report.regressions.push(RegressionVerdict {
         phase: "scanner".to_string(),

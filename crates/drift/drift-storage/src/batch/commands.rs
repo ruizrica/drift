@@ -11,8 +11,10 @@ pub enum BatchCommand {
     InsertFunctions(Vec<FunctionRow>),
     /// Delete file metadata for removed files.
     DeleteFileMetadata(Vec<String>),
-    /// Flush any pending writes immediately.
+    /// Flush any pending writes immediately (fire-and-forget).
     Flush,
+    /// Flush and signal completion via the provided sender (synchronous).
+    FlushSync(std::sync::mpsc::SyncSender<()>),
     /// Shut down the writer thread.
     Shutdown,
     /// Insert call edge rows.

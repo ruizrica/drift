@@ -9,7 +9,7 @@ use crate::tokenization::counter::TokenCounter;
 /// Maximum functions to show in Public API section.
 const MAX_PUBLIC_FUNCTIONS: usize = 50;
 /// Maximum length for rendered correction display.
-const MAX_CORRECTION_DISPLAY_LEN: usize = 10_000;
+const _MAX_CORRECTION_DISPLAY_LEN: usize = 10_000;
 
 /// Specification renderer — generates 11-section specs with adaptive weights.
 pub struct SpecificationRenderer {

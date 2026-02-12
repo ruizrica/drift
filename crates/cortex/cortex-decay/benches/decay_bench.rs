@@ -32,6 +32,8 @@ fn make_memories(count: usize) -> Vec<BaseMemory> {
             superseded_by: None,
             supersedes: None,
             content_hash: format!("hash-{i}"),
+            namespace: Default::default(),
+            source_agent: Default::default(),
         })
         .collect()
 }

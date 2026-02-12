@@ -41,7 +41,7 @@ fn rbac_01_agent_scope_owner_all_perms() {
 
         for perm in &ALL_PERMS {
             assert!(
-                NamespacePermissionManager::check(conn, &ns, &owner.agent_id, perm.clone())?,
+                NamespacePermissionManager::check(conn, &ns, &owner.agent_id, *perm)?,
                 "agent-scope owner must have {:?}",
                 perm
             );
@@ -67,7 +67,7 @@ fn rbac_02_team_scope_owner_implicit_admin() {
         // All 4 permissions should pass check() via ownership.
         for perm in &ALL_PERMS {
             assert!(
-                NamespacePermissionManager::check(conn, &ns, &owner.agent_id, perm.clone())?,
+                NamespacePermissionManager::check(conn, &ns, &owner.agent_id, *perm)?,
                 "team-scope owner must have {:?} (implicit)",
                 perm
             );
@@ -105,7 +105,7 @@ fn rbac_03_project_scope_owner_implicit_admin() {
 
         for perm in &ALL_PERMS {
             assert!(
-                NamespacePermissionManager::check(conn, &ns, &owner.agent_id, perm.clone())?,
+                NamespacePermissionManager::check(conn, &ns, &owner.agent_id, *perm)?,
                 "project-scope owner must have {:?} (implicit)",
                 perm
             );
@@ -147,7 +147,7 @@ fn rbac_04_non_owner_no_acl_denied_all() {
 
         for perm in &ALL_PERMS {
             assert!(
-                !NamespacePermissionManager::check(conn, &ns, &stranger.agent_id, perm.clone())?,
+                !NamespacePermissionManager::check(conn, &ns, &stranger.agent_id, *perm)?,
                 "non-owner without ACL must be denied {:?}",
                 perm
             );
@@ -235,7 +235,7 @@ fn rbac_06_non_owner_explicit_admin_gets_all() {
                     conn,
                     &ns,
                     &admin_guest.agent_id,
-                    perm.clone()
+                    *perm
                 )?,
                 "non-owner with explicit admin must have {:?}",
                 perm
@@ -536,7 +536,7 @@ fn rbac_12_deleted_namespace_no_implicit_admin() {
         // Verify all permission types are denied.
         for perm in &ALL_PERMS {
             assert!(
-                !NamespacePermissionManager::check(conn, &ns, &owner.agent_id, perm.clone())?,
+                !NamespacePermissionManager::check(conn, &ns, &owner.agent_id, *perm)?,
                 "deleted namespace must deny {:?}",
                 perm
             );
@@ -648,7 +648,7 @@ fn rbac_14_revoke_owner_explicit_keeps_implicit() {
         // But owner still has implicit permissions via ownership.
         for perm in &ALL_PERMS {
             assert!(
-                NamespacePermissionManager::check(conn, &ns, &owner.agent_id, perm.clone())?,
+                NamespacePermissionManager::check(conn, &ns, &owner.agent_id, *perm)?,
                 "owner must retain implicit {:?} after explicit revoke",
                 perm
             );
@@ -695,7 +695,7 @@ fn rbac_15_grant_revoke_full_matrix() {
             )?;
             for perm in &ALL_PERMS {
                 assert!(
-                    NamespacePermissionManager::check(conn, ns, &guest.agent_id, perm.clone())?,
+                    NamespacePermissionManager::check(conn, ns, &guest.agent_id, *perm)?,
                     "guest should have {:?} on {}",
                     perm,
                     ns.to_uri()
@@ -712,7 +712,7 @@ fn rbac_15_grant_revoke_full_matrix() {
             )?;
             for perm in &ALL_PERMS {
                 assert!(
-                    !NamespacePermissionManager::check(conn, ns, &guest.agent_id, perm.clone())?,
+                    !NamespacePermissionManager::check(conn, ns, &guest.agent_id, *perm)?,
                     "guest should NOT have {:?} on {} after revoke",
                     perm,
                     ns.to_uri()

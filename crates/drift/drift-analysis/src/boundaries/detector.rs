@@ -10,7 +10,7 @@ use crate::parsers::types::ParseResult;
 use super::extractors::{self, FieldExtractor};
 use super::sensitive::SensitiveFieldDetector;
 use super::types::{
-    BoundaryScanResult, ExtractedModel, FrameworkSignature, OrmFramework, SensitiveField,
+    BoundaryScanResult, FrameworkSignature, OrmFramework,
 };
 
 /// The boundary detector orchestrates framework detection, model extraction,

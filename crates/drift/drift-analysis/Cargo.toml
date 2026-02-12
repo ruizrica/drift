@@ -8,6 +8,7 @@ description = "Analysis engine: scanner, parsers, detectors, call graph, boundar
 
 [dependencies]
 drift-core = { workspace = true }
+aho-corasick = { workspace = true }
 ignore = { workspace = true }
 rayon = { workspace = true }
 xxhash-rust = { workspace = true }
@@ -40,6 +41,7 @@ serde_yaml = { workspace = true }
 quick-xml = { workspace = true }
 glob = { workspace = true }
 base64 = { workspace = true }
+schemars = { workspace = true }
 git2 = { workspace = true }
 
 [dev-dependencies]
@@ -64,4 +66,8 @@ harness = false
 
 [[bench]]
 name = "confidence_bench"
+harness = false
+
+[[bench]]
+name = "framework_bench"
 harness = false

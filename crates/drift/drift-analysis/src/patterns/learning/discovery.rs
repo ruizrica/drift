@@ -537,7 +537,7 @@ mod tests {
 
         let config = PromotionConfig::default(); // min_files = 5
 
-        let mut conv = Convention {
+        let conv = Convention {
             id: "conv_test".to_string(),
             pattern_id: "test".to_string(),
             category: ConventionCategory::ProjectSpecific,

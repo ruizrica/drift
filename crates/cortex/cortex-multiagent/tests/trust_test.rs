@@ -220,7 +220,7 @@ fn tmc_trust_08_trust_bounds() {
         total_received: 2000,
     };
     let trust = TrustScorer::compute_overall_trust(&evidence);
-    assert!(trust >= 0.0 && trust <= 1.0, "trust {trust} out of bounds");
+    assert!((0.0..=1.0).contains(&trust), "trust {trust} out of bounds");
 
     // All contradictions.
     let evidence = TrustEvidence {
@@ -230,13 +230,13 @@ fn tmc_trust_08_trust_bounds() {
         total_received: 100,
     };
     let trust = TrustScorer::compute_overall_trust(&evidence);
-    assert!(trust >= 0.0 && trust <= 1.0, "trust {trust} out of bounds");
+    assert!((0.0..=1.0).contains(&trust), "trust {trust} out of bounds");
     assert!((trust - 0.0).abs() < f64::EPSILON, "all contradictions should give 0 trust");
 
     // No evidence.
     let evidence = TrustEvidence::default();
     let trust = TrustScorer::compute_overall_trust(&evidence);
-    assert!(trust >= 0.0 && trust <= 1.0, "trust {trust} out of bounds");
+    assert!((0.0..=1.0).contains(&trust), "trust {trust} out of bounds");
     assert!((trust - 0.0).abs() < f64::EPSILON, "no evidence should give 0 trust");
 
     // Specific example from spec: validated=5, contradicted=1, useful=3, total=10.

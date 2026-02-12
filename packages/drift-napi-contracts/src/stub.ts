@@ -13,6 +13,7 @@ import type {
   JsAnalysisResult,
   JsCallGraphResult,
   JsBoundaryResult,
+  JsValidatePackResult,
 } from './types/analysis.js';
 import type {
   PatternsResult,
@@ -48,7 +49,7 @@ import type {
   GcResult,
 } from './types/enforcement.js';
 
-/** Create a complete stub DriftNapi with all 40 methods returning valid typed data. */
+/** Create a complete stub DriftNapi with all 64 methods returning valid typed data. */
 export function createStubNapi(): DriftNapi {
   return {
     // ─── Lifecycle (4) ───────────────────────────────────────────────
@@ -116,8 +117,8 @@ export function createStubNapi(): DriftNapi {
       // no-op
     },
 
-    // ─── Analysis (3) ────────────────────────────────────────────────
-    async driftAnalyze(): Promise<JsAnalysisResult[]> {
+    // ─── Analysis (4) ────────────────────────────────────────────────
+    async driftAnalyze(_maxPhase?: number): Promise<JsAnalysisResult[]> {
       return [];
     },
 
@@ -136,6 +137,17 @@ export function createStubNapi(): DriftNapi {
         models: [],
         sensitiveFields: [],
         frameworksDetected: [],
+      };
+    },
+
+    driftValidatePack(_tomlContent: string): JsValidatePackResult {
+      return {
+        valid: false,
+        name: null,
+        version: null,
+        languageCount: 0,
+        patternCount: 0,
+        error: 'Stub: native binary not available',
       };
     },
 
@@ -424,6 +436,222 @@ export function createStubNapi(): DriftNapi {
         totalTokenCount: 0,
         hasAllSections: false,
       });
+    },
+
+    // ─── Bridge (20) ──────────────────────────────────────────────────
+
+    driftBridgeStatus() {
+      return {
+        available: false,
+        license_tier: 'Community',
+        grounding_enabled: false,
+        version: '0.1.0',
+      };
+    },
+
+    driftBridgeGroundMemory(_memoryId: string, _memoryType: string) {
+      return {
+        memory_id: _memoryId,
+        grounding_score: 0.0,
+        classification: 'InsufficientData',
+        evidence: [],
+      };
+    },
+
+    driftBridgeGroundAll() {
+      return {
+        total_checked: 0,
+        validated: 0,
+        partial: 0,
+        weak: 0,
+        invalidated: 0,
+        not_groundable: 0,
+        insufficient_data: 0,
+        avg_grounding_score: 0.0,
+        contradictions_generated: 0,
+        duration_ms: 0,
+        error_count: 0,
+        trigger_type: null,
+      };
+    },
+
+    driftBridgeGroundingHistory(_memoryId: string, _limit?: number) {
+      return {
+        memory_id: _memoryId,
+        history: [],
+      };
+    },
+
+    driftBridgeTranslateLink(_patternId: string, _patternName: string, _confidence: number) {
+      return {
+        entity_type: 'pattern',
+        entity_id: _patternId,
+        entity_name: _patternName,
+        confidence: _confidence,
+        link_type: 'PatternLink',
+      };
+    },
+
+    driftBridgeTranslateConstraintLink(_constraintId: string, _constraintName: string) {
+      return {
+        entity_type: 'constraint',
+        entity_id: _constraintId,
+        entity_name: _constraintName,
+        confidence: 1.0,
+        link_type: 'ConstraintLink',
+      };
+    },
+
+    driftBridgeEventMappings() {
+      return {
+        mappings: [],
+        count: 0,
+      };
+    },
+
+    driftBridgeGroundability(_memoryType: string) {
+      return {
+        memory_type: _memoryType,
+        groundability: 'Unknown',
+      };
+    },
+
+    driftBridgeLicenseCheck(_feature: string) {
+      return {
+        feature: _feature,
+        tier: 'Community',
+        allowed: false,
+      };
+    },
+
+    driftBridgeIntents() {
+      return {
+        intents: [],
+        count: 0,
+      };
+    },
+
+    driftBridgeAdaptiveWeights(_feedbackJson: string) {
+      return {
+        weights: {},
+        failure_distribution: {},
+        sample_size: 0,
+        last_updated: new Date().toISOString(),
+      };
+    },
+
+    driftBridgeSpecCorrection(_correctionJson: string) {
+      return {
+        memory_id: '',
+        status: 'stub',
+      };
+    },
+
+    driftBridgeContractVerified(
+      _moduleId: string,
+      _passed: boolean,
+      _section: string,
+      _mismatchType?: string,
+      _severity?: number,
+    ) {
+      return {
+        memory_id: '',
+        passed: _passed,
+      };
+    },
+
+    driftBridgeDecompositionAdjusted(
+      _moduleId: string,
+      _adjustmentType: string,
+      _dnaHash: string,
+    ) {
+      return {
+        memory_id: '',
+        adjustment_type: _adjustmentType,
+      };
+    },
+
+    driftBridgeExplainSpec(_memoryId: string) {
+      return {
+        memory_id: _memoryId,
+        explanation: '',
+      };
+    },
+
+    driftBridgeCounterfactual(_memoryId: string) {
+      return {
+        affected_count: 0,
+        affected_ids: [],
+        max_depth: 0,
+        summary: '',
+      };
+    },
+
+    driftBridgeIntervention(_memoryId: string) {
+      return {
+        impacted_count: 0,
+        impacted_ids: [],
+        max_depth: 0,
+        summary: '',
+      };
+    },
+
+    driftBridgeHealth() {
+      return {
+        status: 'unavailable',
+        ready: false,
+        subsystem_checks: [],
+        degradation_reasons: ['Bridge not initialized (stub)'],
+      };
+    },
+
+    driftBridgeUnifiedNarrative(_memoryId: string) {
+      return {
+        memory_id: _memoryId,
+        sections: [],
+        upstream: [],
+        downstream: [],
+        markdown: '',
+      };
+    },
+
+    driftBridgePruneCausal(_threshold?: number) {
+      return {
+        edges_removed: 0,
+        threshold: _threshold ?? 0.3,
+      };
+    },
+
+    driftBridgeGroundAfterAnalyze() {
+      return {
+        total_checked: 0,
+        validated: 0,
+        partial: 0,
+        weak: 0,
+        invalidated: 0,
+        not_groundable: 0,
+        insufficient_data: 0,
+        avg_grounding_score: 0,
+        contradictions_generated: 0,
+        duration_ms: 0,
+        error_count: 0,
+        trigger_type: 'manual_after_analyze',
+      };
+    },
+
+    // ─── Cloud (2) ──────────────────────────────────────────────────
+
+    driftCloudReadRows(
+      _table: string,
+      _db: string,
+      _afterCursor?: number,
+      _limit?: number,
+    ): unknown[] {
+      return [];
+    },
+
+    driftCloudMaxCursor(_db: string): number {
+      return 0;
     },
   };
 }

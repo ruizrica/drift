@@ -21,11 +21,10 @@ use cortex_drift_bridge::specification::weight_provider::BridgeWeightProvider;
 use drift_core::events::handler::DriftEventHandler;
 use drift_core::events::types::*;
 use drift_core::traits::weight_provider::AdaptiveWeightTable;
+use cortex_drift_bridge::traits::IBridgeStorage;
 
-fn setup_bridge_db() -> rusqlite::Connection {
-    let conn = rusqlite::Connection::open_in_memory().unwrap();
-    cortex_drift_bridge::storage::create_bridge_tables(&conn).unwrap();
-    conn
+fn setup_bridge_db() -> cortex_drift_bridge::storage::engine::BridgeStorageEngine {
+    cortex_drift_bridge::storage::engine::BridgeStorageEngine::open_in_memory().unwrap()
 }
 
 fn make_memory(id: &str, conf: f64, pat_conf: f64) -> MemoryForGrounding {
@@ -157,13 +156,13 @@ fn stress_negative_confidence_does_not_corrupt_adjustment() {
 fn stress_nan_stored_in_db_detected() {
     let db = setup_bridge_db();
     // Attempt to store NaN metric — SQLite accepts it silently
-    let result = cortex_drift_bridge::storage::record_metric(&db, "test", f64::NAN);
+    let result = db.insert_metric("test", f64::NAN);
     // Even if it succeeds, reading it back should not poison calculations
     if result.is_ok() {
-        let mut stmt = db
-            .prepare("SELECT metric_value FROM bridge_metrics WHERE metric_name = 'test'")
-            .unwrap();
-        let val: f64 = stmt.query_row([], |row| row.get(0)).unwrap();
+        let val: f64 = db.with_reader(|conn| {
+            let mut stmt = conn.prepare("SELECT metric_value FROM bridge_metrics WHERE metric_name = 'test'")?;
+            Ok(stmt.query_row([], |row| row.get(0))?)
+        }).unwrap();
         // This is a WARNING — SQLite stores NaN as NULL or as NaN depending on version
         if val.is_nan() {
             // This is the actual bug: NaN in the database
@@ -225,7 +224,7 @@ fn stress_concurrent_grounding_no_data_corruption() {
 
             let conn = db.lock().unwrap();
             let snapshot = runner
-                .run(&memories, None, Some(&conn), TriggerType::OnDemand)
+                .run(&memories, None, Some(&*conn as &dyn cortex_drift_bridge::traits::IBridgeStorage), TriggerType::OnDemand)
                 .unwrap();
             drop(conn);
 
@@ -267,10 +266,8 @@ fn stress_concurrent_grounding_no_data_corruption() {
 fn stress_concurrent_event_handlers_no_panic() {
     // BridgeEventHandler uses Mutex<Connection> internally.
     // If one thread panics while holding the lock, all subsequent threads get PoisonError.
-    let conn = rusqlite::Connection::open_in_memory().unwrap();
-    cortex_drift_bridge::storage::create_bridge_tables(&conn).unwrap();
-    let handler = Arc::new(BridgeEventHandler::new(
-        Some(Mutex::new(conn)),
+    let conn = setup_bridge_db();
+    let handler = Arc::new(BridgeEventHandler::new(Some(std::sync::Arc::new(conn) as std::sync::Arc<dyn cortex_drift_bridge::traits::IBridgeStorage>),
         LicenseTier::Enterprise,
     ));
     let barrier = Arc::new(Barrier::new(10));
@@ -329,7 +326,7 @@ fn stress_concurrent_spec_corrections_no_data_loss() {
                     data_sources: vec![],
                 };
                 let conn = db.lock().unwrap();
-                if events::on_spec_corrected(&correction, &engine, Some(&conn)).is_ok() {
+                if events::on_spec_corrected(&correction, &engine, Some(&*conn as &dyn cortex_drift_bridge::traits::IBridgeStorage)).is_ok() {
                     created += 1;
                 }
                 drop(conn);
@@ -388,9 +385,8 @@ fn stress_10k_memories_grounding_loop_completes() {
 
 #[test]
 fn stress_huge_string_in_event_does_not_oom() {
-    let conn = rusqlite::Connection::open_in_memory().unwrap();
-    cortex_drift_bridge::storage::create_bridge_tables(&conn).unwrap();
-    let handler = BridgeEventHandler::new(Some(Mutex::new(conn)), LicenseTier::Enterprise);
+    let conn = setup_bridge_db();
+    let handler = BridgeEventHandler::new(Some(std::sync::Arc::new(conn) as std::sync::Arc<dyn cortex_drift_bridge::traits::IBridgeStorage>), LicenseTier::Enterprise);
 
     // 10MB pattern ID — should not OOM or crash
     let huge_id = "x".repeat(10 * 1024 * 1024);
@@ -420,7 +416,7 @@ fn stress_1000_rapid_fire_corrections_all_persisted() {
             upstream_modules: vec![format!("upstream_{}", i)],
             data_sources: vec![DataSourceAttribution::new("call_graph", 0.8, i % 3 == 0)],
         };
-        if events::on_spec_corrected(&correction, &engine, Some(&db)).is_ok() {
+        if events::on_spec_corrected(&correction, &engine, Some(&db as &dyn cortex_drift_bridge::traits::IBridgeStorage)).is_ok() {
             success_count += 1;
         }
     }
@@ -455,13 +451,13 @@ fn stress_grounding_history_with_10k_records() {
     // Insert 10K grounding results for the same memory
     for i in 0..10_000 {
         let memory = make_memory("history_stress", 0.7, 0.5 + (i as f64 * 0.00005));
-        let _ = runner.ground_single(&memory, None, Some(&db));
+        let _ = runner.ground_single(&memory, None, Some(&db as &dyn cortex_drift_bridge::traits::IBridgeStorage));
     }
 
     // Query history — should not be slow or crash
     let start = std::time::Instant::now();
     let history =
-        cortex_drift_bridge::storage::get_grounding_history(&db, "history_stress", 100).unwrap();
+        db.get_grounding_history("history_stress", 100).unwrap();
     let elapsed = start.elapsed();
 
     assert_eq!(history.len(), 100, "Should return exactly 100 records");
@@ -484,22 +480,22 @@ fn stress_db_full_during_grounding_detected() {
 
     // Fill the DB with data
     for i in 0..1000 {
-        let _ = cortex_drift_bridge::storage::log_event(
-            &db,
+        let _ = db.with_writer(|conn| cortex_drift_bridge::storage::log_event(
+            conn,
             &format!("event_{}", i),
             Some("test"),
             Some(&format!("mem_{}", i)),
             Some(0.5),
-        );
+        ));
     }
 
     // Now run grounding — the `let _ =` in loop_runner.rs:141 silently drops errors
     let memory = make_memory("db_pressure", 0.7, 0.85);
-    let _result = runner.ground_single(&memory, None, Some(&db)).unwrap();
+    let _result = runner.ground_single(&memory, None, Some(&db as &dyn cortex_drift_bridge::traits::IBridgeStorage)).unwrap();
 
     // Verify the result was actually persisted
     let history =
-        cortex_drift_bridge::storage::get_grounding_history(&db, "db_pressure", 1).unwrap();
+        db.get_grounding_history("db_pressure", 1).unwrap();
     assert_eq!(
         history.len(),
         1,
@@ -524,7 +520,7 @@ fn stress_duplicate_memory_id_handling() {
         upstream_modules: vec![],
         data_sources: vec![],
     };
-    let id1 = events::on_spec_corrected(&correction1, &engine, Some(&db)).unwrap();
+    let id1 = events::on_spec_corrected(&correction1, &engine, Some(&db as &dyn cortex_drift_bridge::traits::IBridgeStorage)).unwrap();
 
     // Create second correction — different content, should get different ID
     let correction2 = SpecCorrection {
@@ -538,7 +534,7 @@ fn stress_duplicate_memory_id_handling() {
         upstream_modules: vec![],
         data_sources: vec![],
     };
-    let id2 = events::on_spec_corrected(&correction2, &engine, Some(&db)).unwrap();
+    let id2 = events::on_spec_corrected(&correction2, &engine, Some(&db as &dyn cortex_drift_bridge::traits::IBridgeStorage)).unwrap();
 
     assert_ne!(
         id1, id2,
@@ -581,7 +577,7 @@ fn stress_sql_injection_in_all_string_fields() {
             upstream_modules: vec![payload_str.to_string()],
             data_sources: vec![DataSourceAttribution::new(payload_str, 0.8, false)],
         };
-        let _ = events::on_spec_corrected(&correction, &engine, Some(&db));
+        let _ = events::on_spec_corrected(&correction, &engine, Some(&db as &dyn cortex_drift_bridge::traits::IBridgeStorage));
     }
 
     // Verify tables still exist and are queryable
@@ -616,9 +612,8 @@ fn stress_sql_injection_in_all_string_fields() {
 
 #[test]
 fn stress_unicode_boundary_in_event_data() {
-    let conn = rusqlite::Connection::open_in_memory().unwrap();
-    cortex_drift_bridge::storage::create_bridge_tables(&conn).unwrap();
-    let handler = BridgeEventHandler::new(Some(Mutex::new(conn)), LicenseTier::Enterprise);
+    let conn = setup_bridge_db();
+    let handler = BridgeEventHandler::new(Some(std::sync::Arc::new(conn) as std::sync::Arc<dyn cortex_drift_bridge::traits::IBridgeStorage>), LicenseTier::Enterprise);
 
     // Multi-byte unicode that could break string slicing
     let unicode_payloads = vec![
@@ -646,7 +641,7 @@ fn stress_attach_path_injection() {
     // With parameterized ATTACH, SQL injection strings are treated as literal filenames.
     // The critical thing is that injected SQL does NOT execute.
     let injection = "'; DROP TABLE bridge_memories; --";
-    let _ = cortex_drift_bridge::storage::tables::attach_cortex_db(&db, injection);
+    let _ = db.with_writer(|conn| cortex_drift_bridge::storage::tables::attach_cortex_db(conn, injection));
 
     // THE REAL TEST: bridge_memories must still exist after the injection attempt.
     // If the old string-interpolation code were used, DROP TABLE would have executed.
@@ -662,7 +657,7 @@ fn stress_attach_path_injection() {
     assert!(count >= 0);
 
     // Detach if it attached (cleanup)
-    let _ = cortex_drift_bridge::storage::tables::detach_cortex_db(&db);
+    let _ = db.with_writer(cortex_drift_bridge::storage::tables::detach_cortex_db);
 
     // Verify all tables survived
     for table in &[
@@ -805,8 +800,9 @@ fn stress_weighted_average_accumulation_error() {
 
 #[test]
 fn stress_db_schema_mismatch_graceful() {
-    // Create a DB with wrong schema
-    let db = rusqlite::Connection::open_in_memory().unwrap();
+    // Create a DB with correct schema, then replace the table with wrong schema
+    let db = setup_bridge_db();
+    db.execute("DROP TABLE bridge_grounding_results", []).unwrap();
     db.execute_batch(
         "CREATE TABLE bridge_grounding_results (id INTEGER PRIMARY KEY, wrong_column TEXT) STRICT;",
     )
@@ -814,7 +810,6 @@ fn stress_db_schema_mismatch_graceful() {
 
     // Attempting to record a grounding result should fail gracefully
     let result = GroundingResult {
-        id: "test".to_string(),
         memory_id: "test".to_string(),
         verdict: GroundingVerdict::Validated,
         grounding_score: 0.8,
@@ -830,7 +825,7 @@ fn stress_db_schema_mismatch_graceful() {
         duration_ms: 0,
     };
 
-    let write_result = cortex_drift_bridge::storage::record_grounding_result(&db, &result);
+    let write_result = db.insert_grounding_result(&result);
     assert!(
         write_result.is_err(),
         "PRODUCTION BUG: Writing to wrong-schema table succeeded silently. \
@@ -855,7 +850,7 @@ fn stress_db_closed_connection_handling() {
 fn stress_retention_with_empty_tables() {
     let db = setup_bridge_db();
     // Apply retention on empty tables — should not error
-    let result = cortex_drift_bridge::storage::apply_retention(&db, true);
+    let result = db.with_writer(|conn| cortex_drift_bridge::storage::apply_retention(conn, true));
     assert!(
         result.is_ok(),
         "PRODUCTION BUG: Retention on empty tables failed: {:?}",
@@ -874,7 +869,7 @@ fn stress_retention_with_future_timestamps() {
     )
     .unwrap();
 
-    let result = cortex_drift_bridge::storage::apply_retention(&db, true);
+    let result = db.with_writer(|conn| cortex_drift_bridge::storage::apply_retention(conn, true));
     assert!(result.is_ok());
 
     // Future records should NOT be deleted
@@ -1046,13 +1041,12 @@ fn stress_weight_provider_14_samples_returns_defaults() {
 
 #[test]
 fn stress_event_handler_after_db_error_still_works() {
-    let conn = rusqlite::Connection::open_in_memory().unwrap();
-    cortex_drift_bridge::storage::create_bridge_tables(&conn).unwrap();
+    let engine = setup_bridge_db();
 
     // Drop a table to cause errors
-    conn.execute("DROP TABLE bridge_memories", []).unwrap();
+    engine.execute("DROP TABLE bridge_memories", []).unwrap();
 
-    let handler = BridgeEventHandler::new(Some(Mutex::new(conn)), LicenseTier::Enterprise);
+    let handler = BridgeEventHandler::new(Some(std::sync::Arc::new(engine) as std::sync::Arc<dyn cortex_drift_bridge::traits::IBridgeStorage>), LicenseTier::Enterprise);
 
     // First call should fail (table missing) but NOT crash
     handler.on_pattern_approved(&PatternApprovedEvent {
@@ -1076,9 +1070,8 @@ fn stress_event_handler_after_db_error_still_works() {
 
 #[test]
 fn stress_scan_complete_event_does_not_create_memory() {
-    let conn = rusqlite::Connection::open_in_memory().unwrap();
-    cortex_drift_bridge::storage::create_bridge_tables(&conn).unwrap();
-    let handler = BridgeEventHandler::new(Some(Mutex::new(conn)), LicenseTier::Enterprise);
+    let conn = setup_bridge_db();
+    let handler = BridgeEventHandler::new(Some(std::sync::Arc::new(conn) as std::sync::Arc<dyn cortex_drift_bridge::traits::IBridgeStorage>), LicenseTier::Enterprise);
 
     // Fire 1000 scan complete events
     for _ in 0..1000 {
@@ -1095,10 +1088,8 @@ fn stress_scan_complete_event_does_not_create_memory() {
 
 #[test]
 fn stress_community_tier_blocks_enterprise_events() {
-    let conn = rusqlite::Connection::open_in_memory().unwrap();
-    cortex_drift_bridge::storage::create_bridge_tables(&conn).unwrap();
-
-    let handler = BridgeEventHandler::new(Some(Mutex::new(conn)), LicenseTier::Community);
+    let conn = setup_bridge_db();
+    let handler = BridgeEventHandler::new(Some(std::sync::Arc::new(conn) as std::sync::Arc<dyn cortex_drift_bridge::traits::IBridgeStorage>), LicenseTier::Community);
 
     // These events should be silently dropped by Community tier
     handler.on_regression_detected(&RegressionDetectedEvent {
@@ -1155,7 +1146,7 @@ fn stress_snapshot_counts_add_up() {
     }
 
     let snapshot = runner
-        .run(&memories, None, Some(&db), TriggerType::PostScanFull)
+        .run(&memories, None, Some(&db as &dyn cortex_drift_bridge::traits::IBridgeStorage), TriggerType::PostScanFull)
         .unwrap();
 
     let sum = snapshot.validated
@@ -1587,13 +1578,12 @@ fn stress_tool_intervention_adversarial() {
 #[test]
 fn stress_tool_health_repeated_calls() {
     // Health tool should be idempotent — calling it 1000 times should not leak resources
-    let conn = rusqlite::Connection::open_in_memory().unwrap();
-    let mutex = Mutex::new(conn);
+    let engine = setup_bridge_db();
 
     let start = std::time::Instant::now();
     for _ in 0..1000 {
         let result = cortex_drift_bridge::tools::handle_drift_health(
-            Some(&mutex),
+            Some(&engine),
             None,
             None,
         );

@@ -1,3 +1,23 @@
+#![allow(
+    clippy::field_reassign_with_default,
+    clippy::redundant_closure,
+    clippy::len_zero,
+    clippy::manual_range_contains,
+    clippy::cloned_ref_to_slice_refs,
+    clippy::borrowed_box,
+    clippy::needless_borrows_for_generic_args,
+    clippy::comparison_to_empty,
+    clippy::unnecessary_map_or,
+    clippy::match_result_ok,
+    clippy::useless_vec,
+    clippy::needless_range_loop,
+    clippy::bool_assert_comparison,
+    clippy::assertions_on_constants,
+    unused_variables,
+    unused_imports,
+    unused_mut,
+    dead_code,
+)]
 //! E2E Full Pipeline Stress Test
 //!
 //! Exercises the ENTIRE Drift pipeline from Phase 0 through Phase 7:

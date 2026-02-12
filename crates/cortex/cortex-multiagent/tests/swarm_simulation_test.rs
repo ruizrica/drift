@@ -1,3 +1,4 @@
+#![allow(clippy::needless_range_loop)]
 //! Swarm Simulation Tests — production-readiness audit for multi-agent memory.
 //!
 //! These tests simulate realistic multi-agent swarm scenarios to expose
@@ -582,7 +583,7 @@ fn swarm_07_trust_computation_edge_cases() {
         total_received: 100,
     };
     let trust = TrustScorer::compute_overall_trust(&all_bad);
-    assert!(trust >= 0.0 && trust <= 1.0, "trust must be in [0,1]");
+    assert!((0.0..=1.0).contains(&trust), "trust must be in [0,1]");
     assert!(trust < 0.01, "all contradictions should yield near-zero trust, got {trust}");
 
     // Edge case 3: All validations → trust should be high.

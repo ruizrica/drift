@@ -4,30 +4,32 @@
 //! Returns sorted by confidence descending.
 //! Consolidated semantic rules returned with higher confidence than episodic decisions.
 
-use std::sync::Mutex;
+use std::sync::Arc;
 
 use drift_core::traits::decomposition::{
     DecompositionPriorData, DecompositionPriorProvider, PriorAdjustmentType,
 };
-use tracing::info;
+use tracing::{info, warn};
+
+use crate::traits::IBridgeStorage;
 
 /// DNA similarity threshold for prior retrieval.
 const DNA_SIMILARITY_THRESHOLD: f64 = 0.6;
 
 /// Bridge implementation of DecompositionPriorProvider.
 pub struct BridgeDecompositionPriorProvider {
-    /// Connection to cortex.db for reading DecisionContext memories.
-    cortex_db: Option<Mutex<rusqlite::Connection>>,
+    /// Bridge storage for reading DecisionContext memories.
+    bridge_store: Option<Arc<dyn IBridgeStorage>>,
 }
 
 impl BridgeDecompositionPriorProvider {
-    pub fn new(cortex_db: Option<Mutex<rusqlite::Connection>>) -> Self {
-        Self { cortex_db }
+    pub fn new(bridge_store: Option<Arc<dyn IBridgeStorage>>) -> Self {
+        Self { bridge_store }
     }
 
     /// Create a no-op provider for standalone mode.
     pub fn no_op() -> Self {
-        Self { cortex_db: None }
+        Self { bridge_store: None }
     }
 
     /// Query priors from cortex.db for a given DNA similarity score.
@@ -40,56 +42,34 @@ impl BridgeDecompositionPriorProvider {
             return Ok(Vec::new());
         }
 
-        let Some(ref db_mutex) = self.cortex_db else {
+        let Some(ref store) = self.bridge_store else {
             return Ok(Vec::new());
         };
 
-        let conn = db_mutex
-            .lock()
-            .map_err(|e| format!("Failed to lock cortex_db: {}", e))?;
-
-        let mut stmt = conn
-            .prepare(
-                "SELECT id, content, summary, confidence FROM bridge_memories
-                 WHERE memory_type = 'DecisionContext'
-                 AND json_extract(content, '$.data.context') LIKE '%boundary%'
-                 ORDER BY confidence DESC",
-            )
-            .map_err(|e| format!("Failed to prepare query: {}", e))?;
-
-        let rows = stmt
-            .query_map([], |row| {
-                Ok((
-                    row.get::<_, String>(0)?,
-                    row.get::<_, String>(1)?,
-                    row.get::<_, String>(2)?,
-                    row.get::<_, f64>(3)?,
-                ))
-            })
+        let memories = store
+            .query_memories_by_type("DecisionContext", 500)
             .map_err(|e| format!("Failed to query priors: {}", e))?;
 
         let mut priors = Vec::new();
-        for row in rows {
-            let (id, _content_json, summary, confidence) =
-                row.map_err(|e| format!("Failed to read row: {}", e))?;
+        for row in &memories {
+            // Filter for boundary-related decisions
+            if !row.content.contains("boundary") {
+                continue;
+            }
+            let (id, content_json, summary, confidence) =
+                (row.id.clone(), row.content.clone(), row.summary.clone(), row.confidence);
 
-            // Parse the decision content to extract adjustment type
-            let adjustment_type = if summary.contains("split") || summary.contains("Split") {
-                PriorAdjustmentType::Split {
-                    module: "unknown".to_string(),
-                    into: vec!["part_a".to_string(), "part_b".to_string()],
-                }
-            } else if summary.contains("merge") || summary.contains("Merge") {
-                PriorAdjustmentType::Merge {
-                    modules: vec!["a".to_string(), "b".to_string()],
-                    into: "merged".to_string(),
-                }
-            } else {
+            // Parse the adjustment type from structured JSON content
+            let adjustment_type = parse_adjustment_type(&content_json).unwrap_or_else(|| {
+                warn!(
+                    memory_id = %id,
+                    "Failed to parse adjustment_type from content JSON — falling back to Reclassify"
+                );
                 PriorAdjustmentType::Reclassify {
                     module: "unknown".to_string(),
-                    new_category: "reclassified".to_string(),
+                    new_category: "unknown".to_string(),
                 }
-            };
+            });
 
             priors.push(DecompositionPriorData {
                 adjustment_type,
@@ -112,44 +92,32 @@ impl DecompositionPriorProvider for BridgeDecompositionPriorProvider {
     fn get_priors(&self) -> Result<Vec<DecompositionPriorData>, String> {
         // In the default call, we don't have a specific DNA similarity.
         // Return empty — the caller should use query_priors_with_similarity() directly.
-        let Some(ref db_mutex) = self.cortex_db else {
+        let Some(ref store) = self.bridge_store else {
             return Ok(Vec::new());
         };
 
-        let conn = db_mutex
-            .lock()
-            .map_err(|e| format!("Failed to lock cortex_db: {}", e))?;
-
         // Return all stored priors sorted by confidence
-        let mut stmt = conn
-            .prepare(
-                "SELECT id, summary, confidence FROM bridge_memories
-                 WHERE memory_type = 'DecisionContext'
-                 AND json_extract(content, '$.data.context') LIKE '%boundary%'
-                 ORDER BY confidence DESC",
-            )
-            .map_err(|e| format!("Failed to prepare query: {}", e))?;
-
-        let rows = stmt
-            .query_map([], |row| {
-                Ok((
-                    row.get::<_, String>(0)?,
-                    row.get::<_, String>(1)?,
-                    row.get::<_, f64>(2)?,
-                ))
-            })
+        let memories = store
+            .query_memories_by_type("DecisionContext", 500)
             .map_err(|e| format!("Failed to query priors: {}", e))?;
 
         let mut priors = Vec::new();
-        for row in rows {
-            let (id, summary, confidence) =
-                row.map_err(|e| format!("Failed to read row: {}", e))?;
+        for row in &memories {
+            if !row.content.contains("boundary") {
+                continue;
+            }
+            let (id, content_json, summary, confidence) =
+                (row.id.clone(), row.content.clone(), row.summary.clone(), row.confidence);
+
+            let adjustment_type = parse_adjustment_type(&content_json).unwrap_or_else(|| {
+                PriorAdjustmentType::Reclassify {
+                    module: "unknown".to_string(),
+                    new_category: "unknown".to_string(),
+                }
+            });
 
             priors.push(DecompositionPriorData {
-                adjustment_type: PriorAdjustmentType::Reclassify {
-                    module: "unknown".to_string(),
-                    new_category: "default".to_string(),
-                },
+                adjustment_type,
                 confidence,
                 dna_similarity: 1.0,
                 narrative: summary,
@@ -159,4 +127,20 @@ impl DecompositionPriorProvider for BridgeDecompositionPriorProvider {
 
         Ok(priors)
     }
+}
+
+/// Parse `PriorAdjustmentType` from a structured JSON content field.
+///
+/// Expected content format:
+/// ```json
+/// { "data": { "adjustment_type": { "Split": { "module": "auth", "into": ["auth_core", "auth_oauth"] } } } }
+/// ```
+///
+/// Returns `None` if the content doesn't contain a parseable adjustment_type.
+pub fn parse_adjustment_type(content_json: &str) -> Option<PriorAdjustmentType> {
+    let content: serde_json::Value = serde_json::from_str(content_json).ok()?;
+    let adj_value = content
+        .get("data")
+        .and_then(|d| d.get("adjustment_type"))?;
+    serde_json::from_value::<PriorAdjustmentType>(adj_value.clone()).ok()
 }

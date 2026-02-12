@@ -7,7 +7,6 @@ use std::path::Path;
 
 use drift_analysis::detectors::registry::create_default_registry;
 use drift_analysis::detectors::traits::DetectorCategory;
-use drift_analysis::engine::types::PatternCategory;
 use drift_analysis::engine::visitor::DetectionContext;
 use drift_analysis::parsers::manager::ParserManager;
 use drift_analysis::parsers::types::ParseResult;

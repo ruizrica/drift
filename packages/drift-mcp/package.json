@@ -31,6 +31,7 @@
   "dependencies": {
     "@drift/napi-contracts": "*",
     "@drift/cortex": "*",
+    "@drift/core": "*",
     "@modelcontextprotocol/sdk": "^1.12.1"
   },
   "devDependencies": {

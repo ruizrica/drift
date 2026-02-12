@@ -63,14 +63,32 @@ pub fn walk_directory(
         builder.threads(threads);
     }
 
-    // Add default ignore patterns via overrides
+    // Build overrides: include patterns (whitelist) + ignore patterns (blacklist).
+    //
+    // The `ignore` crate's OverrideBuilder uses gitignore syntax:
+    // - Positive patterns act as a whitelist (only matching files are included)
+    // - Negated patterns (prefixed with !) act as a blacklist (matching files are excluded)
+    //
+    // When include patterns are present, we add them as positive patterns first,
+    // then add ignore patterns as negated patterns. The ignore crate evaluates
+    // overrides in order: if any positive pattern matches, the file is included;
+    // if any negated pattern matches, the file is excluded.
     let mut overrides = ignore::overrides::OverrideBuilder::new(root);
+
+    // If include patterns are specified, add them as positive whitelist patterns.
+    // Files must match at least one include pattern to be scanned.
+    if !config.include.is_empty() {
+        for pattern in &config.include {
+            let _ = overrides.add(pattern);
+        }
+    }
+
+    // Add default ignore patterns (blacklist)
     for pattern in DEFAULT_IGNORES {
-        // Negate pattern: !pattern/** means "ignore this directory"
         let _ = overrides.add(&format!("!{}/**", pattern));
         let _ = overrides.add(&format!("!{}", pattern));
     }
-    // Add user-configured extra ignores
+    // Add user-configured extra ignores (blacklist)
     for pattern in &config.extra_ignore {
         let _ = overrides.add(&format!("!{}", pattern));
     }

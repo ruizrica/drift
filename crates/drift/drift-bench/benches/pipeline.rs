@@ -7,7 +7,7 @@
 //! Run with: `cargo bench -p drift-bench --bench pipeline`
 
 use std::path::Path;
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
 use tempfile::TempDir;
@@ -18,7 +18,6 @@ use drift_analysis::engine::regex_engine::RegexEngine;
 use drift_analysis::engine::resolution::ResolutionIndex;
 use drift_analysis::engine::visitor::{DetectionEngine, VisitorRegistry};
 use drift_analysis::parsers::manager::ParserManager;
-use drift_analysis::parsers::types::ParseResult;
 use drift_analysis::scanner::Scanner;
 use drift_core::config::ScanConfig;
 use drift_core::events::handler::DriftEventHandler;
@@ -28,7 +27,7 @@ struct NoOpHandler;
 impl DriftEventHandler for NoOpHandler {}
 
 use drift_bench::fixtures::{generate_fixture, FixtureSize};
-use drift_bench::report::{BenchmarkRegistry, FixtureInfo, PhaseMetric};
+use drift_bench::report::FixtureInfo;
 
 // ---------------------------------------------------------------------------
 // Fixture setup (outside the timed region)

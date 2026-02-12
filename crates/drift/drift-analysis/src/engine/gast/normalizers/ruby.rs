@@ -78,7 +78,7 @@ impl GASTNormalizer for RubyNormalizer {
                 let is_doc = text.starts_with("##");
                 GASTNode::Comment { text, is_doc }
             }
-            "lambda" | "do_block" => self.normalize_lambda(node, source),
+            "lambda" => self.normalize_lambda(node, source),
             _ => {
                 let children = self.normalize_children(node, source);
                 GASTNode::Other { kind: node.kind().to_string(), children }

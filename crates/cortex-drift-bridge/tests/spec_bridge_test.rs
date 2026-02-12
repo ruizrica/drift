@@ -11,10 +11,8 @@ use drift_core::traits::decomposition::DecompositionPriorProvider;
 use drift_core::traits::weight_provider::{AdaptiveWeightTable, MigrationPath, WeightProvider};
 
 /// Helper: create an in-memory bridge DB.
-fn setup_bridge_db() -> rusqlite::Connection {
-    let conn = rusqlite::Connection::open_in_memory().unwrap();
-    cortex_drift_bridge::storage::create_bridge_tables(&conn).unwrap();
-    conn
+fn setup_bridge_db() -> cortex_drift_bridge::storage::engine::BridgeStorageEngine {
+    cortex_drift_bridge::storage::engine::BridgeStorageEngine::open_in_memory().unwrap()
 }
 
 /// Helper: create a test SpecCorrection.
@@ -44,7 +42,7 @@ fn t9_bridge_01_spec_correction_creates_causal_edge() {
         vec!["upstream_module"],
     );
 
-    let memory_id = events::on_spec_corrected(&correction, &engine, Some(&db)).unwrap();
+    let memory_id = events::on_spec_corrected(&correction, &engine, Some(&db as &dyn cortex_drift_bridge::traits::IBridgeStorage)).unwrap();
     assert!(!memory_id.is_empty());
 
     // Verify the causal engine has nodes (edge creation attempted)
@@ -150,7 +148,7 @@ fn t9_bridge_04_on_spec_corrected_creates_feedback_memory() {
         vec!["upstream_1"],
     );
 
-    let memory_id = events::on_spec_corrected(&correction, &engine, Some(&db)).unwrap();
+    let memory_id = events::on_spec_corrected(&correction, &engine, Some(&db as &dyn cortex_drift_bridge::traits::IBridgeStorage)).unwrap();
 
     // Verify memory was stored in bridge_memories
     let count: i64 = db
@@ -289,7 +287,7 @@ fn t9_bridge_09_correction_zero_upstream() {
         data_sources: vec![],
     };
 
-    let memory_id = events::on_spec_corrected(&correction, &engine, Some(&db)).unwrap();
+    let memory_id = events::on_spec_corrected(&correction, &engine, Some(&db as &dyn cortex_drift_bridge::traits::IBridgeStorage)).unwrap();
     assert!(!memory_id.is_empty(), "Should create memory even with no upstream");
 }
 
@@ -408,7 +406,7 @@ fn t9_bridge_33_sql_injection_safe() {
     };
 
     // Should not panic or corrupt the database
-    let result = events::on_spec_corrected(&correction, &engine, Some(&db));
+    let result = events::on_spec_corrected(&correction, &engine, Some(&db as &dyn cortex_drift_bridge::traits::IBridgeStorage));
     assert!(result.is_ok(), "SQL injection should be safely handled");
 
     // Verify table still exists
@@ -452,7 +450,7 @@ fn t9_bridge_37_empty_module_id_rejected() {
         data_sources: vec![],
     };
 
-    let result = events::on_spec_corrected(&correction, &engine, Some(&db));
+    let result = events::on_spec_corrected(&correction, &engine, Some(&db as &dyn cortex_drift_bridge::traits::IBridgeStorage));
     assert!(result.is_err(), "Empty module_id should be rejected");
 }
 

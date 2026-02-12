@@ -30,7 +30,8 @@ pub fn configure_connection(conn: &Connection) -> BridgeResult<()> {
 }
 
 /// Configure a read-only connection (drift.db).
-/// Same PRAGMAs except no auto_vacuum (read-only can't vacuum).
+/// Same PRAGMAs as `configure_connection` plus `query_only = ON` to prevent
+/// accidental writes through this connection.
 pub fn configure_readonly_connection(conn: &Connection) -> BridgeResult<()> {
     conn.execute_batch(
         "
@@ -41,6 +42,7 @@ pub fn configure_readonly_connection(conn: &Connection) -> BridgeResult<()> {
         PRAGMA cache_size = -8000;
         PRAGMA mmap_size = 268435456;
         PRAGMA temp_store = MEMORY;
+        PRAGMA query_only = ON;
         ",
     )?;
     Ok(())

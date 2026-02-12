@@ -6,10 +6,17 @@
 //! Weights stored as Skill memory with 365-day half-life.
 
 use std::collections::HashMap;
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 
+use chrono::Utc;
+use cortex_core::memory::base::{BaseMemory, TypedContent};
+use cortex_core::memory::confidence::Confidence;
+use cortex_core::memory::importance::Importance;
+use cortex_core::memory::types::*;
 use drift_core::traits::weight_provider::{AdaptiveWeightTable, MigrationPath, WeightProvider};
 use tracing::{info, warn};
+
+use crate::traits::IBridgeStorage;
 
 /// Boost factor for weight adjustment formula.
 const BOOST_FACTOR: f64 = 0.5;
@@ -23,16 +30,16 @@ const MAX_WEIGHT: f64 = 5.0;
 /// Bridge implementation of WeightProvider.
 /// Reads Cortex Skill memories and computes adaptive weights.
 pub struct BridgeWeightProvider {
-    /// Connection to cortex.db for reading Skill memories.
-    cortex_db: Option<Mutex<rusqlite::Connection>>,
+    /// Bridge storage for reading Skill memories.
+    bridge_store: Option<Arc<dyn IBridgeStorage>>,
     /// Cached weight tables per migration path.
     cache: Mutex<HashMap<String, AdaptiveWeightTable>>,
 }
 
 impl BridgeWeightProvider {
-    pub fn new(cortex_db: Option<Mutex<rusqlite::Connection>>) -> Self {
+    pub fn new(bridge_store: Option<Arc<dyn IBridgeStorage>>) -> Self {
         Self {
-            cortex_db,
+            bridge_store,
             cache: Mutex::new(HashMap::new()),
         }
     }
@@ -40,7 +47,7 @@ impl BridgeWeightProvider {
     /// Create a no-op provider for standalone mode.
     pub fn no_op() -> Self {
         Self {
-            cortex_db: None,
+            bridge_store: None,
             cache: Mutex::new(HashMap::new()),
         }
     }
@@ -108,6 +115,72 @@ impl BridgeWeightProvider {
         }
     }
 
+    /// Persist computed adaptive weights as a Skill memory in bridge_memories.
+    /// This makes the weights retrievable by `get_weights()` on future runs.
+    pub fn persist_weights(
+        conn: &rusqlite::Connection,
+        path: &MigrationPath,
+        table: &AdaptiveWeightTable,
+    ) -> Result<String, String> {
+        let memory_id = uuid::Uuid::new_v4().to_string();
+        let now = Utc::now();
+
+        let skill_name = format!("{}:{}", path.source_language, path.target_language);
+        let evidence_json = serde_json::to_value(&table.weights)
+            .map_err(|e| format!("Failed to serialize weights: {}", e))?;
+
+        let content = TypedContent::Skill(SkillContent {
+            domain: "adaptive_weights".to_string(),
+            skill_name: skill_name.clone(),
+            proficiency: format!("{:.2}", table.sample_size as f64 / 100.0),
+            evidence: vec![evidence_json.to_string()],
+        });
+
+        let content_hash = BaseMemory::compute_content_hash(&content)
+            .unwrap_or_else(|_| blake3::hash(b"fallback").to_hex().to_string());
+
+        let memory = BaseMemory {
+            id: memory_id.clone(),
+            memory_type: cortex_core::MemoryType::Skill,
+            content,
+            summary: format!("Adaptive weights for {} (n={})", skill_name, table.sample_size),
+            transaction_time: now,
+            valid_time: now,
+            valid_until: None,
+            confidence: Confidence::new(0.8),
+            importance: Importance::Normal,
+            last_accessed: now,
+            access_count: 0,
+            linked_patterns: vec![],
+            linked_constraints: vec![],
+            linked_files: vec![],
+            linked_functions: vec![],
+            tags: vec![
+                "drift_bridge".to_string(),
+                "adaptive_weights".to_string(),
+                format!("path:{}", skill_name),
+            ],
+            archived: false,
+            superseded_by: None,
+            supersedes: None,
+            content_hash,
+            namespace: Default::default(),
+            source_agent: Default::default(),
+        };
+
+        crate::storage::store_memory(conn, &memory)
+            .map_err(|e| format!("Failed to persist Skill memory: {}", e))?;
+
+        info!(
+            memory_id = %memory_id,
+            skill_name = %skill_name,
+            sample_size = table.sample_size,
+            "Persisted adaptive weights as Skill memory"
+        );
+
+        Ok(memory_id)
+    }
+
     /// Cache key for a migration path.
     fn cache_key(path: &MigrationPath) -> String {
         format!(
@@ -130,62 +203,59 @@ impl WeightProvider for BridgeWeightProvider {
             }
         }
 
-        // If no cortex_db, return static defaults (graceful degradation)
-        let Some(ref db_mutex) = self.cortex_db else {
+        // If no bridge_store, return static defaults (graceful degradation)
+        let Some(ref store) = self.bridge_store else {
             return AdaptiveWeightTable::static_defaults();
         };
 
-        // Try to read from cortex.db
-        let conn = match db_mutex.lock() {
-            Ok(c) => c,
-            Err(_) => return AdaptiveWeightTable::static_defaults(),
-        };
-
         // Query for Skill memories containing weight tables for this migration path
-        let result = conn.prepare(
-            "SELECT content FROM bridge_memories
-             WHERE memory_type = 'Skill'
-             AND json_extract(content, '$.data.domain') = 'adaptive_weights'
-             AND json_extract(content, '$.data.skill_name') LIKE ?1
-             ORDER BY created_at DESC LIMIT 1",
-        );
-
-        match result {
-            Ok(mut stmt) => {
-                let search = format!("%{}%{}%", path.source_language, path.target_language);
-                match stmt.query_row(rusqlite::params![search], |row| {
-                    row.get::<_, String>(0)
-                }) {
-                    Ok(content_json) => {
-                        if let Ok(content) = serde_json::from_str::<serde_json::Value>(&content_json) {
-                            if let Some(weights_obj) = content.get("data").and_then(|d| d.get("evidence")) {
-                                // Parse stored weights
-                                if let Ok(weights_map) = serde_json::from_value::<HashMap<String, f64>>(
-                                    weights_obj.clone(),
-                                ) {
-                                    let table = AdaptiveWeightTable {
-                                        weights: weights_map,
-                                        failure_distribution: HashMap::new(),
-                                        sample_size: 0,
-                                        last_updated: chrono::Utc::now().timestamp(),
-                                    };
-                                    // Cache it
-                                    if let Ok(mut cache) = self.cache.lock() {
-                                        cache.insert(key, table.clone());
-                                    }
-                                    return table;
-                                }
-                            }
-                        }
-                        AdaptiveWeightTable::static_defaults()
-                    }
-                    Err(_) => AdaptiveWeightTable::static_defaults(),
-                }
-            }
+        let memories = match store.query_memories_by_type("Skill", 100) {
+            Ok(rows) => rows,
             Err(e) => {
                 warn!(error = %e, "Failed to query adaptive weights — using static defaults");
-                AdaptiveWeightTable::static_defaults()
+                return AdaptiveWeightTable::static_defaults();
+            }
+        };
+
+        let search_src = &path.source_language;
+        let search_tgt = &path.target_language;
+
+        for row in &memories {
+            if let Ok(content) = serde_json::from_str::<serde_json::Value>(&row.content) {
+                let is_adaptive = content
+                    .get("data")
+                    .and_then(|d| d.get("domain"))
+                    .and_then(|d| d.as_str())
+                    == Some("adaptive_weights");
+                let skill_matches = content
+                    .get("data")
+                    .and_then(|d| d.get("skill_name"))
+                    .and_then(|d| d.as_str())
+                    .map(|s| s.contains(search_src) && s.contains(search_tgt))
+                    .unwrap_or(false);
+
+                if is_adaptive && skill_matches {
+                    if let Some(weights_obj) = content.get("data").and_then(|d| d.get("evidence")) {
+                        if let Ok(weights_map) = serde_json::from_value::<HashMap<String, f64>>(
+                            weights_obj.clone(),
+                        ) {
+                            let table = AdaptiveWeightTable {
+                                weights: weights_map,
+                                failure_distribution: HashMap::new(),
+                                sample_size: 0,
+                                last_updated: chrono::Utc::now().timestamp(),
+                            };
+                            // Cache it
+                            if let Ok(mut cache) = self.cache.lock() {
+                                cache.insert(key, table.clone());
+                            }
+                            return table;
+                        }
+                    }
+                }
             }
         }
+
+        AdaptiveWeightTable::static_defaults()
     }
 }

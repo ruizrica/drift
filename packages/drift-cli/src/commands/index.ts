@@ -1,5 +1,5 @@
 /**
- * Command registration — registers all 27 CLI commands.
+ * Command registration — registers all 29 CLI commands.
  */
 
 import type { Command } from 'commander';
@@ -30,6 +30,9 @@ import { registerTaintCommand } from './taint.js';
 import { registerErrorsCommand } from './errors.js';
 import { registerTestQualityCommand } from './test-quality.js';
 import { registerCortexCommand } from './cortex.js';
+import { registerBridgeCommand } from './bridge.js';
+import { registerValidatePackCommand } from './validate-pack.js';
+import { registerCloudCommand } from './cloud.js';
 
 /**
  * Register all CLI commands on the program.
@@ -68,6 +71,12 @@ export function registerAllCommands(program: Command): void {
   registerDoctorCommand(program);
   // Cortex memory system
   registerCortexCommand(program);
+  // Bridge: memory grounding, causal intelligence, learning
+  registerBridgeCommand(program);
+  // Framework pack validation
+  registerValidatePackCommand(program);
+  // Cloud sync
+  registerCloudCommand(program);
 }
 
 export { registerAnalyzeCommand } from './analyze.js';

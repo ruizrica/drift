@@ -3,7 +3,7 @@
 use std::collections::HashMap;
 
 use drift_core::errors::ContextError;
-use drift_core::traits::{AdaptiveWeightTable, WeightProvider};
+use drift_core::traits::WeightProvider;
 
 use super::deduplication::ContextSession;
 use super::intent::{ContextIntent, IntentWeights};

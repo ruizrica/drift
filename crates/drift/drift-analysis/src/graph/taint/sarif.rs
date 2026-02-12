@@ -3,7 +3,6 @@
 //! Generates SARIF v2.1.0 compliant output for CI/CD integration.
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 use super::types::TaintFlow;
 

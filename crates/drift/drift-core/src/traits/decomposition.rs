@@ -35,7 +35,7 @@ pub struct DecompositionPriorData {
 }
 
 /// Type of boundary adjustment in a prior.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub enum PriorAdjustmentType {
     Split { module: String, into: Vec<String> },
     Merge { modules: Vec<String>, into: String },

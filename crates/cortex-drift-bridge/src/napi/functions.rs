@@ -11,6 +11,7 @@ use crate::grounding::{GroundingConfig, GroundingLoopRunner};
 use crate::license::LicenseTier;
 use crate::link_translation::EntityLink;
 use crate::specification::corrections::SpecSection;
+use crate::traits::IBridgeStorage;
 
 // ---- 1. bridge_status ----
 /// Returns bridge availability, license tier, and grounding config.
@@ -33,10 +34,10 @@ pub fn bridge_ground_memory(
     memory: &MemoryForGrounding,
     config: &GroundingConfig,
     drift_db: Option<&rusqlite::Connection>,
-    bridge_db: Option<&rusqlite::Connection>,
+    bridge_store: Option<&dyn IBridgeStorage>,
 ) -> BridgeResult<serde_json::Value> {
     let runner = GroundingLoopRunner::new(config.clone());
-    let result = runner.ground_single(memory, drift_db, bridge_db)?;
+    let result = runner.ground_single(memory, drift_db, bridge_store)?;
     Ok(serde_json::to_value(&result)?)
 }
 
@@ -46,13 +47,13 @@ pub fn bridge_ground_all(
     memories: &[MemoryForGrounding],
     config: &GroundingConfig,
     drift_db: Option<&rusqlite::Connection>,
-    bridge_db: Option<&rusqlite::Connection>,
+    bridge_store: Option<&dyn IBridgeStorage>,
 ) -> BridgeResult<serde_json::Value> {
     let runner = GroundingLoopRunner::new(config.clone());
     let snapshot = runner.run(
         memories,
         drift_db,
-        bridge_db,
+        bridge_store,
         crate::grounding::TriggerType::OnDemand,
     )?;
     Ok(serde_json::to_value(&snapshot)?)
@@ -63,9 +64,9 @@ pub fn bridge_ground_all(
 pub fn bridge_grounding_history(
     memory_id: &str,
     limit: usize,
-    bridge_db: &rusqlite::Connection,
+    bridge_store: &dyn IBridgeStorage,
 ) -> BridgeResult<serde_json::Value> {
-    let history = crate::storage::tables::get_grounding_history(bridge_db, memory_id, limit)?;
+    let history = bridge_store.get_grounding_history(memory_id, limit)?;
     let entries: Vec<serde_json::Value> = history
         .iter()
         .map(|(score, classification, ts)| {
@@ -198,12 +199,12 @@ pub fn bridge_adaptive_weights(
 pub fn bridge_spec_correction(
     correction: &crate::specification::corrections::SpecCorrection,
     causal_engine: &cortex_causal::CausalEngine,
-    bridge_db: Option<&rusqlite::Connection>,
+    bridge_store: Option<&dyn IBridgeStorage>,
 ) -> BridgeResult<serde_json::Value> {
     let memory_id = crate::specification::events::on_spec_corrected(
         correction,
         causal_engine,
-        bridge_db,
+        bridge_store,
     )?;
     Ok(json!({ "memory_id": memory_id, "status": "created" }))
 }
@@ -216,7 +217,7 @@ pub fn bridge_contract_verified(
     section: &str,
     mismatch_type: Option<&str>,
     severity: Option<f64>,
-    bridge_db: Option<&rusqlite::Connection>,
+    bridge_store: Option<&dyn IBridgeStorage>,
 ) -> BridgeResult<serde_json::Value> {
     let spec_section = SpecSection::from_str(section)
         .ok_or_else(|| crate::errors::BridgeError::InvalidInput(
@@ -228,7 +229,7 @@ pub fn bridge_contract_verified(
         &spec_section,
         mismatch_type,
         severity,
-        bridge_db,
+        bridge_store,
     )?;
     Ok(json!({ "memory_id": memory_id, "passed": passed }))
 }
@@ -239,13 +240,13 @@ pub fn bridge_decomposition_adjusted(
     module_id: &str,
     adjustment_type: &str,
     dna_hash: &str,
-    bridge_db: Option<&rusqlite::Connection>,
+    bridge_store: Option<&dyn IBridgeStorage>,
 ) -> BridgeResult<serde_json::Value> {
     let memory_id = crate::specification::events::on_decomposition_adjusted(
         module_id,
         adjustment_type,
         dna_hash,
-        bridge_db,
+        bridge_store,
     )?;
     Ok(json!({ "memory_id": memory_id, "adjustment_type": adjustment_type }))
 }
@@ -284,11 +285,11 @@ pub fn bridge_intervention(
 // ---- 18. bridge_health ----
 /// Bridge health status check.
 pub fn bridge_health(
-    cortex_db: Option<&std::sync::Mutex<rusqlite::Connection>>,
+    bridge_store: Option<&dyn IBridgeStorage>,
     drift_db: Option<&std::sync::Mutex<rusqlite::Connection>>,
     causal_engine: Option<&cortex_causal::CausalEngine>,
 ) -> BridgeResult<serde_json::Value> {
-    crate::tools::handle_drift_health(cortex_db, drift_db, causal_engine)
+    crate::tools::handle_drift_health(bridge_store, drift_db, causal_engine)
 }
 
 // ---- 19. bridge_unified_narrative ----

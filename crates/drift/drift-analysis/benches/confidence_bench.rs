@@ -4,7 +4,6 @@ use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use drift_analysis::engine::types::PatternCategory;
 use drift_analysis::patterns::aggregation::types::{AggregatedPattern, PatternLocation};
 use drift_analysis::patterns::confidence::scorer::{ConfidenceScorer, ScorerConfig};
-use drift_analysis::patterns::confidence::types::MomentumDirection;
 
 fn make_patterns(n: usize) -> Vec<AggregatedPattern> {
     (0..n)
@@ -16,7 +15,7 @@ fn make_patterns(n: usize) -> Vec<AggregatedPattern> {
                     file: format!("file_{}.ts", j % files),
                     line: j + 1,
                     column: 0,
-                    confidence: 0.7 + (j as f32 % 30) * 0.01,
+                    confidence: 0.7 + ((j % 30) as f32) * 0.01,
                     is_outlier: false,
                     matched_text: None,
                 })
@@ -45,6 +44,7 @@ fn bench_confidence_scoring(c: &mut Criterion) {
     let scorer = ConfidenceScorer::new(ScorerConfig {
         total_files: 1000,
         default_age_days: 14,
+        default_data_quality: None,
     });
 
     let patterns_1k = make_patterns(1_000);
@@ -52,14 +52,14 @@ fn bench_confidence_scoring(c: &mut Criterion) {
 
     c.bench_function("confidence_1k_patterns", |b| {
         b.iter(|| {
-            let scores = scorer.score_batch(black_box(&patterns_1k));
+            let scores = scorer.score_batch(black_box(&patterns_1k), None);
             black_box(scores);
         })
     });
 
     c.bench_function("confidence_10k_patterns", |b| {
         b.iter(|| {
-            let scores = scorer.score_batch(black_box(&patterns_10k));
+            let scores = scorer.score_batch(black_box(&patterns_10k), None);
             black_box(scores);
         })
     });

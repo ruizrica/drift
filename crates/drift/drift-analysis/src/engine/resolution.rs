@@ -2,10 +2,10 @@
 
 use std::collections::BTreeMap;
 
-use drift_core::types::collections::{FxHashMap, FxHashSet};
+use drift_core::types::collections::FxHashMap;
 use smallvec::SmallVec;
 
-use crate::parsers::types::{ClassInfo, ExportInfo, FunctionInfo, ImportInfo, ParseResult};
+use crate::parsers::types::ParseResult;
 
 /// Resolution strategy with associated confidence.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

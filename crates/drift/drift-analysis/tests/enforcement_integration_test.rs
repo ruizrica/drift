@@ -1,3 +1,4 @@
+#![allow(clippy::manual_range_contains, clippy::len_zero)]
 //! Phase 6 Integration Tests
 //! T6-INT-01 through T6-INT-07
 

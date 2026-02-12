@@ -1,3 +1,4 @@
+#![allow(clippy::field_reassign_with_default)]
 //! E2E tests for config and temporal hardening (Phase F).
 //!
 //! Every test targets a specific production failure mode:

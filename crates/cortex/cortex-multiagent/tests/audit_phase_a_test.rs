@@ -1,3 +1,4 @@
+#![allow(clippy::field_reassign_with_default)]
 //! Phase A tests — A-T01 through A-T08.
 //!
 //! Tests for consensus detection wiring, peer clock persistence,
@@ -272,7 +273,7 @@ fn at07_trust_scorer_weighted_clamped() {
     let trust = scorer.compute_weighted_trust(&evidence);
     // Expected: 0.5 - (5 * 0.5) = 0.5 - 2.5 = -2.0 → clamped to 0.0
     assert!(
-        trust >= 0.0 && trust <= 1.0,
+        (0.0..=1.0).contains(&trust),
         "trust should be clamped to [0,1], got {trust}"
     );
     assert!(

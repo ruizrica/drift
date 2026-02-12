@@ -5,7 +5,6 @@
 
 use napi::bindgen_prelude::*;
 use napi_derive::napi;
-use serde::{Deserialize, Serialize};
 
 use crate::conversions::error_codes;
 use crate::runtime;
@@ -24,7 +23,7 @@ pub fn drift_confidence(
     let rt = runtime::get()?;
     let lim = limit.unwrap_or(100) as usize;
 
-    let scores = rt.db.with_reader(|conn| {
+    let scores = rt.storage.with_reader(|conn| {
         if let Some(ref t) = tier {
             drift_storage::queries::patterns::query_confidence_by_tier(conn, t, after_id.as_deref(), lim + 1)
         } else {
@@ -56,14 +55,14 @@ pub fn drift_confidence(
 #[napi]
 pub fn drift_outliers(
     pattern_id: Option<String>,
-    after_id: Option<u32>,
+    _after_id: Option<u32>,
     limit: Option<u32>,
 ) -> Result<serde_json::Value> {
     let rt = runtime::get()?;
     let _limit = limit.unwrap_or(100);
 
     let outliers = if let Some(ref pid) = pattern_id {
-        rt.db.with_reader(|conn| {
+        rt.storage.with_reader(|conn| {
             drift_storage::queries::patterns::query_outliers_by_pattern(conn, pid)
         }).map_err(storage_err)?
     } else {
@@ -91,13 +90,13 @@ pub fn drift_outliers(
 #[napi]
 pub fn drift_conventions(
     category: Option<String>,
-    after_id: Option<u32>,
+    _after_id: Option<u32>,
     limit: Option<u32>,
 ) -> Result<serde_json::Value> {
     let rt = runtime::get()?;
     let _limit = limit.unwrap_or(100);
 
-    let conventions = rt.db.with_reader(|conn| {
+    let conventions = rt.storage.with_reader(|conn| {
         if let Some(ref cat) = category {
             drift_storage::queries::patterns::query_conventions_by_category(conn, cat)
         } else {
@@ -125,7 +124,7 @@ pub fn drift_conventions(
 #[napi]
 pub fn drift_patterns(
     category: Option<String>,
-    after_id: Option<String>,
+    _after_id: Option<String>,
     limit: Option<u32>,
 ) -> Result<serde_json::Value> {
     let rt = runtime::get()?;
@@ -133,7 +132,7 @@ pub fn drift_patterns(
 
     let lim = _limit as usize;
 
-    let detections = rt.db.with_reader(|conn| {
+    let detections = rt.storage.with_reader(|conn| {
         if let Some(ref cat) = category {
             drift_storage::queries::detections::get_detections_by_category(conn, cat)
         } else {

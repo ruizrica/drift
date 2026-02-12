@@ -135,12 +135,14 @@ fn default_patterns() -> Vec<RegexPattern> {
         },
         RegexPattern {
             id: "sql-raw-query".to_string(),
-            pattern: r#"(?i)(SELECT|INSERT|UPDATE|DELETE)\s+.*(FROM|INTO|SET|WHERE)\s+"#.to_string(),
+            // Only flag SQL with dynamic content: f-strings, .format(), #{}, %s, or + concat.
+            // Static parameterized SQL (e.g., rusqlite ?1, JDBC ?, sqlx $1) is safe.
+            pattern: r#"(?i)(SELECT|INSERT|UPDATE|DELETE)\s+.*(FROM|INTO|SET|WHERE)\s+.*(\{[^}]*\}|#\{|\%s|\bformat\b|\+\s*\w)"#.to_string(),
             category: PatternCategory::Security,
-            confidence: 0.60,
+            confidence: 0.75,
             cwe_ids: SmallVec::from_buf([89, 0]),
             owasp: Some("A03:2021".to_string()),
-            description: "Raw SQL query in string literal".to_string(),
+            description: "SQL query with dynamic string interpolation".to_string(),
         },
         // Secret patterns
         RegexPattern {

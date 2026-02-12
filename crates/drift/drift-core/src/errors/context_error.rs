@@ -1,6 +1,6 @@
 //! Context generation errors.
 
-use super::error_code::{self, DriftErrorCode};
+use super::error_code::DriftErrorCode;
 
 /// Errors that can occur during context generation.
 #[derive(Debug, thiserror::Error)]

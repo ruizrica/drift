@@ -2,7 +2,6 @@
 
 use std::fmt;
 
-use drift_core::types::collections::{FxHashMap, FxHashSet};
 use serde::{Deserialize, Serialize};
 
 use crate::engine::types::PatternCategory;

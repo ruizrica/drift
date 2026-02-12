@@ -2,6 +2,7 @@
 //!
 //! Exposes drift_check(), drift_audit(), drift_violations(), drift_gates().
 
+#[allow(unused_imports)]
 use napi::bindgen_prelude::*;
 use napi_derive::napi;
 use serde::{Deserialize, Serialize};
@@ -88,11 +89,11 @@ pub struct JsAuditResult {
 pub fn drift_check(_root: String) -> napi::Result<JsCheckResult> {
     let rt = runtime::get()?;
 
-    let violations = rt.db.with_reader(|conn| {
+    let violations = rt.storage.with_reader(|conn| {
         drift_storage::queries::enforcement::query_all_violations(conn)
     }).map_err(|e| napi::Error::from_reason(format!("[{}] {e}", error_codes::STORAGE_ERROR)))?;
 
-    let gates = rt.db.with_reader(|conn| {
+    let gates = rt.storage.with_reader(|conn| {
         drift_storage::queries::enforcement::query_gate_results(conn)
     }).map_err(|e| napi::Error::from_reason(format!("[{}] {e}", error_codes::STORAGE_ERROR)))?;
 
@@ -131,13 +132,13 @@ pub fn drift_check(_root: String) -> napi::Result<JsCheckResult> {
 pub fn drift_audit(_root: String) -> napi::Result<JsAuditResult> {
     let rt = runtime::get()?;
 
-    let alerts = rt.db.with_reader(|conn| {
+    let alerts = rt.storage.with_reader(|conn| {
         drift_storage::queries::enforcement::query_recent_degradation_alerts(conn, 50)
     }).map_err(|e| napi::Error::from_reason(format!("[{}] {e}", error_codes::STORAGE_ERROR)))?;
 
     let alert_messages: Vec<String> = alerts.iter().map(|a| a.message.clone()).collect();
 
-    let confidence_scores = rt.db.with_reader(|conn| {
+    let confidence_scores = rt.storage.with_reader(|conn| {
         drift_storage::queries::patterns::query_all_confidence(conn)
     }).map_err(|e| napi::Error::from_reason(format!("[{}] {e}", error_codes::STORAGE_ERROR)))?;
 
@@ -150,7 +151,7 @@ pub fn drift_audit(_root: String) -> napi::Result<JsAuditResult> {
     let trend = if alerts.is_empty() { "stable" } else { "degrading" };
 
     // PH2-01: Wire approval_ratio from feedback stats
-    let feedback_stats = rt.db.with_reader(|conn| {
+    let feedback_stats = rt.storage.with_reader(|conn| {
         drift_storage::queries::enforcement::query_feedback_stats(conn)
     }).unwrap_or_default();
 
@@ -161,7 +162,7 @@ pub fn drift_audit(_root: String) -> napi::Result<JsAuditResult> {
     };
 
     // PH2-02: Wire cross_validation_rate from gate results
-    let gates = rt.db.with_reader(|conn| {
+    let gates = rt.storage.with_reader(|conn| {
         drift_storage::queries::enforcement::query_gate_results(conn)
     }).unwrap_or_default();
     let cross_validation_rate = if gates.is_empty() {
@@ -171,7 +172,7 @@ pub fn drift_audit(_root: String) -> napi::Result<JsAuditResult> {
     };
 
     // Compliance rate from violations
-    let violations = rt.db.with_reader(|conn| {
+    let violations = rt.storage.with_reader(|conn| {
         drift_storage::queries::enforcement::query_all_violations(conn)
     }).unwrap_or_default();
     let compliance_rate = if violations.is_empty() {
@@ -182,7 +183,7 @@ pub fn drift_audit(_root: String) -> napi::Result<JsAuditResult> {
 
     // PH2-03: Wire auto_approved_count and needs_review_count
     let auto_approved_count = feedback_stats.fix_count + feedback_stats.suppress_count;
-    let needs_review_count = rt.db.with_reader(|conn| {
+    let needs_review_count = rt.storage.with_reader(|conn| {
         drift_storage::queries::enforcement::count_needs_review(conn)
     }).unwrap_or(0);
 
@@ -193,7 +194,7 @@ pub fn drift_audit(_root: String) -> napi::Result<JsAuditResult> {
         + compliance_rate * 20.0
         + cross_validation_rate * 20.0
         + 1.0 * 20.0 // duplicate_free_rate placeholder
-    ).min(100.0).max(0.0);
+    ).clamp(0.0, 100.0);
 
     // Adjust health downward for active degradation alerts
     let health_score = if !alerts.is_empty() {
@@ -223,7 +224,7 @@ pub fn drift_audit(_root: String) -> napi::Result<JsAuditResult> {
 pub fn drift_violations(_root: String) -> napi::Result<Vec<JsViolation>> {
     let rt = runtime::get()?;
 
-    let rows = rt.db.with_reader(|conn| {
+    let rows = rt.storage.with_reader(|conn| {
         drift_storage::queries::enforcement::query_all_violations(conn)
     }).map_err(|e| napi::Error::from_reason(format!("[{}] {e}", error_codes::STORAGE_ERROR)))?;
 
@@ -254,11 +255,11 @@ pub fn drift_violations(_root: String) -> napi::Result<Vec<JsViolation>> {
 pub fn drift_report(format: String) -> napi::Result<String> {
     let rt = runtime::get()?;
 
-    let violations = rt.db.with_reader(|conn| {
+    let violations = rt.storage.with_reader(|conn| {
         drift_storage::queries::enforcement::query_all_violations(conn)
     }).map_err(|e| napi::Error::from_reason(format!("[{}] {e}", error_codes::STORAGE_ERROR)))?;
 
-    let gates = rt.db.with_reader(|conn| {
+    let gates = rt.storage.with_reader(|conn| {
         drift_storage::queries::enforcement::query_gate_results(conn)
     }).map_err(|e| napi::Error::from_reason(format!("[{}] {e}", error_codes::STORAGE_ERROR)))?;
 
@@ -392,7 +393,7 @@ fn storage_to_gate_results(
 pub fn drift_gates(_root: String) -> napi::Result<Vec<JsGateResult>> {
     let rt = runtime::get()?;
 
-    let rows = rt.db.with_reader(|conn| {
+    let rows = rt.storage.with_reader(|conn| {
         drift_storage::queries::enforcement::query_gate_results(conn)
     }).map_err(|e| napi::Error::from_reason(format!("[{}] {e}", error_codes::STORAGE_ERROR)))?;
 

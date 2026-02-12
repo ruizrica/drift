@@ -86,7 +86,7 @@ mod tests {
     fn test_approximate_count() {
         let count = TokenCounter::count_approximate("Hello, world! This is a test.");
         assert!(count > 0);
-        assert!(count >= 5 && count <= 15);
+        assert!((5..=15).contains(&count));
     }
 
     #[test]

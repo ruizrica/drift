@@ -15,7 +15,7 @@ impl FreezingArchRule {
     }
 
     /// Take a baseline snapshot of the current constraint state.
-    pub fn freeze(&mut self, store: &ConstraintStore, detector: &InvariantDetector) -> FrozenBaseline {
+    pub fn freeze(&mut self, store: &ConstraintStore, _detector: &InvariantDetector) -> FrozenBaseline {
         let constraints: Vec<Constraint> = store
             .enabled()
             .iter()

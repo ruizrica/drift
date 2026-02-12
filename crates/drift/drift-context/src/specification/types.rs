@@ -1,7 +1,6 @@
 //! Specification engine types — SpecSection, LogicalModule, SpecOutput.
 
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 
 /// 11 specification sections.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]

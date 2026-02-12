@@ -80,9 +80,9 @@ pub fn detect_service_boundaries(graph: &CallGraph) -> Vec<ServiceBoundary> {
 pub fn cross_service_reachability(
     graph: &CallGraph,
     source: NodeIndex,
-    boundaries: &[ServiceBoundary],
+    _boundaries: &[ServiceBoundary],
 ) -> CrossServiceResult {
-    let source_service = graph
+    let _source_service = graph
         .graph
         .node_weight(source)
         .map(|n| extract_service_name(&n.file))

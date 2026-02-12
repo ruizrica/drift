@@ -1,3 +1,4 @@
+#![allow(clippy::manual_range_contains, unused_variables)]
 //! Phase 3 — Property-Based Tests
 //!
 //! Tests invariants that must hold for ANY valid input, not just hand-crafted cases.

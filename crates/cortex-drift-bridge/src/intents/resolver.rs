@@ -18,10 +18,12 @@ pub struct IntentResolution {
 
 /// Resolve an intent name to its relevant Drift data sources.
 ///
-/// Maps the 10 code intents from `extensions.rs` to specific data sources.
+/// Handles both the 10 analytical intents (explain_pattern, assess_risk, etc.)
+/// and the 10 code intents from `extensions.rs` (add_feature, fix_bug, etc.).
 /// Unknown intents return a default resolution with all sources at shallow depth.
 pub fn resolve_intent(intent: &str) -> IntentResolution {
     match intent {
+        // --- Analytical intents (resolver-native) ---
         "explain_pattern" => IntentResolution {
             data_sources: vec![
                 GroundingDataSource::Patterns,
@@ -90,7 +92,7 @@ pub fn resolve_intent(intent: &str) -> IntentResolution {
             depth: 2,
             token_budget: 1500,
         },
-        "analyze_test_coverage" => IntentResolution {
+        "analyze_test_coverage" | "test_coverage" => IntentResolution {
             data_sources: vec![
                 GroundingDataSource::TestTopology,
                 GroundingDataSource::ErrorHandling,
@@ -106,6 +108,85 @@ pub fn resolve_intent(intent: &str) -> IntentResolution {
             ],
             depth: 3,
             token_budget: 2500,
+        },
+        // --- Code intents (from extensions.rs) ---
+        "add_feature" => IntentResolution {
+            data_sources: vec![
+                GroundingDataSource::Patterns,
+                GroundingDataSource::Conventions,
+                GroundingDataSource::Boundaries,
+                GroundingDataSource::CallGraph,
+            ],
+            depth: 2,
+            token_budget: 2000,
+        },
+        "fix_bug" => IntentResolution {
+            data_sources: vec![
+                GroundingDataSource::ErrorHandling,
+                GroundingDataSource::Taint,
+                GroundingDataSource::TestTopology,
+                GroundingDataSource::CallGraph,
+            ],
+            depth: 4,
+            token_budget: 2500,
+        },
+        "refactor" => IntentResolution {
+            data_sources: vec![
+                GroundingDataSource::Coupling,
+                GroundingDataSource::Patterns,
+                GroundingDataSource::Dna,
+                GroundingDataSource::Boundaries,
+            ],
+            depth: 4,
+            token_budget: 2500,
+        },
+        "review_code" => IntentResolution {
+            data_sources: vec![
+                GroundingDataSource::Patterns,
+                GroundingDataSource::Constraints,
+                GroundingDataSource::Security,
+            ],
+            depth: 2,
+            token_budget: 2000,
+        },
+        "debug" => IntentResolution {
+            data_sources: vec![
+                GroundingDataSource::CallGraph,
+                GroundingDataSource::ErrorHandling,
+                GroundingDataSource::Taint,
+                GroundingDataSource::Boundaries,
+            ],
+            depth: 4,
+            token_budget: 2500,
+        },
+        "understand_code" => IntentResolution {
+            data_sources: vec![
+                GroundingDataSource::Patterns,
+                GroundingDataSource::CallGraph,
+                GroundingDataSource::Boundaries,
+                GroundingDataSource::Dna,
+            ],
+            depth: 2,
+            token_budget: 1500,
+        },
+        "performance_audit" => IntentResolution {
+            data_sources: vec![
+                GroundingDataSource::CallGraph,
+                GroundingDataSource::Coupling,
+                GroundingDataSource::Boundaries,
+            ],
+            depth: 3,
+            token_budget: 2000,
+        },
+        "documentation" => IntentResolution {
+            data_sources: vec![
+                GroundingDataSource::Patterns,
+                GroundingDataSource::Conventions,
+                GroundingDataSource::Boundaries,
+                GroundingDataSource::Dna,
+            ],
+            depth: 1,
+            token_budget: 1500,
         },
         // Unknown intent: shallow scan of all sources
         _ => IntentResolution {
@@ -136,7 +217,7 @@ mod tests {
     }
 
     #[test]
-    fn test_all_10_intents_resolve() {
+    fn test_all_10_analytical_intents_resolve() {
         let intents = [
             "explain_pattern",
             "explain_violation",
@@ -148,6 +229,27 @@ mod tests {
             "check_convention",
             "analyze_test_coverage",
             "security_audit",
+        ];
+        for intent in &intents {
+            let res = resolve_intent(intent);
+            assert!(!res.data_sources.is_empty(), "No sources for {}", intent);
+            assert!(res.data_sources.len() < 12, "Too many sources for {} — should be targeted", intent);
+        }
+    }
+
+    #[test]
+    fn test_all_10_code_intents_resolve() {
+        let intents = [
+            "add_feature",
+            "fix_bug",
+            "refactor",
+            "review_code",
+            "debug",
+            "understand_code",
+            "security_audit",
+            "performance_audit",
+            "test_coverage",
+            "documentation",
         ];
         for intent in &intents {
             let res = resolve_intent(intent);

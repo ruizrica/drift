@@ -2,7 +2,7 @@
 //! CTE fallback, query strings, language detection, and other low-coverage modules.
 //! Target: push tarpaulin coverage above 80%.
 
-#![allow(dead_code, unused)]
+#![allow(dead_code, unused, clippy::field_reassign_with_default, clippy::cloned_ref_to_slice_refs, clippy::manual_range_contains, clippy::comparison_to_empty, clippy::len_zero)]
 
 use std::path::Path;
 use smallvec::SmallVec;

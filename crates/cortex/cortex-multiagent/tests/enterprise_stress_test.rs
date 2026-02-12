@@ -603,7 +603,7 @@ fn provenance_20_hop_chain_confidence() {
         assert_eq!(chain.len(), 20, "chain should have 20 hops");
 
         let confidence = ProvenanceTracker::chain_confidence(conn, "prov-chain-mem")?;
-        assert!(confidence >= 0.0 && confidence <= 1.0, "confidence must be bounded: {confidence}");
+        assert!((0.0..=1.0).contains(&confidence), "confidence must be bounded: {confidence}");
 
         // With 6 validation hops (at indices 3,6,9,12,15,18) each adding 0.05:
         // product = 1.05^6 ≈ 1.34 → clamped to 1.0.
@@ -674,7 +674,7 @@ fn provenance_correction_dampening_stops_at_threshold() {
 
         // Propagation should stop around distance 8 (0.7^8 ≈ 0.057 > 0.05).
         assert!(
-            last_applied_distance >= 7 && last_applied_distance <= 9,
+            (7..=9).contains(&last_applied_distance),
             "last applied distance should be ~8, got {last_applied_distance}"
         );
 

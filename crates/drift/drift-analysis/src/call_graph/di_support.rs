@@ -4,7 +4,7 @@
 
 use drift_core::types::collections::FxHashMap;
 
-use crate::parsers::types::{DecoratorInfo, ImportInfo, ParseResult};
+use crate::parsers::types::{DecoratorInfo, ParseResult};
 
 use super::types::Resolution;
 

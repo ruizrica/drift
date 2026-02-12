@@ -20,7 +20,9 @@ pub struct ScanOptions {
     pub force_full: Option<bool>,
     /// Maximum file size in bytes.
     pub max_file_size: Option<i64>,
-    /// Additional ignore patterns.
+    /// Include glob patterns — if non-empty, only matching paths are scanned.
+    pub include: Option<Vec<String>>,
+    /// Additional ignore/exclude patterns.
     pub extra_ignore: Option<Vec<String>>,
     /// Follow symbolic links.
     pub follow_symlinks: Option<bool>,

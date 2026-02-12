@@ -10,6 +10,10 @@ pub struct ScanConfig {
     pub max_file_size: Option<u64>,
     /// Number of threads. 0 = auto-detect via num_cpus.
     pub threads: Option<usize>,
+    /// Include glob patterns — if non-empty, only matching paths are scanned.
+    /// Patterns use gitignore syntax (e.g., "src/**", "lib/**").
+    #[serde(default)]
+    pub include: Vec<String>,
     /// Additional ignore patterns beyond .gitignore/.driftignore.
     #[serde(default)]
     pub extra_ignore: Vec<String>,

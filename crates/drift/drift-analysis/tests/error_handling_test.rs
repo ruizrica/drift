@@ -1,3 +1,4 @@
+#![allow(clippy::cloned_ref_to_slice_refs)]
 //! T4-ERR-01 through T4-ERR-05: Error handling analysis tests.
 
 use drift_analysis::call_graph::types::{CallEdge, CallGraph, FunctionNode, Resolution};
@@ -383,7 +384,7 @@ fn test_cwe_mapping() {
     let mapping = map_to_cwe(&gap);
     assert_eq!(mapping.cwe_id, 390);
     assert!(mapping.description.contains("error"));
-    assert!(mapping.remediation.len() > 0);
+    assert!(!mapping.remediation.is_empty());
 }
 
 // Additional: Error type profiling

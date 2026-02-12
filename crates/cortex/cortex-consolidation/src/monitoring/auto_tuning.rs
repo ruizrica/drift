@@ -118,8 +118,10 @@ mod tests {
 
     #[test]
     fn tunes_after_interval() {
-        let mut thresholds = TunableThresholds::default();
-        thresholds.events_since_tuning = TUNING_EVENT_INTERVAL - 1;
+        let mut thresholds = TunableThresholds {
+            events_since_tuning: TUNING_EVENT_INTERVAL - 1,
+            ..Default::default()
+        };
 
         // Create assessments with precision failures.
         let bad_assessments: Vec<QualityAssessment> = (0..10)

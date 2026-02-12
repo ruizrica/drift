@@ -3,7 +3,7 @@
 use crate::parsers::types::{CallSite, ParseResult};
 use crate::scanner::language_detect::Language;
 
-use super::types::{CallArg, ChainCall, UnifiedCallChain};
+use super::types::{ChainCall, UnifiedCallChain};
 
 /// Trait for language-specific call chain normalization.
 pub trait LanguageNormalizer: Send + Sync {

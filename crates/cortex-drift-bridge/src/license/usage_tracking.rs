@@ -8,6 +8,8 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Mutex;
 use std::time::{Duration, Instant};
 
+use rusqlite::Connection;
+
 /// Per-feature usage limits for Community tier.
 pub struct UsageLimits {
     /// Feature name → max invocations per day.
@@ -130,6 +132,48 @@ impl UsageTracker {
         let mut start = self.period_start.lock().unwrap();
         *start = Instant::now();
         self.total_invocations.store(0, Ordering::Relaxed);
+    }
+
+    /// Persist current usage counts to bridge_metrics table.
+    /// Each feature count is stored as `usage:{feature_name}`.
+    pub fn persist(&self, conn: &Connection) -> Result<(), rusqlite::Error> {
+        let counts = self.counts.lock().unwrap();
+        for (feature, count) in counts.iter() {
+            conn.execute(
+                "INSERT INTO bridge_metrics (metric_name, metric_value) VALUES (?1, ?2)",
+                rusqlite::params![format!("usage:{}", feature), *count as f64],
+            )?;
+        }
+        Ok(())
+    }
+
+    /// Load persisted usage counts from bridge_metrics table.
+    /// Reads the latest `usage:*` metrics and restores counts.
+    pub fn load(&self, conn: &Connection) -> Result<(), rusqlite::Error> {
+        let mut stmt = conn.prepare(
+            "SELECT metric_name, metric_value FROM bridge_metrics \
+             WHERE metric_name LIKE 'usage:%' \
+             ORDER BY recorded_at DESC",
+        )?;
+        let rows = stmt.query_map([], |row| {
+            Ok((row.get::<_, String>(0)?, row.get::<_, f64>(1)?))
+        })?;
+
+        let mut counts = self.counts.lock().unwrap();
+        let mut total = 0u64;
+        for row in rows {
+            let (name, value) = row?;
+            if let Some(feature) = name.strip_prefix("usage:") {
+                // Only take the first (most recent) value per feature
+                counts.entry(feature.to_string()).or_insert_with(|| {
+                    let v = value as u64;
+                    total += v;
+                    v
+                });
+            }
+        }
+        self.total_invocations.store(total, Ordering::Relaxed);
+        Ok(())
     }
 
     /// Check if the period has elapsed and reset if so.

@@ -3,7 +3,6 @@
 //! The engine walks the AST once per file, dispatching `on_enter`/`on_exit` to all
 //! registered handlers per node type. Detectors MUST implement a visitor trait.
 
-use std::collections::HashMap;
 
 use drift_core::types::collections::FxHashMap;
 use tree_sitter::Node;
@@ -13,7 +12,7 @@ use crate::parsers::types::{
 };
 use crate::scanner::language_detect::Language;
 
-use super::types::{PatternCategory, PatternMatch};
+use super::types::PatternMatch;
 
 /// Context passed to every detector handler during AST traversal.
 #[derive(Debug)]

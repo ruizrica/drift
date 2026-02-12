@@ -1,6 +1,5 @@
 //! Incremental analysis — process only changed files, skip unchanged via content hash.
 
-use std::collections::HashSet;
 use std::path::PathBuf;
 
 use drift_core::types::collections::FxHashMap;

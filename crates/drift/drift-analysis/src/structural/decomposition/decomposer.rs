@@ -158,11 +158,11 @@ fn refine_by_call_graph(modules: &mut Vec<LogicalModule>, call_edges: &[(String,
 
 /// Compute cohesion and coupling metrics.
 fn compute_metrics(modules: &mut [LogicalModule], call_edges: &[(String, String, String)]) {
-    let file_to_module: FxHashMap<&str, usize> = modules.iter().enumerate()
+    let _file_to_module: FxHashMap<&str, usize> = modules.iter().enumerate()
         .flat_map(|(i, m)| m.files.iter().map(move |f| (f.as_str(), i)))
         .collect();
 
-    for (i, module) in modules.iter_mut().enumerate() {
+    for module in modules.iter_mut() {
         let module_files: FxHashSet<&str> = module.files.iter().map(|f| f.as_str()).collect();
 
         // Cohesion: fraction of call edges that are intra-module
@@ -198,11 +198,11 @@ fn extract_public_interfaces(
     call_edges: &[(String, String, String)],
     functions: &[(String, String, bool)],
 ) {
-    let file_to_module: FxHashMap<&str, usize> = modules.iter().enumerate()
+    let _file_to_module: FxHashMap<&str, usize> = modules.iter().enumerate()
         .flat_map(|(i, m)| m.files.iter().map(move |f| (f.as_str(), i)))
         .collect();
 
-    for (i, module) in modules.iter_mut().enumerate() {
+    for module in modules.iter_mut() {
         let module_files: FxHashSet<&str> = module.files.iter().map(|f| f.as_str()).collect();
 
         // Functions called from outside this module = public interface

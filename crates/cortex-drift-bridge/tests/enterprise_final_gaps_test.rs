@@ -12,7 +12,6 @@
 //! 9. Grounding with negative/zero/boundary evidence values
 //! 10. Error handling: DB errors propagate, not silently swallowed
 
-use std::sync::Mutex;
 
 use cortex_drift_bridge::config::GroundingConfig;
 use cortex_drift_bridge::event_mapping::memory_types::{community_events, get_mapping, EVENT_MAPPINGS};
@@ -23,21 +22,18 @@ use cortex_drift_bridge::grounding::{
     AdjustmentMode, GroundingLoopRunner, GroundingVerdict, TriggerType,
 };
 use cortex_drift_bridge::license::LicenseTier;
-use cortex_drift_bridge::storage;
 use cortex_drift_bridge::storage::retention;
 
 use drift_core::events::handler::DriftEventHandler;
 use drift_core::events::types::*;
+use cortex_drift_bridge::traits::IBridgeStorage;
 
 // ============================================================================
 // HELPERS
 // ============================================================================
 
-fn setup_bridge_db() -> rusqlite::Connection {
-    let conn = rusqlite::Connection::open_in_memory().unwrap();
-    storage::configure_connection(&conn).unwrap();
-    storage::create_bridge_tables(&conn).unwrap();
-    conn
+fn setup_bridge_db() -> cortex_drift_bridge::storage::engine::BridgeStorageEngine {
+    cortex_drift_bridge::storage::engine::BridgeStorageEngine::open_in_memory().unwrap()
 }
 
 // ============================================================================
@@ -65,7 +61,7 @@ fn community_tier_allows_exactly_5_events() {
 #[test]
 fn community_tier_blocks_pattern_ignored() {
     let db = setup_bridge_db();
-    let handler = BridgeEventHandler::new(Some(Mutex::new(db)), LicenseTier::Community);
+    let handler = BridgeEventHandler::new(Some(std::sync::Arc::new(db) as std::sync::Arc<dyn cortex_drift_bridge::traits::IBridgeStorage>), LicenseTier::Community);
     handler.on_pattern_ignored(&PatternIgnoredEvent {
         pattern_id: "p1".into(),
         reason: "test".into(),
@@ -77,7 +73,7 @@ fn community_tier_blocks_pattern_ignored() {
 #[test]
 fn community_tier_blocks_pattern_merged() {
     let db = setup_bridge_db();
-    let handler = BridgeEventHandler::new(Some(Mutex::new(db)), LicenseTier::Community);
+    let handler = BridgeEventHandler::new(Some(std::sync::Arc::new(db) as std::sync::Arc<dyn cortex_drift_bridge::traits::IBridgeStorage>), LicenseTier::Community);
     handler.on_pattern_merged(&PatternMergedEvent {
         kept_id: "k".into(),
         merged_id: "m".into(),
@@ -88,7 +84,7 @@ fn community_tier_blocks_pattern_merged() {
 #[test]
 fn community_tier_blocks_regression_detected() {
     let db = setup_bridge_db();
-    let handler = BridgeEventHandler::new(Some(Mutex::new(db)), LicenseTier::Community);
+    let handler = BridgeEventHandler::new(Some(std::sync::Arc::new(db) as std::sync::Arc<dyn cortex_drift_bridge::traits::IBridgeStorage>), LicenseTier::Community);
     handler.on_regression_detected(&RegressionDetectedEvent {
         pattern_id: "p1".into(),
         previous_score: 0.9,
@@ -100,7 +96,7 @@ fn community_tier_blocks_regression_detected() {
 #[test]
 fn community_tier_blocks_gate_evaluated() {
     let db = setup_bridge_db();
-    let handler = BridgeEventHandler::new(Some(Mutex::new(db)), LicenseTier::Community);
+    let handler = BridgeEventHandler::new(Some(std::sync::Arc::new(db) as std::sync::Arc<dyn cortex_drift_bridge::traits::IBridgeStorage>), LicenseTier::Community);
     handler.on_gate_evaluated(&GateEvaluatedEvent {
         gate_name: "g".into(),
         passed: true,
@@ -113,7 +109,7 @@ fn community_tier_blocks_gate_evaluated() {
 #[test]
 fn community_tier_blocks_detector_alert() {
     let db = setup_bridge_db();
-    let handler = BridgeEventHandler::new(Some(Mutex::new(db)), LicenseTier::Community);
+    let handler = BridgeEventHandler::new(Some(std::sync::Arc::new(db) as std::sync::Arc<dyn cortex_drift_bridge::traits::IBridgeStorage>), LicenseTier::Community);
     handler.on_detector_alert(&DetectorAlertEvent {
         detector_id: "d1".into(),
         false_positive_rate: 0.1,
@@ -124,7 +120,7 @@ fn community_tier_blocks_detector_alert() {
 #[test]
 fn community_tier_blocks_constraint_approved() {
     let db = setup_bridge_db();
-    let handler = BridgeEventHandler::new(Some(Mutex::new(db)), LicenseTier::Community);
+    let handler = BridgeEventHandler::new(Some(std::sync::Arc::new(db) as std::sync::Arc<dyn cortex_drift_bridge::traits::IBridgeStorage>), LicenseTier::Community);
     handler.on_constraint_approved(&ConstraintApprovedEvent {
         constraint_id: "c1".into(),
     });
@@ -134,7 +130,7 @@ fn community_tier_blocks_constraint_approved() {
 #[test]
 fn community_tier_blocks_constraint_violated() {
     let db = setup_bridge_db();
-    let handler = BridgeEventHandler::new(Some(Mutex::new(db)), LicenseTier::Community);
+    let handler = BridgeEventHandler::new(Some(std::sync::Arc::new(db) as std::sync::Arc<dyn cortex_drift_bridge::traits::IBridgeStorage>), LicenseTier::Community);
     handler.on_constraint_violated(&ConstraintViolatedEvent {
         constraint_id: "c1".into(),
         message: "violated".into(),
@@ -145,7 +141,7 @@ fn community_tier_blocks_constraint_violated() {
 #[test]
 fn community_tier_blocks_decision_mined() {
     let db = setup_bridge_db();
-    let handler = BridgeEventHandler::new(Some(Mutex::new(db)), LicenseTier::Community);
+    let handler = BridgeEventHandler::new(Some(std::sync::Arc::new(db) as std::sync::Arc<dyn cortex_drift_bridge::traits::IBridgeStorage>), LicenseTier::Community);
     handler.on_decision_mined(&DecisionMinedEvent {
         decision_id: "d1".into(),
         category: "arch".into(),
@@ -156,7 +152,7 @@ fn community_tier_blocks_decision_mined() {
 #[test]
 fn community_tier_blocks_decision_reversed() {
     let db = setup_bridge_db();
-    let handler = BridgeEventHandler::new(Some(Mutex::new(db)), LicenseTier::Community);
+    let handler = BridgeEventHandler::new(Some(std::sync::Arc::new(db) as std::sync::Arc<dyn cortex_drift_bridge::traits::IBridgeStorage>), LicenseTier::Community);
     handler.on_decision_reversed(&DecisionReversedEvent {
         decision_id: "d1".into(),
         reason: "perf".into(),
@@ -167,7 +163,7 @@ fn community_tier_blocks_decision_reversed() {
 #[test]
 fn community_tier_blocks_adr_detected() {
     let db = setup_bridge_db();
-    let handler = BridgeEventHandler::new(Some(Mutex::new(db)), LicenseTier::Community);
+    let handler = BridgeEventHandler::new(Some(std::sync::Arc::new(db) as std::sync::Arc<dyn cortex_drift_bridge::traits::IBridgeStorage>), LicenseTier::Community);
     handler.on_adr_detected(&AdrDetectedEvent {
         adr_id: "adr1".into(),
         title: "Use REST".into(),
@@ -178,7 +174,7 @@ fn community_tier_blocks_adr_detected() {
 #[test]
 fn community_tier_blocks_boundary_discovered() {
     let db = setup_bridge_db();
-    let handler = BridgeEventHandler::new(Some(Mutex::new(db)), LicenseTier::Community);
+    let handler = BridgeEventHandler::new(Some(std::sync::Arc::new(db) as std::sync::Arc<dyn cortex_drift_bridge::traits::IBridgeStorage>), LicenseTier::Community);
     handler.on_boundary_discovered(&BoundaryDiscoveredEvent {
         boundary_id: "b1".into(),
         model: "User".into(),
@@ -190,7 +186,7 @@ fn community_tier_blocks_boundary_discovered() {
 #[test]
 fn community_tier_blocks_enforcement_changed() {
     let db = setup_bridge_db();
-    let handler = BridgeEventHandler::new(Some(Mutex::new(db)), LicenseTier::Community);
+    let handler = BridgeEventHandler::new(Some(std::sync::Arc::new(db) as std::sync::Arc<dyn cortex_drift_bridge::traits::IBridgeStorage>), LicenseTier::Community);
     handler.on_enforcement_changed(&EnforcementChangedEvent {
         gate_name: "g".into(),
         old_level: "warn".into(),
@@ -202,7 +198,7 @@ fn community_tier_blocks_enforcement_changed() {
 #[test]
 fn community_tier_blocks_feedback_abuse_detected() {
     let db = setup_bridge_db();
-    let handler = BridgeEventHandler::new(Some(Mutex::new(db)), LicenseTier::Community);
+    let handler = BridgeEventHandler::new(Some(std::sync::Arc::new(db) as std::sync::Arc<dyn cortex_drift_bridge::traits::IBridgeStorage>), LicenseTier::Community);
     handler.on_feedback_abuse_detected(&FeedbackAbuseDetectedEvent {
         user_id: "u1".into(),
         pattern: "spam".into(),
@@ -301,29 +297,44 @@ fn handler_all_21_events_on_no_op_handler_zero_errors() {
 // SECTION 3: drift_db FALLBACK — EVIDENCE FROM drift.db WHEN FIELDS ARE None
 // ============================================================================
 
-/// Create a mock drift.db with all 10 evidence tables populated.
+/// Create a mock drift.db with real drift-storage schema and all 12 evidence tables populated.
 fn setup_mock_drift_db() -> rusqlite::Connection {
     let conn = rusqlite::Connection::open_in_memory().unwrap();
     conn.execute_batch(
-        "CREATE TABLE drift_patterns (id TEXT PRIMARY KEY, confidence REAL, occurrence_rate REAL);
-         CREATE TABLE drift_violation_feedback (pattern_id TEXT PRIMARY KEY, fp_rate REAL);
-         CREATE TABLE drift_constraints (id TEXT PRIMARY KEY, verified INTEGER);
-         CREATE TABLE drift_coupling (module TEXT PRIMARY KEY, instability REAL);
-         CREATE TABLE drift_dna (project TEXT PRIMARY KEY, health_score REAL);
-         CREATE TABLE drift_test_topology (module TEXT PRIMARY KEY, coverage REAL);
-         CREATE TABLE drift_error_handling (module TEXT PRIMARY KEY, gap_count INTEGER);
-         CREATE TABLE drift_decisions (id TEXT PRIMARY KEY, evidence_score REAL);
-         CREATE TABLE drift_boundaries (id TEXT PRIMARY KEY, boundary_score REAL);
+        "CREATE TABLE pattern_confidence (pattern_id TEXT PRIMARY KEY, posterior_mean REAL NOT NULL, alpha REAL NOT NULL DEFAULT 1.0, beta REAL NOT NULL DEFAULT 1.0, credible_interval_low REAL NOT NULL DEFAULT 0.0, credible_interval_high REAL NOT NULL DEFAULT 1.0, tier TEXT NOT NULL DEFAULT 'Medium', momentum TEXT NOT NULL DEFAULT 'Stable', last_updated INTEGER NOT NULL DEFAULT 0);
+         CREATE TABLE detections (id INTEGER PRIMARY KEY AUTOINCREMENT, file TEXT NOT NULL, line INTEGER NOT NULL DEFAULT 0, column_num INTEGER NOT NULL DEFAULT 0, pattern_id TEXT NOT NULL, category TEXT NOT NULL DEFAULT 'general', confidence REAL NOT NULL DEFAULT 0.8, detection_method TEXT NOT NULL DEFAULT 'regex', created_at INTEGER NOT NULL DEFAULT 0);
+         CREATE TABLE feedback (id INTEGER PRIMARY KEY AUTOINCREMENT, violation_id TEXT NOT NULL DEFAULT '', pattern_id TEXT NOT NULL, detector_id TEXT NOT NULL DEFAULT '', action TEXT NOT NULL, created_at INTEGER NOT NULL DEFAULT 0);
+         CREATE TABLE constraint_verifications (id INTEGER PRIMARY KEY AUTOINCREMENT, constraint_id TEXT NOT NULL, passed INTEGER NOT NULL, violations TEXT NOT NULL DEFAULT '[]', verified_at INTEGER NOT NULL DEFAULT 0);
+         CREATE TABLE coupling_metrics (module TEXT PRIMARY KEY, ce INTEGER NOT NULL DEFAULT 0, ca INTEGER NOT NULL DEFAULT 0, instability REAL NOT NULL, abstractness REAL NOT NULL DEFAULT 0.0, distance REAL NOT NULL DEFAULT 0.0, zone TEXT NOT NULL DEFAULT 'stable', updated_at INTEGER NOT NULL DEFAULT 0);
+         CREATE TABLE dna_genes (gene_id TEXT PRIMARY KEY, name TEXT NOT NULL DEFAULT '', description TEXT NOT NULL DEFAULT '', alleles TEXT NOT NULL DEFAULT '[]', confidence REAL NOT NULL, consistency REAL NOT NULL, exemplars TEXT NOT NULL DEFAULT '[]', updated_at INTEGER NOT NULL DEFAULT 0);
+         CREATE TABLE test_quality (function_id TEXT PRIMARY KEY, overall_score REAL NOT NULL, updated_at INTEGER NOT NULL DEFAULT 0);
+         CREATE TABLE error_gaps (id INTEGER PRIMARY KEY AUTOINCREMENT, file TEXT NOT NULL, function_id TEXT NOT NULL DEFAULT '', gap_type TEXT NOT NULL DEFAULT 'uncaught', severity TEXT NOT NULL DEFAULT 'medium', created_at INTEGER NOT NULL DEFAULT 0);
+         CREATE TABLE decisions (id INTEGER PRIMARY KEY AUTOINCREMENT, category TEXT NOT NULL DEFAULT '', description TEXT NOT NULL DEFAULT '', confidence REAL NOT NULL, created_at INTEGER NOT NULL DEFAULT 0);
+         CREATE TABLE boundaries (id INTEGER PRIMARY KEY AUTOINCREMENT, file TEXT NOT NULL DEFAULT '', framework TEXT NOT NULL DEFAULT '', model_name TEXT NOT NULL DEFAULT '', confidence REAL NOT NULL, created_at INTEGER NOT NULL DEFAULT 0);
+         CREATE TABLE taint_flows (id INTEGER PRIMARY KEY AUTOINCREMENT, source_file TEXT NOT NULL, source_line INTEGER NOT NULL DEFAULT 0, source_type TEXT NOT NULL DEFAULT '', sink_file TEXT NOT NULL DEFAULT '', sink_line INTEGER NOT NULL DEFAULT 0, sink_type TEXT NOT NULL DEFAULT '', cwe_id INTEGER NOT NULL DEFAULT 0, is_sanitized INTEGER NOT NULL DEFAULT 0, path TEXT NOT NULL DEFAULT '', confidence REAL NOT NULL DEFAULT 0.5, created_at INTEGER NOT NULL DEFAULT 0);
+         CREATE TABLE call_edges (caller_id INTEGER NOT NULL, callee_id INTEGER NOT NULL, resolution TEXT NOT NULL, confidence REAL NOT NULL DEFAULT 0.5, call_site_line INTEGER NOT NULL DEFAULT 0, PRIMARY KEY (caller_id, callee_id, call_site_line));
 
-         INSERT INTO drift_patterns VALUES ('p1', 0.92, 0.75);
-         INSERT INTO drift_violation_feedback VALUES ('p1', 0.05);
-         INSERT INTO drift_constraints VALUES ('c1', 1);
-         INSERT INTO drift_coupling VALUES ('src/auth', 0.82);
-         INSERT INTO drift_dna VALUES ('myproject', 0.88);
-         INSERT INTO drift_test_topology VALUES ('src/auth', 0.91);
-         INSERT INTO drift_error_handling VALUES ('src/auth', 3);
-         INSERT INTO drift_decisions VALUES ('d1', 0.77);
-         INSERT INTO drift_boundaries VALUES ('b1', 0.65);",
+         INSERT INTO pattern_confidence (pattern_id, posterior_mean) VALUES ('p1', 0.92);
+         INSERT INTO detections (file, pattern_id) VALUES ('src/auth/mod.rs', 'p1');
+         INSERT INTO detections (file, pattern_id) VALUES ('src/auth/login.rs', 'p1');
+         INSERT INTO detections (file, pattern_id) VALUES ('src/auth/token.rs', 'p1');
+         INSERT INTO detections (file, pattern_id) VALUES ('src/db/pool.rs', 'p2');
+         INSERT INTO feedback (pattern_id, action) VALUES ('p1', 'dismiss');
+         INSERT INTO feedback (pattern_id, action) VALUES ('p1', 'accept');
+         INSERT INTO feedback (pattern_id, action) VALUES ('p1', 'accept');
+         INSERT INTO feedback (pattern_id, action) VALUES ('p1', 'accept');
+         INSERT INTO constraint_verifications (constraint_id, passed, verified_at) VALUES ('c1', 1, 1000);
+         INSERT INTO coupling_metrics (module, instability) VALUES ('src/auth', 0.82);
+         INSERT INTO dna_genes (gene_id, confidence, consistency) VALUES ('g1', 0.90, 0.98);
+         INSERT INTO test_quality (function_id, overall_score) VALUES ('src/auth', 0.91);
+         INSERT INTO error_gaps (file, function_id) VALUES ('src/auth/mod.rs', 'fn1');
+         INSERT INTO error_gaps (file, function_id) VALUES ('src/auth/mod.rs', 'fn2');
+         INSERT INTO error_gaps (file, function_id) VALUES ('src/auth/mod.rs', 'fn3');
+         INSERT INTO decisions (category, description, confidence) VALUES ('refactor', 'split auth', 0.77);
+         INSERT INTO boundaries (file, framework, model_name, confidence) VALUES ('src/auth/mod.rs', 'orm', 'User', 0.65);
+         INSERT INTO taint_flows (source_file, source_line, source_type, sink_file, sink_line, sink_type, cwe_id, is_sanitized) VALUES ('src/auth/mod.rs', 10, 'user_input', 'src/db/pool.rs', 20, 'sql_query', 89, 0);
+         INSERT INTO call_edges (caller_id, callee_id, resolution, confidence, call_site_line) VALUES (1, 2, 'import', 0.9, 10);
+         INSERT INTO call_edges (caller_id, callee_id, resolution, confidence, call_site_line) VALUES (2, 3, 'fuzzy', 0.4, 20);",
     )
     .unwrap();
     conn
@@ -345,6 +356,7 @@ fn ground_single_uses_drift_db_fallback_when_fields_are_none() {
         decision_id: Some("d1".to_string()),
         boundary_id: Some("b1".to_string()),
         current_confidence: 0.5,
+        ..Default::default()
     };
 
     // All pre-populated fields are None — evidence must come from drift.db
@@ -397,12 +409,8 @@ fn grounding_loop_run_uses_drift_db_fallback() {
 
     let ctx = cortex_drift_bridge::grounding::evidence::collector::EvidenceContext {
         pattern_id: Some("p1".to_string()),
-        constraint_id: None,
-        module_path: None,
-        project: None,
-        decision_id: None,
-        boundary_id: None,
         current_confidence: 0.5,
+        ..Default::default()
     };
 
     let memories = vec![MemoryForGrounding {
@@ -444,12 +452,8 @@ fn prepopulated_fields_take_priority_over_drift_db() {
 
     let ctx = cortex_drift_bridge::grounding::evidence::collector::EvidenceContext {
         pattern_id: Some("p1".to_string()),
-        constraint_id: None,
-        module_path: None,
-        project: None,
-        decision_id: None,
-        boundary_id: None,
         current_confidence: 0.5,
+        ..Default::default()
     };
 
     // Pre-populated pattern_confidence = 0.3, drift.db has 0.92
@@ -554,7 +558,7 @@ fn full_pipeline_validated_memory_gets_boost() {
         boundary_data: Some(0.7),
         evidence_context: None,    };
 
-    let result = runner.ground_single(&memory, None, Some(&db)).unwrap();
+    let result = runner.ground_single(&memory, None, Some(&db as &dyn cortex_drift_bridge::traits::IBridgeStorage)).unwrap();
     assert_eq!(result.verdict, GroundingVerdict::Validated);
     assert_eq!(result.confidence_adjustment.mode, AdjustmentMode::Boost);
     assert!(
@@ -586,7 +590,7 @@ fn full_pipeline_invalidated_memory_gets_penalty_and_contradiction() {
         boundary_data: Some(0.05),
         evidence_context: None,    };
 
-    let result = runner.ground_single(&memory, None, Some(&db)).unwrap();
+    let result = runner.ground_single(&memory, None, Some(&db as &dyn cortex_drift_bridge::traits::IBridgeStorage)).unwrap();
     assert_eq!(result.verdict, GroundingVerdict::Invalidated);
     assert_eq!(result.confidence_adjustment.mode, AdjustmentMode::Penalize);
     assert!(
@@ -617,10 +621,10 @@ fn full_pipeline_result_persisted_to_db() {
         boundary_data: None,
         evidence_context: None,    };
 
-    let result = runner.ground_single(&memory, None, Some(&db)).unwrap();
+    let result = runner.ground_single(&memory, None, Some(&db as &dyn cortex_drift_bridge::traits::IBridgeStorage)).unwrap();
 
     // Verify it's in the DB
-    let history = storage::tables::get_grounding_history(&db, "persist_test", 1).unwrap();
+    let history = db.get_grounding_history("persist_test", 1).unwrap();
     assert_eq!(history.len(), 1);
     assert!((history[0].0 - result.grounding_score).abs() < 0.001);
 }
@@ -646,10 +650,10 @@ fn full_pipeline_second_grounding_has_delta() {
         boundary_data: None,
         evidence_context: None,    };
 
-    let r1 = runner.ground_single(&memory, None, Some(&db)).unwrap();
+    let r1 = runner.ground_single(&memory, None, Some(&db as &dyn cortex_drift_bridge::traits::IBridgeStorage)).unwrap();
     assert!(r1.previous_score.is_none());
 
-    let r2 = runner.ground_single(&memory, None, Some(&db)).unwrap();
+    let r2 = runner.ground_single(&memory, None, Some(&db as &dyn cortex_drift_bridge::traits::IBridgeStorage)).unwrap();
     assert!(r2.previous_score.is_some());
     assert!(r2.score_delta.is_some());
 }
@@ -859,7 +863,7 @@ fn retention_schema_version_literal_matches_storage() {
     )
     .unwrap();
 
-    retention::apply_retention(&db, true).unwrap();
+    db.with_writer(|conn| retention::apply_retention(conn, true)).unwrap();
 
     // schema_version should survive, old metric should be deleted
     let sv_count: i64 = db
@@ -1153,7 +1157,7 @@ fn store_memory_on_closed_db_returns_error() {
         source_agent: Default::default(),
     };
 
-    let result = storage::store_memory(&db, &mem);
+    let result = db.insert_memory(&mem);
     assert!(result.is_err(), "Writing to dropped table should return error, not panic");
 }
 
@@ -1161,7 +1165,7 @@ fn store_memory_on_closed_db_returns_error() {
 fn log_event_on_dropped_table_returns_error() {
     let db = setup_bridge_db();
     db.execute_batch("DROP TABLE bridge_event_log").unwrap();
-    let result = storage::log_event(&db, "test_event", None, None, None);
+    let result = db.insert_event("test_event", None, None, None);
     assert!(result.is_err(), "Logging to dropped table should return error");
 }
 
@@ -1169,6 +1173,6 @@ fn log_event_on_dropped_table_returns_error() {
 fn record_metric_on_dropped_table_returns_error() {
     let db = setup_bridge_db();
     db.execute_batch("DROP TABLE bridge_metrics").unwrap();
-    let result = storage::record_metric(&db, "test", 1.0);
+    let result = db.insert_metric("test", 1.0);
     assert!(result.is_err(), "Recording metric to dropped table should return error");
 }

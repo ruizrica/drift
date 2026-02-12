@@ -5,7 +5,6 @@ use petgraph::graph::NodeIndex;
 
 use crate::call_graph::types::CallGraph;
 
-use super::handler_detection::detect_handlers;
 use super::types::{ErrorHandler, PropagationChain, PropagationNode};
 use crate::parsers::types::ParseResult;
 

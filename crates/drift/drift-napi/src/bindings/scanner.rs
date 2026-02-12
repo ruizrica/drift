@@ -20,7 +20,7 @@ use drift_analysis::scanner::language_detect::Language;
 use drift_analysis::scanner::types::{CachedFileMetadata, ScanDiff};
 use drift_core::config::ScanConfig;
 use drift_core::events::handler::DriftEventHandler;
-use drift_core::events::types::{ScanProgressEvent, ScanStartedEvent};
+use drift_core::events::types::ScanProgressEvent;
 use drift_core::types::collections::FxHashMap;
 use drift_storage::batch::commands::{
     BatchCommand, FileMetadataRow as BatchFileMetadataRow,
@@ -213,7 +213,7 @@ impl DriftEventHandler for NoOpHandler {}
 fn load_cached_metadata(
     rt: &crate::runtime::DriftRuntime,
 ) -> napi::Result<FxHashMap<PathBuf, CachedFileMetadata>> {
-    let records = rt.db.with_reader(|conn| {
+    let records = rt.storage.with_reader(|conn| {
         drift_storage::queries::files::load_all_file_metadata(conn)
     }).map_err(|e| {
         napi::Error::from_reason(format!(
@@ -296,8 +296,8 @@ fn persist_scan_diff(
         .collect();
 
     if !rows.is_empty() {
-        rt.batch_writer
-            .send(BatchCommand::UpsertFileMetadata(rows))
+        rt.storage
+            .send_batch(BatchCommand::UpsertFileMetadata(rows))
             .map_err(|e| {
                 napi::Error::from_reason(format!(
                     "[{}] Failed to persist file metadata: {e}",
@@ -313,8 +313,8 @@ fn persist_scan_diff(
             .iter()
             .map(|p| p.to_string_lossy().to_string())
             .collect();
-        rt.batch_writer
-            .send(BatchCommand::DeleteFileMetadata(paths))
+        rt.storage
+            .send_batch(BatchCommand::DeleteFileMetadata(paths))
             .map_err(|e| {
                 napi::Error::from_reason(format!(
                     "[{}] Failed to delete removed files: {e}",
@@ -342,7 +342,7 @@ fn persist_scan_diff(
             + diff.stats.hashing_ms as i64
             + diff.stats.diff_ms as i64;
 
-        rt.db.with_writer(|conn| {
+        rt.storage.with_writer(|conn| {
             let scan_id = drift_storage::queries::scan_history::insert_scan_start(conn, now, &root)?;
             drift_storage::queries::scan_history::update_scan_complete(
                 conn, scan_id, now, total, added, modified, removed, unchanged,
@@ -356,8 +356,10 @@ fn persist_scan_diff(
         })?;
     }
 
-    // Flush to ensure data is committed before returning summary
-    rt.batch_writer.flush().map_err(|e| {
+    // Synchronous flush — block until batch writer confirms all file_metadata
+    // rows are committed to SQLite. Without this, drift_analyze() may read an
+    // empty file_metadata table if it runs immediately after scan.
+    rt.storage.flush_batch_sync().map_err(|e| {
         napi::Error::from_reason(format!(
             "[{}] Failed to flush batch writer: {e}",
             error_codes::STORAGE_ERROR
@@ -378,6 +380,9 @@ fn build_scan_config(base: &ScanConfig, opts: &ScanOptions) -> ScanConfig {
     }
     if let Some(max_size) = opts.max_file_size {
         config.max_file_size = Some(max_size as u64);
+    }
+    if let Some(ref include) = opts.include {
+        config.include.extend(include.iter().cloned());
     }
     if let Some(ref extra) = opts.extra_ignore {
         config.extra_ignore.extend(extra.iter().cloned());
@@ -414,7 +419,7 @@ pub fn drift_scan_history(limit: Option<u32>) -> napi::Result<Vec<JsScanHistoryE
     let rt = runtime::get()?;
     let limit = limit.unwrap_or(20) as usize;
 
-    let rows = rt.db.with_reader(|conn| {
+    let rows = rt.storage.with_reader(|conn| {
         drift_storage::queries::scan_history::query_recent(conn, limit)
     }).map_err(|e| {
         napi::Error::from_reason(format!(

@@ -44,6 +44,9 @@ pub enum BridgeError {
         reason: String,
     },
 
+    #[error("Causal engine error: {operation}: {reason}")]
+    Causal { operation: String, reason: String },
+
     #[error("Configuration error: {0}")]
     Config(String),
 

@@ -146,7 +146,7 @@ fn base64_encode_url_safe(input: &[u8]) -> String {
 // The `base64` crate is in workspace deps but keeping this self-contained.
 
 fn base64_decode_standard(input: &str) -> Result<Vec<u8>, String> {
-    const TABLE: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    const _TABLE: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
     fn decode_char(c: u8) -> Result<u8, String> {
         match c {

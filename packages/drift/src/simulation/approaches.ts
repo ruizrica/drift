@@ -47,7 +47,7 @@ export class ApproachGenerator {
   /**
    * Generate candidate approaches for a task.
    */
-  generate(category: TaskCategory, context: SimulationContext): SimulationApproach[] {
+  generate(category: TaskCategory, _context: SimulationContext): SimulationApproach[] {
     const templates = approachTemplates[category] ?? defaultTemplates;
     return templates.map((t) => ({
       ...t,

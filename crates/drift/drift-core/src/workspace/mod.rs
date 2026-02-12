@@ -34,9 +34,11 @@ pub mod lock;
 pub mod migration;
 pub mod monorepo;
 pub mod project;
+pub mod sqlite_storage;
 pub mod status;
 
 // Re-export the most commonly used types.
+pub use sqlite_storage::SqliteWorkspaceStorage;
 pub use backup::{BackupConfig, BackupManager, BackupManifest, BackupReason, BackupTier};
 pub use ci::{detect_ci_environment, is_ci, CIEnvironment};
 pub use context::{get_agent_context, get_workspace_context, refresh_workspace_context};

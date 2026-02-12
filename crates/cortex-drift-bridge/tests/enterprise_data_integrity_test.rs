@@ -34,19 +34,16 @@ use cortex_drift_bridge::query::cortex_queries;
 use cortex_drift_bridge::specification::corrections::{CorrectionRootCause, SpecCorrection, SpecSection};
 use cortex_drift_bridge::specification::events;
 use cortex_drift_bridge::specification::weight_provider::BridgeWeightProvider;
-use cortex_drift_bridge::storage;
 
 use drift_core::traits::weight_provider::{AdaptiveWeightTable, MigrationPath, WeightProvider};
+use cortex_drift_bridge::traits::IBridgeStorage;
 
 // ============================================================================
 // HELPERS
 // ============================================================================
 
-fn setup_bridge_db() -> rusqlite::Connection {
-    let conn = rusqlite::Connection::open_in_memory().unwrap();
-    storage::configure_connection(&conn).unwrap();
-    storage::create_bridge_tables(&conn).unwrap();
-    conn
+fn setup_bridge_db() -> cortex_drift_bridge::storage::engine::BridgeStorageEngine {
+    cortex_drift_bridge::storage::engine::BridgeStorageEngine::open_in_memory().unwrap()
 }
 
 fn make_memory(id: &str, memory_type: cortex_core::MemoryType) -> BaseMemory {
@@ -100,7 +97,7 @@ fn concurrent_store_memory_no_data_loss() {
                 cortex_core::MemoryType::Insight,
             );
             let conn = db_clone.lock().unwrap();
-            storage::store_memory(&conn, &memory).unwrap();
+            conn.insert_memory(&memory).unwrap();
         }));
     }
 
@@ -109,7 +106,7 @@ fn concurrent_store_memory_no_data_loss() {
     }
 
     let conn = db.lock().unwrap();
-    let count = cortex_queries::count_memories(&conn).unwrap();
+    let count = conn.with_reader(cortex_queries::count_memories).unwrap();
     assert_eq!(count, 20, "All 20 concurrent writes should succeed");
 }
 
@@ -121,9 +118,8 @@ fn concurrent_log_event_no_data_loss() {
     for i in 0..50 {
         let db_clone = db.clone();
         handles.push(thread::spawn(move || {
-            let conn = db_clone.lock().unwrap();
-            storage::log_event(
-                &conn,
+            let engine = db_clone.lock().unwrap();
+            engine.insert_event(
                 &format!("event_{}", i),
                 Some("Insight"),
                 Some(&format!("mem_{}", i)),
@@ -169,7 +165,7 @@ fn concurrent_grounding_results_no_corruption() {
         evidence_context: None,            };
             let runner = GroundingLoopRunner::default();
             let conn = db_clone.lock().unwrap();
-            runner.ground_single(&memory, None, Some(&conn)).unwrap();
+            runner.ground_single(&memory, None, Some(&*conn as &dyn cortex_drift_bridge::traits::IBridgeStorage)).unwrap();
         }));
     }
 
@@ -196,16 +192,21 @@ fn concurrent_grounding_results_no_corruption() {
 fn duplicate_memory_id_returns_error_not_panic() {
     let db = setup_bridge_db();
     let mem = make_memory("dup1", cortex_core::MemoryType::Insight);
-    storage::store_memory(&db, &mem).unwrap();
-    let result = storage::store_memory(&db, &mem);
-    assert!(result.is_err(), "Duplicate memory ID should return error, not panic");
+    db.insert_memory(&mem).unwrap();
+    // store_memory deduplicates by (summary, memory_type) — second insert is
+    // silently skipped (Ok(())) rather than failing. Verify no panic and no duplicate row.
+    let result = db.insert_memory(&mem);
+    assert!(result.is_ok(), "Duplicate memory should be silently deduplicated, not panic");
+    let count: i64 = db
+        .query_row("SELECT COUNT(*) FROM bridge_memories WHERE id = 'dup1'", [], |row| row.get(0))
+        .unwrap();
+    assert_eq!(count, 1, "Should have exactly 1 memory after dedup");
 }
 
 #[test]
 fn grounding_result_persists_all_fields() {
     let db = setup_bridge_db();
     let result = GroundingResult {
-        id: "gr1".to_string(),
         memory_id: "test_mem".to_string(),
         verdict: GroundingVerdict::Validated,
         grounding_score: 0.85,
@@ -220,9 +221,9 @@ fn grounding_result_persists_all_fields() {
         generates_contradiction: false,
         duration_ms: 42,
     };
-    storage::record_grounding_result(&db, &result).unwrap();
+    db.insert_grounding_result(&result).unwrap();
 
-    let history = storage::tables::get_grounding_history(&db, "test_mem", 1).unwrap();
+    let history = db.get_grounding_history("test_mem", 1).unwrap();
     assert_eq!(history.len(), 1);
     assert!((history[0].0 - 0.85).abs() < 0.001);
     assert_eq!(history[0].1, "Validated");
@@ -233,14 +234,14 @@ fn record_metric_nan_rejected_by_strict_schema() {
     let db = setup_bridge_db();
     // BUG FINDING: NaN in STRICT mode REAL NOT NULL column causes constraint violation.
     // This is correct behavior — callers must sanitize NaN before storing metrics.
-    let result = storage::record_metric(&db, "test_nan", f64::NAN);
+    let result = db.insert_metric("test_nan", f64::NAN);
     assert!(result.is_err(), "NaN should be rejected by STRICT schema (NOT NULL constraint)");
 }
 
 #[test]
 fn record_metric_infinity_persists() {
     let db = setup_bridge_db();
-    storage::record_metric(&db, "test_inf", f64::INFINITY).unwrap();
+    db.insert_metric("test_inf", f64::INFINITY).unwrap();
     let val: f64 = db
         .query_row(
             "SELECT metric_value FROM bridge_metrics WHERE metric_name = 'test_inf'",
@@ -266,9 +267,9 @@ fn large_content_memory_roundtrip() {
     });
     mem.content_hash = BaseMemory::compute_content_hash(&mem.content)
         .unwrap_or_else(|_| blake3::hash(b"fallback").to_hex().to_string());
-    storage::store_memory(&db, &mem).unwrap();
+    db.insert_memory(&mem).unwrap();
 
-    let row = cortex_queries::get_memory_by_id(&db, "large1").unwrap().unwrap();
+    let row = db.with_reader(|conn| cortex_queries::get_memory_by_id(conn, "large1")).unwrap().unwrap();
     assert!(row.content.len() > 100_000, "Large content should survive roundtrip");
 }
 
@@ -277,13 +278,13 @@ fn many_memories_query_performance() {
     let db = setup_bridge_db();
     for i in 0..500 {
         let mem = make_memory(&format!("perf_{}", i), cortex_core::MemoryType::Insight);
-        storage::store_memory(&db, &mem).unwrap();
+        db.insert_memory(&mem).unwrap();
     }
-    let count = cortex_queries::count_memories(&db).unwrap();
+    let count = db.with_reader(cortex_queries::count_memories).unwrap();
     assert_eq!(count, 500);
 
     // Query with limit should respect it
-    let rows = cortex_queries::get_memories_by_type(&db, "Insight", 10).unwrap();
+    let rows = db.with_reader(|conn| cortex_queries::get_memories_by_type(conn, "Insight", 10)).unwrap();
     assert_eq!(rows.len(), 10, "Limit should be respected");
 }
 
@@ -299,9 +300,9 @@ fn unicode_memory_roundtrip() {
         .unwrap_or_else(|_| blake3::hash(b"fallback").to_hex().to_string());
     mem.summary = "Unicode summary: ñoño".to_string();
     mem.tags = vec!["unicode:日本語".to_string()];
-    storage::store_memory(&db, &mem).unwrap();
+    db.insert_memory(&mem).unwrap();
 
-    let row = cortex_queries::get_memory_by_id(&db, "unicode1").unwrap().unwrap();
+    let row = db.with_reader(|conn| cortex_queries::get_memory_by_id(conn, "unicode1")).unwrap().unwrap();
     assert!(row.content.contains("日本語テスト"));
     assert_eq!(row.summary, "Unicode summary: ñoño");
 }
@@ -317,9 +318,9 @@ fn empty_string_fields_survive_roundtrip() {
     mem.content_hash = BaseMemory::compute_content_hash(&mem.content)
         .unwrap_or_else(|_| blake3::hash(b"fallback").to_hex().to_string());
     mem.summary = String::new();
-    storage::store_memory(&db, &mem).unwrap();
+    db.insert_memory(&mem).unwrap();
 
-    let row = cortex_queries::get_memory_by_id(&db, "empty1").unwrap().unwrap();
+    let row = db.with_reader(|conn| cortex_queries::get_memory_by_id(conn, "empty1")).unwrap().unwrap();
     assert!(row.summary.is_empty());
 }
 
@@ -355,7 +356,6 @@ fn add_grounding_edge_supports_for_high_score() {
     let grounding_memory = make_memory("ground1", cortex_core::MemoryType::Feedback);
 
     let result = GroundingResult {
-        id: "gr1".into(),
         memory_id: "mem1".into(),
         verdict: GroundingVerdict::Validated,
         grounding_score: 0.85,
@@ -381,7 +381,6 @@ fn add_grounding_edge_contradicts_for_low_score() {
     let grounding_memory = make_memory("ground2", cortex_core::MemoryType::Feedback);
 
     let result = GroundingResult {
-        id: "gr2".into(),
         memory_id: "mem2".into(),
         verdict: GroundingVerdict::Invalidated,
         grounding_score: 0.1,
@@ -579,7 +578,7 @@ fn spec_correction_with_upstream_creates_causal_edges() {
         data_sources: vec![],
     };
 
-    let memory_id = events::on_spec_corrected(&correction, &engine, Some(&db)).unwrap();
+    let memory_id = events::on_spec_corrected(&correction, &engine, Some(&db as &dyn cortex_drift_bridge::traits::IBridgeStorage)).unwrap();
     assert!(!memory_id.is_empty());
 
     // The causal engine should have edges from upstream modules
@@ -612,11 +611,11 @@ fn spec_correction_all_7_root_causes_persisted() {
             upstream_modules: vec![],
             data_sources: vec![],
         };
-        let mem_id = events::on_spec_corrected(&correction, &engine, Some(&db)).unwrap();
+        let mem_id = events::on_spec_corrected(&correction, &engine, Some(&db as &dyn cortex_drift_bridge::traits::IBridgeStorage)).unwrap();
         assert!(!mem_id.is_empty());
     }
 
-    let count = cortex_queries::count_memories(&db).unwrap();
+    let count = db.with_reader(cortex_queries::count_memories).unwrap();
     assert_eq!(count, 7, "All 7 root cause variants should create memories");
 }
 
@@ -645,7 +644,7 @@ fn contract_verification_pass_and_fail_both_persist() {
     .unwrap();
 
     assert_ne!(pass_id, fail_id);
-    let count = cortex_queries::count_memories(&db).unwrap();
+    let count = db.with_reader(cortex_queries::count_memories).unwrap();
     assert_eq!(count, 2);
 }
 
@@ -660,7 +659,7 @@ fn decomposition_adjustment_persists_with_correct_tags() {
     )
     .unwrap();
 
-    let row = cortex_queries::get_memory_by_id(&db, &mem_id).unwrap().unwrap();
+    let row = db.with_reader(|conn| cortex_queries::get_memory_by_id(conn, &mem_id)).unwrap().unwrap();
     assert_eq!(row.memory_type, "DecisionContext");
     assert!(row.tags.contains("dna:abc123"));
     assert!(row.tags.contains("decomposition_adjusted"));
@@ -673,7 +672,7 @@ fn decomposition_adjustment_persists_with_correct_tags() {
 #[test]
 fn weight_provider_with_db_returns_defaults_no_skill_memory() {
     let db = setup_bridge_db();
-    let provider = BridgeWeightProvider::new(Some(Mutex::new(db)));
+    let provider = BridgeWeightProvider::new(Some(std::sync::Arc::new(db) as std::sync::Arc<dyn cortex_drift_bridge::traits::IBridgeStorage>));
 
     let path = MigrationPath {
         source_language: "rust".to_string(),
@@ -824,7 +823,7 @@ fn grounding_loop_full_batch_all_verdicts_represented() {
     ];
 
     let snapshot = runner
-        .run(&memories, None, Some(&db), cortex_drift_bridge::grounding::TriggerType::OnDemand)
+        .run(&memories, None, Some(&db as &dyn cortex_drift_bridge::traits::IBridgeStorage), cortex_drift_bridge::grounding::TriggerType::OnDemand)
         .unwrap();
 
     assert_eq!(snapshot.total_checked, 4);
@@ -855,7 +854,7 @@ fn grounding_loop_snapshot_persists_to_db() {
         evidence_context: None,    }];
 
     runner
-        .run(&memories, None, Some(&db), cortex_drift_bridge::grounding::TriggerType::Scheduled)
+        .run(&memories, None, Some(&db as &dyn cortex_drift_bridge::traits::IBridgeStorage), cortex_drift_bridge::grounding::TriggerType::Scheduled)
         .unwrap();
 
     let count: i64 = db

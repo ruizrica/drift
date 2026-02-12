@@ -1,3 +1,4 @@
+#![allow(clippy::needless_range_loop)]
 //! Golden dataset tests for cortex-consolidation (T14-INT-06).
 //!
 //! Loads each of the 10 consolidation golden files, runs consolidation phases,

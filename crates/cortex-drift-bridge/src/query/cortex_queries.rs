@@ -73,7 +73,7 @@ pub fn get_memories_by_tag(
     tag: &str,
     limit: usize,
 ) -> BridgeResult<Vec<MemoryRow>> {
-    let pattern = format!("%\"{}%", tag);
+    let pattern = format!("%\"{}\"%" , tag);
     let mut stmt = conn.prepare(
         "SELECT id, memory_type, content, summary, confidence, importance, tags, linked_patterns, created_at
          FROM bridge_memories WHERE tags LIKE ?1 ORDER BY created_at DESC LIMIT ?2",

@@ -29,7 +29,10 @@ pub fn what_if_removed(
 ) -> BridgeResult<CounterfactualResult> {
     let traversal = engine
         .counterfactual(memory_id)
-        .map_err(|e| crate::errors::BridgeError::Config(format!("Counterfactual failed: {}", e)))?;
+        .map_err(|e| crate::errors::BridgeError::Causal {
+            operation: "counterfactual".to_string(),
+            reason: e.to_string(),
+        })?;
 
     let affected_ids: Vec<String> = traversal
         .nodes

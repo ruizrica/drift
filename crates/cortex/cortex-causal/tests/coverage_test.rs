@@ -17,7 +17,7 @@ use cortex_causal::narrative::templates;
 use cortex_causal::relations::CausalRelation;
 use cortex_causal::CausalEngine;
 use cortex_core::memory::*;
-use cortex_core::traits::{CausalEdge, CausalEvidence};
+use cortex_core::traits::CausalEdge;
 
 // ─── Helper ──────────────────────────────────────────────────────────────────
 
@@ -158,7 +158,7 @@ fn compute_composite_returns_bounded_value() {
     let a = make_memory("s1", vec!["rust"]);
     let b = make_memory("s2", vec!["rust"]);
     let score = scorer::compute_composite(&a, &b);
-    assert!(score >= 0.0 && score <= 1.0);
+    assert!((0.0..=1.0).contains(&score));
 }
 
 #[test]
@@ -713,7 +713,7 @@ fn traversal_neighbors_on_graph() {
 
     let result = engine.neighbors("n1").unwrap();
     // n1 has outgoing to n2 and incoming from n3.
-    assert!(result.nodes.len() >= 1);
+    assert!(!result.nodes.is_empty());
     assert_eq!(result.origin_id, "n1");
 }
 
@@ -995,7 +995,7 @@ fn engine_infer_and_connect() {
     // Should have results for candidates (excluding self).
     assert!(!results.is_empty());
     // At least one edge should have been added to the graph.
-    let (nodes, edges) = engine.stats().unwrap();
+    let (nodes, _edges) = engine.stats().unwrap();
     assert!(nodes >= 1);
 }
 

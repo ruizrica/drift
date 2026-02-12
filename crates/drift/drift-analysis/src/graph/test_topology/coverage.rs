@@ -3,7 +3,7 @@
 //! Maps test functions to the source functions they cover by following
 //! outgoing call edges from test functions.
 
-use drift_core::types::collections::{FxHashMap, FxHashSet};
+use drift_core::types::collections::FxHashSet;
 use petgraph::graph::NodeIndex;
 
 use crate::call_graph::types::CallGraph;

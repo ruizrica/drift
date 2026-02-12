@@ -1,7 +1,7 @@
 /**
- * CI Agent — orchestrates 9 parallel analysis passes.
+ * CI Agent — orchestrates 11 parallel analysis passes.
  *
- * Passes: scan, patterns, call_graph, boundaries, security, tests, errors, contracts, constraints, enforcement.
+ * Passes: scan, patterns, call_graph, boundaries, security, tests, errors, contracts, constraints, enforcement, bridge.
  * Supports PR-level incremental analysis (only changed files + transitive dependents).
  */
 
@@ -17,7 +17,7 @@ export interface PassResult {
   error?: string;
 }
 
-/** Aggregated result from all 9 passes. */
+/** Aggregated result from all 11 passes. */
 export interface AnalysisResult {
   status: 'passed' | 'failed';
   totalViolations: number;
@@ -27,6 +27,19 @@ export interface AnalysisResult {
   summary: string;
   filesAnalyzed: number;
   incremental: boolean;
+  bridgeSummary?: BridgeSummary;
+}
+
+/** Bridge grounding summary included in CI results. */
+export interface BridgeSummary {
+  available: boolean;
+  totalChecked: number;
+  validated: number;
+  partial: number;
+  weak: number;
+  invalidated: number;
+  avgScore: number;
+  badge: '✅' | '⚠️' | '❌';
 }
 
 /** CI agent configuration. */
@@ -38,6 +51,7 @@ export interface CiAgentConfig {
   threshold: number;
   timeoutMs: number;
   changedFiles?: string[];
+  bridgeEnabled: boolean;
 }
 
 export const DEFAULT_CI_CONFIG: CiAgentConfig = {
@@ -47,6 +61,7 @@ export const DEFAULT_CI_CONFIG: CiAgentConfig = {
   incremental: true,
   threshold: 0,
   timeoutMs: 300_000, // 5 minutes
+  bridgeEnabled: process.env.DRIFT_BRIDGE_ENABLED !== 'false',
 };
 
 /** Analysis pass definition. */
@@ -84,9 +99,9 @@ async function runPassSafe(
   }
 }
 
-/** The 10 analysis passes. */
-function buildPasses(): AnalysisPass[] {
-  return [
+/** The 11 analysis passes. */
+function buildPasses(bridgeEnabled: boolean): AnalysisPass[] {
+  const passes: AnalysisPass[] = [
     {
       name: 'scan',
       run: async (files, config) => {
@@ -245,16 +260,63 @@ function buildPasses(): AnalysisPass[] {
       },
     },
   ];
+
+  if (bridgeEnabled) {
+    passes.push({
+      name: 'bridge',
+      run: async (_files, _config) => {
+        const napi = loadNapi();
+        const start = Date.now();
+        try {
+          const status = napi.driftBridgeStatus();
+          if (!status.available) {
+            return {
+              name: 'bridge',
+              status: 'passed',
+              violations: 0,
+              durationMs: Date.now() - start,
+              data: { skipped: true, reason: 'Bridge not initialized' },
+            };
+          }
+          const snapshot = napi.driftBridgeGroundAfterAnalyze();
+          return {
+            name: 'bridge',
+            status: 'passed',
+            violations: 0,
+            durationMs: Date.now() - start,
+            data: {
+              totalChecked: snapshot.total_checked,
+              validated: snapshot.validated,
+              partial: snapshot.partial,
+              weak: snapshot.weak,
+              invalidated: snapshot.invalidated,
+              avgScore: snapshot.avg_grounding_score,
+            },
+          };
+        } catch {
+          return {
+            name: 'bridge',
+            status: 'passed',
+            violations: 0,
+            durationMs: Date.now() - start,
+            data: { skipped: true, reason: 'Bridge error — skipped gracefully' },
+          };
+        }
+      },
+    });
+  }
+
+  return passes;
 }
 
 /**
- * Run all 10 analysis passes in parallel.
+ * Run all analysis passes in parallel.
  */
 export async function runAnalysis(
   config: Partial<CiAgentConfig> = {},
 ): Promise<AnalysisResult> {
   const mergedConfig = { ...DEFAULT_CI_CONFIG, ...config };
-  const passes = buildPasses();
+  const passes = buildPasses(mergedConfig.bridgeEnabled);
   const files = mergedConfig.changedFiles ?? [];
 
   // Handle empty PR diff
@@ -273,7 +335,7 @@ export async function runAnalysis(
 
   const start = Date.now();
 
-  // Run all 9 passes in parallel
+  // Run all passes in parallel
   const results = await Promise.all(
     passes.map((pass) => runPassSafe(pass, files, mergedConfig)),
   );
@@ -298,6 +360,24 @@ export async function runAnalysis(
 
   const durationMs = Date.now() - start;
 
+  // Extract bridge summary if bridge pass ran
+  const bridgePass = results.find((r) => r.name === 'bridge');
+  let bridgeSummary: BridgeSummary | undefined;
+  if (bridgePass?.data && typeof bridgePass.data === 'object' && !('skipped' in (bridgePass.data as Record<string, unknown>))) {
+    const d = bridgePass.data as Record<string, number>;
+    const avg = d.avgScore ?? 0;
+    bridgeSummary = {
+      available: true,
+      totalChecked: d.totalChecked ?? 0,
+      validated: d.validated ?? 0,
+      partial: d.partial ?? 0,
+      weak: d.weak ?? 0,
+      invalidated: d.invalidated ?? 0,
+      avgScore: avg,
+      badge: avg >= 0.5 ? '✅' : avg >= 0.2 ? '⚠️' : '❌',
+    };
+  }
+
   return {
     status,
     totalViolations,
@@ -307,6 +387,7 @@ export async function runAnalysis(
     summary: buildSummary(results, totalViolations, score, durationMs),
     filesAnalyzed: files.length || -1, // -1 means full scan
     incremental: mergedConfig.incremental,
+    bridgeSummary,
   };
 }
 

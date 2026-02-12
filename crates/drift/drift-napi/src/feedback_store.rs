@@ -29,7 +29,7 @@ impl DbFeedbackStore {
 impl FeedbackStore for DbFeedbackStore {
     fn get_adjustments(&self, pattern_id: &str) -> Vec<(f64, f64)> {
         self.rt
-            .db
+            .storage
             .with_reader(|conn| {
                 drift_storage::queries::enforcement::query_feedback_adjustments(conn, pattern_id)
             })

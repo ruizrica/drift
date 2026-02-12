@@ -142,7 +142,7 @@ describe('Entry Point Registration', () => {
   });
 
   // Verify 5 valid workflows exist
-  it('7 valid workflows defined (5 drift + 2 cortex)', () => {
+  it('8 valid workflows defined (5 drift + 2 cortex + 1 bridge)', () => {
     expect(VALID_WORKFLOWS).toContain('pre_commit');
     expect(VALID_WORKFLOWS).toContain('security_audit');
     expect(VALID_WORKFLOWS).toContain('code_review');
@@ -150,6 +150,7 @@ describe('Entry Point Registration', () => {
     expect(VALID_WORKFLOWS).toContain('onboard');
     expect(VALID_WORKFLOWS).toContain('cortex_health_check');
     expect(VALID_WORKFLOWS).toContain('cortex_onboard');
-    expect(VALID_WORKFLOWS).toHaveLength(7);
+    expect(VALID_WORKFLOWS).toContain('bridge_health_check');
+    expect(VALID_WORKFLOWS).toHaveLength(8);
   });
 });

@@ -1,6 +1,6 @@
 //! Rules evaluator — maps detected patterns + outliers to actionable violations.
 
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
 use super::quick_fixes::QuickFixGenerator;
 use super::suppression::SuppressionChecker;

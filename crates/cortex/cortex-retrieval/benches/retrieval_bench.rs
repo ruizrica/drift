@@ -38,6 +38,8 @@ fn make_bench_memory(i: usize) -> BaseMemory {
         superseded_by: None,
         supersedes: None,
         content_hash: format!("hash-{i}"),
+        namespace: Default::default(),
+        source_agent: Default::default(),
     }
 }
 
@@ -57,7 +59,7 @@ fn bench_rrf_100(c: &mut Criterion) {
 
     c.bench_function("rrf_fusion_100", |b| {
         b.iter(|| {
-            rrf_fusion::fuse(&[list1.clone(), list2.clone()], &memories, 60);
+            rrf_fusion::fuse(Some(&list1), Some(&list2), None, &memories, 60);
         });
     });
 }
@@ -78,7 +80,7 @@ fn bench_rrf_10k(c: &mut Criterion) {
 
     c.bench_function("rrf_fusion_10k", |b| {
         b.iter(|| {
-            rrf_fusion::fuse(&[list1.clone(), list2.clone()], &memories, 60);
+            rrf_fusion::fuse(Some(&list1), Some(&list2), None, &memories, 60);
         });
     });
 }

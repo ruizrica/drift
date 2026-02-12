@@ -5,7 +5,7 @@
 use rusqlite::Connection;
 use serde::{Deserialize, Serialize};
 
-use super::errors::{WorkspaceError, WorkspaceResult};
+use super::errors::WorkspaceResult;
 
 /// V2 workspace context — replaces v1's ContextLoader.
 #[derive(Debug, Clone, Serialize, Deserialize)]

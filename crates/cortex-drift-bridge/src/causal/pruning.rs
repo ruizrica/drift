@@ -24,7 +24,10 @@ pub fn prune_weak_edges(
 ) -> BridgeResult<PruningReport> {
     let result = engine
         .prune(threshold)
-        .map_err(|e| crate::errors::BridgeError::Config(format!("Pruning failed: {}", e)))?;
+        .map_err(|e| crate::errors::BridgeError::Causal {
+            operation: "prune_weak_edges".to_string(),
+            reason: e.to_string(),
+        })?;
 
     tracing::info!(
         edges_removed = result.edges_removed,

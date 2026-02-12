@@ -114,9 +114,23 @@ impl Default for EventDeduplicator {
 }
 
 /// Compute a dedup hash from event fields using blake3.
+///
+/// The `extra` field MUST include content-varying fields (score, severity, reason)
+/// to prevent distinct events with the same entity_id from being deduplicated.
+/// Callers should build extra as `"score=0.5;severity=high"` or similar.
 pub fn compute_dedup_hash(event_type: &str, entity_id: &str, extra: &str) -> String {
     let input = format!("{}:{}:{}", event_type, entity_id, extra);
     blake3::hash(input.as_bytes()).to_hex().to_string()
+}
+
+/// Build a dedup extra string from key-value pairs.
+/// Ensures content-varying fields (score, severity, etc.) are included in the hash.
+pub fn build_dedup_extra(fields: &[(&str, &str)]) -> String {
+    fields
+        .iter()
+        .map(|(k, v)| format!("{}={}", k, v))
+        .collect::<Vec<_>>()
+        .join(";")
 }
 
 #[cfg(test)]

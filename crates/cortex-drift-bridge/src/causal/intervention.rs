@@ -28,7 +28,10 @@ pub fn what_if_changed(
 ) -> BridgeResult<InterventionResult> {
     let traversal = engine
         .intervention(memory_id)
-        .map_err(|e| crate::errors::BridgeError::Config(format!("Intervention failed: {}", e)))?;
+        .map_err(|e| crate::errors::BridgeError::Causal {
+            operation: "intervention".to_string(),
+            reason: e.to_string(),
+        })?;
 
     let propagation_ids: Vec<String> = traversal
         .nodes

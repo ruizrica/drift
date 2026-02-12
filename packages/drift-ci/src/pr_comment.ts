@@ -102,6 +102,13 @@ function buildMarkdown(
   }
   md += `**Duration:** ${result.durationMs}ms\n\n`;
 
+  // Bridge memory grounding section
+  if (result.bridgeSummary) {
+    const bs = result.bridgeSummary;
+    md += `### ${bs.badge} Memory Grounding\n\n`;
+    md += `${bs.validated} validated, ${bs.partial} partial, ${bs.weak} weak, ${bs.invalidated} invalidated (avg ${bs.avgScore.toFixed(2)})\n\n`;
+  }
+
   // Pass details
   md += '<details>\n<summary>Analysis Passes</summary>\n\n';
   md += '| Pass | Status | Violations | Duration |\n';

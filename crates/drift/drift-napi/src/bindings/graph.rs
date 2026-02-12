@@ -3,6 +3,7 @@
 //! Exposes reachability, taint, error handling, impact, and test topology
 //! analysis functions to TypeScript/JavaScript.
 
+#[allow(unused_imports)]
 use napi::bindgen_prelude::*;
 use napi_derive::napi;
 use serde::{Deserialize, Serialize};
@@ -33,7 +34,7 @@ pub fn drift_reachability(
 ) -> napi::Result<JsReachabilityResult> {
     let rt = runtime::get()?;
 
-    let cached = rt.db.with_reader(|conn| {
+    let cached = rt.storage.with_reader(|conn| {
         drift_storage::queries::graph::get_reachability(conn, &function_key, &direction)
     }).map_err(storage_err)?;
 
@@ -84,12 +85,12 @@ pub struct JsTaintResult {
 }
 
 #[napi]
-pub fn drift_taint_analysis(root: String) -> napi::Result<JsTaintResult> {
+pub fn drift_taint_analysis(_root: String) -> napi::Result<JsTaintResult> {
     let rt = runtime::get()?;
 
     // Query all taint flows from the DB (they're stored per-file, so we scan root-relative files)
     // For now, query a broad set — the taint_flows table stores all discovered flows
-    let flows = rt.db.with_reader(|conn| {
+    let flows = rt.storage.with_reader(|conn| {
         conn.prepare_cached(
             "SELECT id, source_file, source_line, source_type, sink_file, sink_line, sink_type, cwe_id, is_sanitized, path, confidence
              FROM taint_flows ORDER BY confidence DESC LIMIT 1000"
@@ -167,10 +168,10 @@ pub struct JsErrorHandlingResult {
 }
 
 #[napi]
-pub fn drift_error_handling(root: String) -> napi::Result<JsErrorHandlingResult> {
+pub fn drift_error_handling(_root: String) -> napi::Result<JsErrorHandlingResult> {
     let rt = runtime::get()?;
 
-    let gaps = rt.db.with_reader(|conn| {
+    let gaps = rt.storage.with_reader(|conn| {
         conn.prepare_cached(
             "SELECT id, file, function_id, gap_type, error_type, propagation_chain, framework, cwe_id, severity
              FROM error_gaps ORDER BY severity DESC LIMIT 1000"
@@ -244,10 +245,10 @@ pub struct JsImpactResult {
 }
 
 #[napi]
-pub fn drift_impact_analysis(root: String) -> napi::Result<JsImpactResult> {
+pub fn drift_impact_analysis(_root: String) -> napi::Result<JsImpactResult> {
     let rt = runtime::get()?;
 
-    let scores = rt.db.with_reader(|conn| {
+    let scores = rt.storage.with_reader(|conn| {
         conn.prepare_cached(
             "SELECT function_id, blast_radius, risk_score, is_dead_code, dead_code_reason, exclusion_category
              FROM impact_scores ORDER BY risk_score DESC LIMIT 1000"
@@ -320,10 +321,10 @@ pub struct JsTestTopologyResult {
 }
 
 #[napi]
-pub fn drift_test_topology(root: String) -> napi::Result<JsTestTopologyResult> {
+pub fn drift_test_topology(_root: String) -> napi::Result<JsTestTopologyResult> {
     let rt = runtime::get()?;
 
-    let qualities = rt.db.with_reader(|conn| {
+    let qualities = rt.storage.with_reader(|conn| {
         conn.prepare_cached(
             "SELECT function_id, coverage_breadth, coverage_depth, assertion_density, mock_ratio, isolation, freshness, stability, overall_score, smells
              FROM test_quality"
@@ -353,7 +354,7 @@ pub fn drift_test_topology(root: String) -> napi::Result<JsTestTopologyResult> {
     }).map_err(storage_err)?;
 
     let test_count = qualities.len() as u32;
-    let (avg_quality, total_smells) = if qualities.is_empty() {
+    let (avg_quality, _total_smells) = if qualities.is_empty() {
         (JsTestQuality {
             coverage_breadth: 0.0, coverage_depth: 0.0, assertion_density: 0.0,
             mock_ratio: 0.0, isolation: 1.0, freshness: 1.0, stability: 1.0,
@@ -387,7 +388,7 @@ pub fn drift_test_topology(root: String) -> napi::Result<JsTestTopologyResult> {
         }, smells)
     };
 
-    let func_count = rt.db.with_reader(|conn| {
+    let func_count = rt.storage.with_reader(|conn| {
         drift_storage::queries::functions::count_functions(conn)
     }).map_err(storage_err)? as u32;
 

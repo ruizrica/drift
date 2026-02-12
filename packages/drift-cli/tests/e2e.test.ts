@@ -17,9 +17,9 @@ describe('CLI E2E Pipeline', () => {
   });
 
   // T9-CLI-01: Full pipeline creates a working program with all commands
-  it('T9-CLI-01: createProgram registers all 26 commands', () => {
+  it('T9-CLI-01: createProgram registers all 30 commands', () => {
     const program = createProgram();
-    expect(program.commands.length).toBe(26);
+    expect(program.commands.length).toBe(30);
 
     const names = program.commands.map((c) => c.name());
     // Core pipeline
@@ -57,6 +57,13 @@ describe('CLI E2E Pipeline', () => {
     expect(names).toContain('gc');
     expect(names).toContain('setup');
     expect(names).toContain('doctor');
+
+    // Cortex memory system
+    expect(names).toContain('cortex');
+    // Bridge: memory grounding, causal intelligence, learning
+    expect(names).toContain('bridge');
+    // Framework pack validation
+    expect(names).toContain('validate-pack');
   });
 
   // T9-CLI-02: NAPI stub provides all 40 methods

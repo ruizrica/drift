@@ -31,6 +31,15 @@ export function registerAnalyzeCommand(program: Command): void {
       '--scan',
       'Run scan before analysis (equivalent to drift scan && drift analyze)',
     )
+    .option(
+      '--phase <n>',
+      'Max analysis phase: 1=detect, 2=cross-file, 3=structural, 4=graph, 5=enforce',
+      parseInt,
+    )
+    .option(
+      '--no-bridge',
+      'Skip bridge grounding after analysis (default: bridge runs)',
+    )
     .action(
       async (
         path: string | undefined,
@@ -38,6 +47,8 @@ export function registerAnalyzeCommand(program: Command): void {
           format: OutputFormat;
           quiet?: boolean;
           scan?: boolean;
+          phase?: number;
+          bridge?: boolean;
         },
       ) => {
         const napi = loadNapi();
@@ -61,7 +72,22 @@ export function registerAnalyzeCommand(program: Command): void {
           if (!opts.quiet) {
             process.stdout.write('Running analysis pipeline...\n');
           }
-          const results = await napi.driftAnalyze();
+          const results = await napi.driftAnalyze(opts.phase);
+
+          // Bridge grounding — validate bridge memories against drift.db evidence
+          const bridgeEnabled = opts.bridge !== false && process.env.DRIFT_BRIDGE_ENABLED !== 'false';
+          if (bridgeEnabled) {
+            try {
+              const snapshot = napi.driftBridgeGroundAfterAnalyze();
+              if (!opts.quiet && snapshot.total_checked > 0) {
+                process.stdout.write(
+                  `Bridge grounding: ${snapshot.total_checked} memories checked, ${snapshot.validated} validated\n`,
+                );
+              }
+            } catch {
+              // Non-fatal: grounding failure doesn't affect analyze output
+            }
+          }
 
           if (!opts.quiet) {
             // Summary statistics

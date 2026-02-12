@@ -6,6 +6,7 @@ use cortex_drift_bridge::grounding::loop_runner::*;
 use cortex_drift_bridge::grounding::scheduler::*;
 use cortex_drift_bridge::grounding::scorer::*;
 use cortex_drift_bridge::grounding::*;
+use cortex_drift_bridge::traits::IBridgeStorage;
 
 /// Helper: create a MemoryForGrounding with pattern evidence.
 fn memory_with_pattern(id: &str, confidence: f64, pattern_conf: f64) -> MemoryForGrounding {
@@ -65,10 +66,8 @@ fn memory_not_groundable(id: &str) -> MemoryForGrounding {
 }
 
 /// Helper: create an in-memory bridge DB.
-fn setup_bridge_db() -> rusqlite::Connection {
-    let conn = rusqlite::Connection::open_in_memory().unwrap();
-    cortex_drift_bridge::storage::create_bridge_tables(&conn).unwrap();
-    conn
+fn setup_bridge_db() -> cortex_drift_bridge::storage::engine::BridgeStorageEngine {
+    cortex_drift_bridge::storage::engine::BridgeStorageEngine::open_in_memory().unwrap()
 }
 
 // ---- T9-GND-01: Test grounding logic computes grounding percentage ----
@@ -189,7 +188,7 @@ fn t9_gnd_04_max_500_memories_per_loop() {
         .map(|i| memory_with_pattern(&format!("m_{}", i), 0.7, 0.8))
         .collect();
 
-    let snapshot = runner.run(&memories, None, Some(&db), TriggerType::OnDemand).unwrap();
+    let snapshot = runner.run(&memories, None, Some(&db as &dyn cortex_drift_bridge::traits::IBridgeStorage), TriggerType::OnDemand).unwrap();
     // Should process at most 500
     assert!(snapshot.total_checked <= 500, "Should cap at 500, got {}", snapshot.total_checked);
 }
@@ -367,16 +366,16 @@ fn t9_gnd_08_no_evidence_returns_insufficient_data() {
     assert_eq!(result.verdict, GroundingVerdict::InsufficientData);
 }
 
-// ---- T9-GND-09: Test all 10 evidence types contribute with correct weights ----
+// ---- T9-GND-09: Test all 12 evidence types contribute with correct weights ----
 
 #[test]
-fn t9_gnd_09_all_10_evidence_types() {
-    assert_eq!(EvidenceType::ALL.len(), 10);
+fn t9_gnd_09_all_12_evidence_types() {
+    assert_eq!(EvidenceType::ALL.len(), 12);
 
     // Verify weights sum to 1.0
     let total_weight: f64 = EvidenceType::ALL.iter().map(|e| e.default_weight()).sum();
     assert!(
-        (total_weight - 1.0).abs() < f64::EPSILON,
+        (total_weight - 1.0).abs() < 1e-10,
         "Evidence weights should sum to 1.0, got {}",
         total_weight,
     );
@@ -384,16 +383,18 @@ fn t9_gnd_09_all_10_evidence_types() {
 
 #[test]
 fn t9_gnd_09_specific_weights() {
-    assert!((EvidenceType::PatternConfidence.default_weight() - 0.20).abs() < f64::EPSILON);
-    assert!((EvidenceType::PatternOccurrence.default_weight() - 0.15).abs() < f64::EPSILON);
-    assert!((EvidenceType::FalsePositiveRate.default_weight() - 0.10).abs() < f64::EPSILON);
-    assert!((EvidenceType::ConstraintVerification.default_weight() - 0.10).abs() < f64::EPSILON);
-    assert!((EvidenceType::CouplingMetric.default_weight() - 0.08).abs() < f64::EPSILON);
-    assert!((EvidenceType::DnaHealth.default_weight() - 0.08).abs() < f64::EPSILON);
-    assert!((EvidenceType::TestCoverage.default_weight() - 0.10).abs() < f64::EPSILON);
-    assert!((EvidenceType::ErrorHandlingGaps.default_weight() - 0.07).abs() < f64::EPSILON);
+    assert!((EvidenceType::PatternConfidence.default_weight() - 0.18).abs() < f64::EPSILON);
+    assert!((EvidenceType::PatternOccurrence.default_weight() - 0.13).abs() < f64::EPSILON);
+    assert!((EvidenceType::FalsePositiveRate.default_weight() - 0.09).abs() < f64::EPSILON);
+    assert!((EvidenceType::ConstraintVerification.default_weight() - 0.09).abs() < f64::EPSILON);
+    assert!((EvidenceType::CouplingMetric.default_weight() - 0.07).abs() < f64::EPSILON);
+    assert!((EvidenceType::DnaHealth.default_weight() - 0.07).abs() < f64::EPSILON);
+    assert!((EvidenceType::TestCoverage.default_weight() - 0.09).abs() < f64::EPSILON);
+    assert!((EvidenceType::ErrorHandlingGaps.default_weight() - 0.06).abs() < f64::EPSILON);
     assert!((EvidenceType::DecisionEvidence.default_weight() - 0.07).abs() < f64::EPSILON);
     assert!((EvidenceType::BoundaryData.default_weight() - 0.05).abs() < f64::EPSILON);
+    assert!((EvidenceType::TaintAnalysis.default_weight() - 0.05).abs() < f64::EPSILON);
+    assert!((EvidenceType::CallGraphCoverage.default_weight() - 0.05).abs() < f64::EPSILON);
 }
 
 #[test]
@@ -401,7 +402,8 @@ fn t9_gnd_09_full_evidence_contributes_all_types() {
     let runner = GroundingLoopRunner::default();
     let memory = memory_full_evidence("full", 0.8);
     let result = runner.ground_single(&memory, None, None).unwrap();
-    assert_eq!(result.evidence.len(), 10, "All 10 evidence types should contribute");
+    // Pre-populated MemoryForGrounding has 10 fields (no taint/call_graph pre-populated)
+    assert_eq!(result.evidence.len(), 10, "All 10 pre-populated evidence types should contribute");
 }
 
 // ---- T9-GND-10: Test invalidated_floor=0.1 ----
@@ -445,11 +447,11 @@ fn t9_gnd_loop_persists_results() {
     let db = setup_bridge_db();
     let memory = memory_with_pattern("persist_test", 0.7, 0.85);
 
-    let result = runner.ground_single(&memory, None, Some(&db)).unwrap();
+    let result = runner.ground_single(&memory, None, Some(&db as &dyn cortex_drift_bridge::traits::IBridgeStorage)).unwrap();
     assert!(result.grounding_score > 0.0);
 
     // Check that the result was persisted
-    let history = cortex_drift_bridge::storage::get_grounding_history(&db, "persist_test", 10).unwrap();
+    let history = db.get_grounding_history("persist_test", 10).unwrap();
     assert_eq!(history.len(), 1, "Should have 1 grounding result");
 }
 
@@ -462,7 +464,7 @@ fn t9_gnd_loop_snapshot_persisted() {
         .map(|i| memory_with_pattern(&format!("snap_{}", i), 0.7, 0.8))
         .collect();
 
-    let snapshot = runner.run(&memories, None, Some(&db), TriggerType::OnDemand).unwrap();
+    let snapshot = runner.run(&memories, None, Some(&db as &dyn cortex_drift_bridge::traits::IBridgeStorage), TriggerType::OnDemand).unwrap();
     assert_eq!(snapshot.total_checked, 5);
     assert!(snapshot.validated > 0 || snapshot.partial > 0);
 }

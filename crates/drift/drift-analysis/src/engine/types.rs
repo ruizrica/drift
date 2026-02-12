@@ -1,6 +1,5 @@
 //! Core types for the analysis engine.
 
-use lasso::Spur;
 use serde::{Deserialize, Serialize};
 use smallvec::SmallVec;
 

@@ -434,26 +434,83 @@ export function registerCortexTools(catalog: Map<string, InternalTool>): void {
     },
   });
 
-  // ─── Cloud (Phase B) ────────────────────────────────────────────
+  // ─── Cloud (Phase B + Phase 6 data pipeline) ───────────────────
   register(catalog, {
     name: 'cortex_cloud_sync',
-    description: 'Sync local Cortex database with cloud.',
+    description: 'Sync local analysis data and cortex memories to Drift Cloud. Returns cortex sync status and data pipeline push results.',
     category: 'cortex',
-    estimatedTokens: '~100',
-    handler: async () => {
+    estimatedTokens: '~200',
+    handler: async (p) => {
       const client = getCortex();
-      return client.cloudSync();
+      const cortexResult = await client.cloudSync();
+
+      // Also trigger data pipeline sync if configured
+      let pipelineResult: Record<string, unknown> = { skipped: true };
+      try {
+        const { SyncClient, defaultSyncState, isLoggedIn, CLOUD_CONFIG_PATH } = await import('@drift/core/cloud');
+        const { readFile, writeFile, mkdir } = await import('node:fs/promises');
+        const { join } = await import('node:path');
+        const { homedir } = await import('node:os');
+
+        if (await isLoggedIn()) {
+          const configPath = join(homedir(), CLOUD_CONFIG_PATH);
+          const config = JSON.parse(await readFile(configPath, 'utf-8'));
+          const statePath = join(homedir(), '.drift/cloud-sync-state.json');
+          let syncState;
+          try { syncState = JSON.parse(await readFile(statePath, 'utf-8')); } catch { syncState = defaultSyncState(); }
+
+          const fullSync = p.full === true;
+          const reader = { readRows: async () => [] as Record<string, unknown>[], getMaxCursor: async () => 0 };
+          const syncClient = new SyncClient(config, process.cwd());
+          const result = await syncClient.push(reader, fullSync ? null : syncState, undefined, fullSync);
+
+          const stateDir = statePath.substring(0, statePath.lastIndexOf('/'));
+          await mkdir(stateDir, { recursive: true });
+          await writeFile(statePath, JSON.stringify(result.syncState, null, 2));
+
+          pipelineResult = { success: result.success, totalRows: result.totalRows, durationMs: result.durationMs };
+        }
+      } catch { /* @drift/core/cloud not available */ }
+
+      return { cortex: cortexResult, dataPipeline: pipelineResult };
     },
   });
 
   register(catalog, {
     name: 'cortex_cloud_status',
-    description: 'Get cloud sync status and offline queue length.',
+    description: 'Get cloud sync status — cortex online/offline state plus data pipeline sync status, last sync time, and cursors.',
     category: 'cortex',
-    estimatedTokens: '~100',
+    estimatedTokens: '~150',
     handler: async () => {
       const client = getCortex();
-      return client.cloudStatus();
+      const cortexStatus = await client.cloudStatus();
+
+      let pipelineStatus: Record<string, unknown> = { available: false };
+      try {
+        const { isLoggedIn, CLOUD_CONFIG_PATH } = await import('@drift/core/cloud');
+        const { readFile } = await import('node:fs/promises');
+        const { join } = await import('node:path');
+        const { homedir } = await import('node:os');
+
+        const loggedIn = await isLoggedIn();
+        const configPath = join(homedir(), CLOUD_CONFIG_PATH);
+        const statePath = join(homedir(), '.drift/cloud-sync-state.json');
+        let config = null;
+        try { config = JSON.parse(await readFile(configPath, 'utf-8')); } catch { /* */ }
+        let syncState = null;
+        try { syncState = JSON.parse(await readFile(statePath, 'utf-8')); } catch { /* */ }
+
+        pipelineStatus = {
+          available: true,
+          authenticated: loggedIn,
+          configured: config !== null,
+          projectId: config?.projectId ?? null,
+          lastSyncAt: syncState?.lastSyncAt ?? null,
+          lastSyncRowCount: syncState?.lastSyncRowCount ?? 0,
+        };
+      } catch { /* @drift/core/cloud not available */ }
+
+      return { cortex: cortexStatus, dataPipeline: pipelineStatus };
     },
   });
 

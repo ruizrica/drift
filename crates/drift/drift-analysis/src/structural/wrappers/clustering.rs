@@ -79,7 +79,7 @@ pub fn cluster_wrappers(wrappers: &[Wrapper]) -> Vec<WrapperCluster> {
 }
 
 /// Compute wrapper health from cluster data.
-pub fn compute_wrapper_health(wrappers: &[Wrapper], clusters: &[WrapperCluster]) -> WrapperHealth {
+pub fn compute_wrapper_health(wrappers: &[Wrapper], _clusters: &[WrapperCluster]) -> WrapperHealth {
     if wrappers.is_empty() {
         return WrapperHealth {
             consistency: 0.0,

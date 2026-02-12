@@ -1,5 +1,5 @@
 /**
- * drift_tool — dynamic dispatch for ~91 internal tools (30 drift + 61 cortex).
+ * drift_tool — dynamic dispatch for ~103 internal tools (30 drift + 12 bridge + 61 cortex).
  *
  * Progressive disclosure: AI agent sees 3-4 tools initially, discovers
  * more via drift_tool. This reduces token overhead ~81% compared to
@@ -20,6 +20,8 @@ import { registerCortexTools, CORTEX_CACHEABLE_TOOLS, CORTEX_MUTATION_TOOLS } fr
 const MUTATION_TOOLS = new Set([
   'drift_scan_progress', 'drift_cancel_scan', 'drift_analyze',
   'drift_dismiss', 'drift_fix', 'drift_suppress', 'drift_gc',
+  // Bridge mutation tools
+  'drift_bridge_ground', 'drift_bridge_ground_all', 'drift_bridge_learn',
 ]);
 
 /** Tools whose results are safe to cache (read-only queries). */
@@ -31,6 +33,9 @@ const CACHEABLE_TOOLS = new Set([
   'drift_crypto', 'drift_decomposition', 'drift_contracts',
   'drift_outliers', 'drift_conventions', 'drift_dna_profile',
   'drift_wrappers', 'drift_callers', 'drift_impact_analysis',
+  // Bridge cacheable tools
+  'drift_bridge_status', 'drift_bridge_health', 'drift_bridge_events',
+  'drift_bridge_grounding_history', 'drift_bridge_memories',
 ]);
 
 /** JSON Schema for drift_tool parameters. */
@@ -409,6 +414,132 @@ export function buildToolCatalog(): Map<string, InternalTool> {
       p.mediumDays as number | undefined,
       p.longDays as number | undefined,
     ),
+  });
+
+  // ─── Bridge tools (12) — cortex-drift-bridge ────────────────────
+
+  // BW-MCP-04: drift_bridge_status
+  register(catalog, {
+    name: 'drift_bridge_status',
+    description: 'Bridge availability, license tier, grounding config.',
+    category: 'discovery',
+    estimatedTokens: '~200',
+    handler: async () => loadNapi().driftBridgeStatus(),
+  });
+
+  // BW-MCP-05: drift_bridge_health
+  register(catalog, {
+    name: 'drift_bridge_health',
+    description: 'Bridge health: per-subsystem availability (cortex_db, drift_db, bridge_db, causal_engine).',
+    category: 'discovery',
+    estimatedTokens: '~200',
+    handler: async () => loadNapi().driftBridgeHealth(),
+  });
+
+  // BW-MCP-06: drift_bridge_ground
+  register(catalog, {
+    name: 'drift_bridge_ground',
+    description: 'Ground a memory against drift.db evidence. Returns verdict, score, and evidence details.',
+    category: 'analysis',
+    estimatedTokens: '~400',
+    handler: async (p) => loadNapi().driftBridgeGroundMemory(p.memoryId as string, p.memoryType as string),
+  });
+
+  // BW-MCP-07: drift_bridge_ground_all
+  register(catalog, {
+    name: 'drift_bridge_ground_all',
+    description: 'Run full grounding loop on all bridge memories. Returns snapshot with validated/partial/weak/invalidated counts.',
+    category: 'analysis',
+    estimatedTokens: '~300',
+    handler: async () => loadNapi().driftBridgeGroundAll(),
+  });
+
+  // drift_bridge_memories
+  register(catalog, {
+    name: 'drift_bridge_memories',
+    description: 'List bridge memories with grounding verdicts. Supports type, limit, and verdict filters.',
+    category: 'exploration',
+    estimatedTokens: '~500',
+    handler: async () => {
+      const napi = loadNapi();
+      const snapshot = napi.driftBridgeGroundAll();
+      return {
+        total_checked: snapshot.total_checked,
+        validated: snapshot.validated,
+        partial: snapshot.partial,
+        weak: snapshot.weak,
+        invalidated: snapshot.invalidated,
+        avg_grounding_score: snapshot.avg_grounding_score,
+      };
+    },
+  });
+
+  // drift_bridge_grounding_history
+  register(catalog, {
+    name: 'drift_bridge_grounding_history',
+    description: 'Grounding score history for a specific memory over time.',
+    category: 'exploration',
+    estimatedTokens: '~300',
+    handler: async (p) => loadNapi().driftBridgeGroundingHistory(p.memoryId as string, p.limit as number | undefined),
+  });
+
+  // BW-MCP-08: drift_bridge_why
+  register(catalog, {
+    name: 'drift_bridge_why',
+    description: 'Why does this pattern/violation/constraint exist? Causal explanation with grounding evidence.',
+    category: 'analysis',
+    estimatedTokens: '~600',
+    handler: async (p) => loadNapi().driftBridgeExplainSpec(`${p.entityType as string}:${p.entityId as string}`),
+  });
+
+  // drift_bridge_counterfactual
+  register(catalog, {
+    name: 'drift_bridge_counterfactual',
+    description: 'What if this memory didn\'t exist? Shows affected downstream memories and max causal depth.',
+    category: 'analysis',
+    estimatedTokens: '~400',
+    handler: async (p) => loadNapi().driftBridgeCounterfactual(p.memoryId as string),
+  });
+
+  // drift_bridge_intervention
+  register(catalog, {
+    name: 'drift_bridge_intervention',
+    description: 'If we change this memory, what breaks? Shows impacted count and propagation depth.',
+    category: 'analysis',
+    estimatedTokens: '~400',
+    handler: async (p) => loadNapi().driftBridgeIntervention(p.memoryId as string),
+  });
+
+  // drift_bridge_narrative
+  register(catalog, {
+    name: 'drift_bridge_narrative',
+    description: 'Full causal narrative with upstream origins and downstream effects. Renders as markdown.',
+    category: 'analysis',
+    estimatedTokens: '~800',
+    handler: async (p) => loadNapi().driftBridgeUnifiedNarrative(p.memoryId as string),
+  });
+
+  // BW-MCP-09: drift_bridge_learn
+  register(catalog, {
+    name: 'drift_bridge_learn',
+    description: 'Teach the system: create a correction memory for an entity. Adjusts future grounding.',
+    category: 'feedback',
+    estimatedTokens: '~100',
+    handler: async (p) => loadNapi().driftBridgeSpecCorrection(JSON.stringify({
+      entity_type: p.entityType as string,
+      entity_id: p.entityId as string,
+      correction: p.correction as string,
+      category: (p.category as string) ?? 'general',
+    })),
+  });
+
+  // drift_bridge_events
+  register(catalog, {
+    name: 'drift_bridge_events',
+    description: 'List all 21 event→memory mappings with tier requirements and confidence/importance.',
+    category: 'exploration',
+    estimatedTokens: '~400',
+    handler: async () => loadNapi().driftBridgeEventMappings(),
   });
 
   // ─── Cortex tools (40) ─────────────────────────────────────────

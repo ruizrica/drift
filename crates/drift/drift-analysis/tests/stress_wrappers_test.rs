@@ -1,3 +1,4 @@
+#![allow(clippy::cloned_ref_to_slice_refs)]
 //! Production stress tests for the wrappers module.
 //! Targets: clustering edge cases, health scoring, security classification,
 //! bypass detection, Jaccard similarity.

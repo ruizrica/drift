@@ -1,3 +1,4 @@
+#![allow(clippy::field_reassign_with_default, clippy::redundant_closure, clippy::cloned_ref_to_slice_refs, clippy::manual_range_contains, unused_variables, unused_imports)]
 //! Integration tests — T1-INT-01, T1-INT-02, T1-INT-05, T1-INT-06, T1-INT-07.
 //!
 //! These tests verify the full scan → parse → persist → query pipeline.

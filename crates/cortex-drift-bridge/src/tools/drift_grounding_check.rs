@@ -6,6 +6,7 @@ use serde_json::json;
 use crate::errors::BridgeResult;
 use crate::grounding::loop_runner::MemoryForGrounding;
 use crate::grounding::{GroundingConfig, GroundingLoopRunner};
+use crate::traits::IBridgeStorage;
 
 /// Handle the drift_grounding_check MCP tool request.
 ///
@@ -14,10 +15,10 @@ pub fn handle_drift_grounding_check(
     memory: &MemoryForGrounding,
     config: &GroundingConfig,
     drift_db: Option<&rusqlite::Connection>,
-    bridge_db: Option<&rusqlite::Connection>,
+    bridge_store: Option<&dyn IBridgeStorage>,
 ) -> BridgeResult<serde_json::Value> {
     let runner = GroundingLoopRunner::new(config.clone());
-    let result = runner.ground_single(memory, drift_db, bridge_db)?;
+    let result = runner.ground_single(memory, drift_db, bridge_store)?;
 
     let evidence_json: Vec<serde_json::Value> = result
         .evidence
@@ -34,10 +35,10 @@ pub fn handle_drift_grounding_check(
         })
         .collect();
 
-    // Get history if bridge_db is available
-    let history = bridge_db
-        .and_then(|db| {
-            crate::storage::tables::get_grounding_history(db, &memory.memory_id, 10).ok()
+    // Get history if bridge_store is available
+    let history = bridge_store
+        .and_then(|store| {
+            store.get_grounding_history(&memory.memory_id, 10).ok()
         })
         .unwrap_or_default();
 

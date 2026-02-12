@@ -1,3 +1,4 @@
+#![allow(clippy::needless_range_loop)]
 //! Phase 0 — Stress & Battle Tests
 //!
 //! Config resolution, error handling, event dispatch, string interning
@@ -236,7 +237,7 @@ fn stress_config_defaults_are_sane() {
     let config = DriftConfig::default();
     assert_eq!(config.scan.effective_max_file_size(), 1_048_576); // 1MB
     assert_eq!(config.scan.effective_threads(), 0); // auto-detect
-    assert_eq!(config.scan.effective_incremental(), true);
+    assert!(config.scan.effective_incremental());
     assert_eq!(config.analysis.effective_min_occurrences(), 3);
     assert_eq!(config.analysis.effective_dominance_threshold(), 0.60);
     assert_eq!(config.analysis.effective_min_files(), 2);

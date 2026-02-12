@@ -1,7 +1,7 @@
 //! Hardening tests for error propagation, BridgeRuntime lifecycle,
 //! file-based SQLite, and edge cases the stress tests didn't cover.
 
-use std::sync::{Arc, Barrier, Mutex};
+use std::sync::{Arc, Barrier};
 use std::thread;
 
 use cortex_drift_bridge::event_mapping::BridgeEventHandler;
@@ -11,11 +11,10 @@ use cortex_drift_bridge::license::LicenseTier;
 use cortex_drift_bridge::{BridgeConfig, BridgeRuntime};
 use drift_core::events::handler::DriftEventHandler;
 use drift_core::events::types::*;
+use cortex_drift_bridge::traits::IBridgeStorage;
 
-fn setup_bridge_db() -> rusqlite::Connection {
-    let conn = rusqlite::Connection::open_in_memory().unwrap();
-    cortex_drift_bridge::storage::create_bridge_tables(&conn).unwrap();
-    conn
+fn setup_bridge_db() -> cortex_drift_bridge::storage::engine::BridgeStorageEngine {
+    cortex_drift_bridge::storage::engine::BridgeStorageEngine::open_in_memory().unwrap()
 }
 
 fn make_memory(id: &str, pat_conf: f64) -> MemoryForGrounding {
@@ -42,21 +41,19 @@ fn make_memory(id: &str, pat_conf: f64) -> MemoryForGrounding {
 
 #[test]
 fn hardening_error_count_starts_at_zero() {
-    let conn = rusqlite::Connection::open_in_memory().unwrap();
-    cortex_drift_bridge::storage::create_bridge_tables(&conn).unwrap();
-    let handler = BridgeEventHandler::new(Some(Mutex::new(conn)), LicenseTier::Enterprise);
+    let engine = setup_bridge_db();
+    let handler = BridgeEventHandler::new(Some(std::sync::Arc::new(engine) as std::sync::Arc<dyn cortex_drift_bridge::traits::IBridgeStorage>), LicenseTier::Enterprise);
     assert_eq!(handler.error_count(), 0);
 }
 
 #[test]
 fn hardening_error_count_increments_on_db_failure() {
-    let conn = rusqlite::Connection::open_in_memory().unwrap();
-    cortex_drift_bridge::storage::create_bridge_tables(&conn).unwrap();
+    let engine = setup_bridge_db();
     // Drop the table so writes fail
-    conn.execute("DROP TABLE bridge_memories", []).unwrap();
-    conn.execute("DROP TABLE bridge_event_log", []).unwrap();
+    engine.execute("DROP TABLE bridge_memories", []).unwrap();
+    engine.execute("DROP TABLE bridge_event_log", []).unwrap();
 
-    let handler = BridgeEventHandler::new(Some(Mutex::new(conn)), LicenseTier::Enterprise);
+    let handler = BridgeEventHandler::new(Some(std::sync::Arc::new(engine) as std::sync::Arc<dyn cortex_drift_bridge::traits::IBridgeStorage>), LicenseTier::Enterprise);
     assert_eq!(handler.error_count(), 0);
 
     // Fire events — each should fail and increment error_count
@@ -92,9 +89,8 @@ fn hardening_error_count_increments_on_db_failure() {
 
 #[test]
 fn hardening_error_count_zero_when_db_works() {
-    let conn = rusqlite::Connection::open_in_memory().unwrap();
-    cortex_drift_bridge::storage::create_bridge_tables(&conn).unwrap();
-    let handler = BridgeEventHandler::new(Some(Mutex::new(conn)), LicenseTier::Enterprise);
+    let engine = setup_bridge_db();
+    let handler = BridgeEventHandler::new(Some(std::sync::Arc::new(engine) as std::sync::Arc<dyn cortex_drift_bridge::traits::IBridgeStorage>), LicenseTier::Enterprise);
 
     // Fire 10 events — all should succeed
     for i in 0..10 {
@@ -111,14 +107,12 @@ fn hardening_error_count_zero_when_db_works() {
 
 #[test]
 fn hardening_error_count_accurate_under_concurrency() {
-    let conn = rusqlite::Connection::open_in_memory().unwrap();
-    cortex_drift_bridge::storage::create_bridge_tables(&conn).unwrap();
+    let engine = setup_bridge_db();
     // Drop table so all writes fail
-    conn.execute("DROP TABLE bridge_memories", []).unwrap();
-    conn.execute("DROP TABLE bridge_event_log", []).unwrap();
+    engine.execute("DROP TABLE bridge_memories", []).unwrap();
+    engine.execute("DROP TABLE bridge_event_log", []).unwrap();
 
-    let handler = Arc::new(BridgeEventHandler::new(
-        Some(Mutex::new(conn)),
+    let handler = Arc::new(BridgeEventHandler::new(Some(std::sync::Arc::new(engine) as std::sync::Arc<dyn cortex_drift_bridge::traits::IBridgeStorage>),
         LicenseTier::Enterprise,
     ));
     let barrier = Arc::new(Barrier::new(4));
@@ -151,13 +145,12 @@ fn hardening_error_count_accurate_under_concurrency() {
 
 #[test]
 fn hardening_handler_keeps_working_after_errors() {
-    let conn = rusqlite::Connection::open_in_memory().unwrap();
-    cortex_drift_bridge::storage::create_bridge_tables(&conn).unwrap();
+    let engine = setup_bridge_db();
     // Drop and recreate to simulate transient failure
-    conn.execute("DROP TABLE bridge_memories", []).unwrap();
-    conn.execute("DROP TABLE bridge_event_log", []).unwrap();
+    engine.execute("DROP TABLE bridge_memories", []).unwrap();
+    engine.execute("DROP TABLE bridge_event_log", []).unwrap();
 
-    let handler = BridgeEventHandler::new(Some(Mutex::new(conn)), LicenseTier::Enterprise);
+    let handler = BridgeEventHandler::new(Some(std::sync::Arc::new(engine) as std::sync::Arc<dyn cortex_drift_bridge::traits::IBridgeStorage>), LicenseTier::Enterprise);
 
     // First event fails
     handler.on_pattern_approved(&PatternApprovedEvent {
@@ -218,7 +211,8 @@ fn hardening_noop_handler_error_count_stays_zero() {
 #[test]
 fn hardening_grounding_returns_valid_result_despite_db_failure() {
     // Create a DB with wrong schema so writes fail
-    let db = rusqlite::Connection::open_in_memory().unwrap();
+    let db = setup_bridge_db();
+    db.execute("DROP TABLE bridge_grounding_results", []).unwrap();
     db.execute_batch(
         "CREATE TABLE bridge_grounding_results (id INTEGER PRIMARY KEY, wrong TEXT) STRICT;",
     )
@@ -228,7 +222,7 @@ fn hardening_grounding_returns_valid_result_despite_db_failure() {
     let memory = make_memory("db_fail_test", 0.85);
 
     // Should return Ok with valid result even though DB write fails
-    let result = runner.ground_single(&memory, None, Some(&db)).unwrap();
+    let result = runner.ground_single(&memory, None, Some(&db as &dyn cortex_drift_bridge::traits::IBridgeStorage)).unwrap();
     assert!(
         result.grounding_score > 0.0,
         "Score should be computed even when DB write fails"
@@ -242,7 +236,9 @@ fn hardening_grounding_returns_valid_result_despite_db_failure() {
 
 #[test]
 fn hardening_grounding_loop_returns_valid_snapshot_despite_db_failure() {
-    let db = rusqlite::Connection::open_in_memory().unwrap();
+    let db = setup_bridge_db();
+    db.execute("DROP TABLE bridge_grounding_results", []).unwrap();
+    db.execute("DROP TABLE bridge_grounding_snapshots", []).unwrap();
     db.execute_batch(
         "CREATE TABLE bridge_grounding_results (id INTEGER PRIMARY KEY, wrong TEXT) STRICT;
          CREATE TABLE bridge_grounding_snapshots (id INTEGER PRIMARY KEY, wrong TEXT) STRICT;",
@@ -254,7 +250,7 @@ fn hardening_grounding_loop_returns_valid_snapshot_despite_db_failure() {
         (0..10).map(|i| make_memory(&format!("m_{}", i), 0.8)).collect();
 
     let snapshot = runner
-        .run(&memories, None, Some(&db), TriggerType::OnDemand)
+        .run(&memories, None, Some(&db as &dyn cortex_drift_bridge::traits::IBridgeStorage), TriggerType::OnDemand)
         .unwrap();
 
     assert_eq!(snapshot.total_checked, 10);
@@ -391,7 +387,7 @@ fn hardening_attach_detach_real_file() {
     let bridge_db = setup_bridge_db();
     let path_str = cortex_path.to_string_lossy().to_string();
     let attached =
-        cortex_drift_bridge::storage::tables::attach_cortex_db(&bridge_db, &path_str).unwrap();
+        bridge_db.with_writer(|conn| cortex_drift_bridge::storage::tables::attach_cortex_db(conn, &path_str)).unwrap();
     assert!(attached, "ATTACH should succeed for valid file");
 
     // Cross-DB query should work
@@ -403,7 +399,7 @@ fn hardening_attach_detach_real_file() {
     assert_eq!(count, 1, "Should see 1 row in attached cortex.memories");
 
     // DETACH
-    cortex_drift_bridge::storage::tables::detach_cortex_db(&bridge_db).unwrap();
+    bridge_db.with_writer(cortex_drift_bridge::storage::tables::detach_cortex_db).unwrap();
 
     // After detach, cross-DB query should fail
     let result = bridge_db.query_row("SELECT COUNT(*) FROM cortex.memories", [], |row| {
@@ -418,14 +414,14 @@ fn hardening_attach_detach_real_file() {
 #[test]
 fn hardening_attach_nonexistent_file_fails_gracefully() {
     let bridge_db = setup_bridge_db();
-    let result = cortex_drift_bridge::storage::tables::attach_cortex_db(
-        &bridge_db,
+    let result = bridge_db.with_writer(|conn| cortex_drift_bridge::storage::tables::attach_cortex_db(
+        conn,
         "/nonexistent/cortex.db",
-    );
+    ));
     assert!(result.is_err(), "ATTACH of nonexistent file should fail");
 
     // Bridge DB should still be functional
-    cortex_drift_bridge::storage::log_event(&bridge_db, "test", None, None, None).unwrap();
+    bridge_db.insert_event("test", None, None, None).unwrap();
 }
 
 #[test]
@@ -441,18 +437,18 @@ fn hardening_double_attach_fails_gracefully() {
     let path_str = cortex_path.to_string_lossy().to_string();
 
     // First ATTACH succeeds
-    cortex_drift_bridge::storage::tables::attach_cortex_db(&bridge_db, &path_str).unwrap();
+    bridge_db.with_writer(|conn| cortex_drift_bridge::storage::tables::attach_cortex_db(conn, &path_str)).unwrap();
 
     // Second ATTACH should fail (already attached as 'cortex')
-    let result = cortex_drift_bridge::storage::tables::attach_cortex_db(&bridge_db, &path_str);
+    let result = bridge_db.with_writer(|conn| cortex_drift_bridge::storage::tables::attach_cortex_db(conn, &path_str));
     assert!(
         result.is_err(),
         "Double ATTACH should fail — 'cortex' schema already exists"
     );
 
     // Detach and verify bridge DB still works
-    cortex_drift_bridge::storage::tables::detach_cortex_db(&bridge_db).unwrap();
-    cortex_drift_bridge::storage::log_event(&bridge_db, "test", None, None, None).unwrap();
+    bridge_db.with_writer(cortex_drift_bridge::storage::tables::detach_cortex_db).unwrap();
+    bridge_db.insert_event("test", None, None, None).unwrap();
 }
 
 // =============================================================================
@@ -478,7 +474,7 @@ fn hardening_retention_preserves_recent_data() {
     )
     .unwrap();
 
-    cortex_drift_bridge::storage::apply_retention(&db, true).unwrap();
+    db.with_writer(|conn| cortex_drift_bridge::storage::apply_retention(conn, true)).unwrap();
 
     let count: i64 = db
         .query_row("SELECT COUNT(*) FROM bridge_event_log", [], |row| {
@@ -511,7 +507,7 @@ fn hardening_retention_enterprise_keeps_grounding_results() {
     .unwrap();
 
     // Enterprise tier — should NOT delete old grounding results
-    cortex_drift_bridge::storage::apply_retention(&db, false).unwrap();
+    db.with_writer(|conn| cortex_drift_bridge::storage::apply_retention(conn, false)).unwrap();
 
     let count: i64 = db
         .query_row(
@@ -526,7 +522,7 @@ fn hardening_retention_enterprise_keeps_grounding_results() {
     );
 
     // Community tier — SHOULD delete old grounding results
-    cortex_drift_bridge::storage::apply_retention(&db, true).unwrap();
+    db.with_writer(|conn| cortex_drift_bridge::storage::apply_retention(conn, true)).unwrap();
 
     let count: i64 = db
         .query_row(
@@ -603,9 +599,8 @@ fn hardening_empty_memories_vec() {
 
 #[test]
 fn hardening_community_tier_allows_core_events() {
-    let conn = rusqlite::Connection::open_in_memory().unwrap();
-    cortex_drift_bridge::storage::create_bridge_tables(&conn).unwrap();
-    let handler = BridgeEventHandler::new(Some(Mutex::new(conn)), LicenseTier::Community);
+    let engine = setup_bridge_db();
+    let handler = BridgeEventHandler::new(Some(std::sync::Arc::new(engine) as std::sync::Arc<dyn cortex_drift_bridge::traits::IBridgeStorage>), LicenseTier::Community);
 
     // pattern_approved is a community event — should create a memory
     handler.on_pattern_approved(&PatternApprovedEvent {
@@ -622,9 +617,8 @@ fn hardening_community_tier_allows_core_events() {
 
 #[test]
 fn hardening_enterprise_tier_allows_all_events() {
-    let conn = rusqlite::Connection::open_in_memory().unwrap();
-    cortex_drift_bridge::storage::create_bridge_tables(&conn).unwrap();
-    let handler = BridgeEventHandler::new(Some(Mutex::new(conn)), LicenseTier::Enterprise);
+    let engine = setup_bridge_db();
+    let handler = BridgeEventHandler::new(Some(std::sync::Arc::new(engine) as std::sync::Arc<dyn cortex_drift_bridge::traits::IBridgeStorage>), LicenseTier::Enterprise);
 
     // Fire every event type that creates a memory
     handler.on_pattern_approved(&PatternApprovedEvent {

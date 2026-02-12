@@ -13,8 +13,9 @@ use super::{
     AdjustmentMode, ConfidenceAdjustment, GroundingConfig, GroundingResult, GroundingSnapshot,
     TriggerType,
 };
-use crate::errors::BridgeResult;
-use crate::storage;
+use crate::config::EvidenceConfig;
+use crate::errors::{BridgeResult, ErrorChain};
+use crate::traits::IBridgeStorage;
 
 /// The grounding loop runner.
 pub struct GroundingLoopRunner {
@@ -30,13 +31,21 @@ impl GroundingLoopRunner {
         }
     }
 
+    /// Create a runner with custom evidence weight overrides.
+    pub fn with_evidence_config(config: GroundingConfig, evidence_config: EvidenceConfig) -> Self {
+        Self {
+            scorer: GroundingScorer::with_evidence_config(config.clone(), evidence_config),
+            config,
+        }
+    }
+
     /// Run the grounding loop for a set of memories.
     /// Respects max_memories_per_loop (500 default). Excess deferred, not dropped.
     pub fn run(
         &self,
         memories: &[MemoryForGrounding],
         _drift_db: Option<&rusqlite::Connection>,
-        bridge_db: Option<&rusqlite::Connection>,
+        bridge_store: Option<&dyn IBridgeStorage>,
         trigger: TriggerType,
     ) -> BridgeResult<GroundingSnapshot> {
         let start = Instant::now();
@@ -66,10 +75,13 @@ impl GroundingLoopRunner {
             avg_grounding_score: 0.0,
             contradictions_generated: 0,
             duration_ms: 0,
+            error_count: 0,
+            trigger_type: Some(format!("{:?}", trigger)),
         };
 
         let mut total_score = 0.0;
         let mut scored_count = 0u32;
+        let mut error_chain = ErrorChain::new();
 
         for memory in to_process {
             snapshot.total_checked += 1;
@@ -93,8 +105,8 @@ impl GroundingLoopRunner {
             let verdict = self.scorer.score_to_verdict(grounding_score);
 
             // Get previous score for trend detection
-            let previous_score = bridge_db
-                .and_then(|db| storage::get_previous_grounding_score(db, &memory.memory_id).ok())
+            let previous_score = bridge_store
+                .and_then(|store| store.get_previous_grounding_score(&memory.memory_id).ok())
                 .flatten();
             let score_delta = previous_score.map(|prev| grounding_score - prev);
 
@@ -117,34 +129,66 @@ impl GroundingLoopRunner {
                 _ => {}
             }
 
-            if generates_contradiction {
-                snapshot.contradictions_generated += 1;
-            }
-
             total_score += grounding_score;
             scored_count += 1;
 
             // Persist grounding result
             let result = GroundingResult {
-                id: uuid::Uuid::new_v4().to_string(),
                 memory_id: memory.memory_id.clone(),
                 verdict,
                 grounding_score,
                 previous_score,
                 score_delta,
-                confidence_adjustment,
+                confidence_adjustment: confidence_adjustment.clone(),
                 evidence,
                 generates_contradiction,
                 duration_ms: 0,
             };
 
-            if let Some(db) = bridge_db {
-                if let Err(e) = storage::record_grounding_result(db, &result) {
-                    warn!(
-                        memory_id = %result.memory_id,
-                        error = %e,
-                        "Failed to persist grounding result — data silently lost"
+            if let Some(store) = bridge_store {
+                if let Err(e) = store.insert_grounding_result(&result) {
+                    error_chain.push(
+                        snapshot.total_checked as usize,
+                        crate::errors::BridgeError::GroundingFailed {
+                            memory_id: result.memory_id.clone(),
+                            reason: format!("Failed to persist grounding result: {}", e),
+                        },
                     );
+                }
+
+                // Apply confidence adjustment back to bridge_memories
+                if let Some(delta) = confidence_adjustment.delta {
+                    if delta.abs() > f64::EPSILON {
+                        if let Err(e) = store.update_memory_confidence(&memory.memory_id, delta) {
+                            error_chain.push(
+                                snapshot.total_checked as usize,
+                                crate::errors::BridgeError::GroundingFailed {
+                                    memory_id: memory.memory_id.clone(),
+                                    reason: format!("Failed to apply confidence adjustment: {}", e),
+                                },
+                            );
+                        }
+                    }
+                }
+
+                // Generate and persist contradiction memory
+                if generates_contradiction {
+                    snapshot.contradictions_generated += 1;
+                    match super::contradiction::generate_contradiction(&result, Some(store)) {
+                        Ok(Some(cid)) => {
+                            info!(contradiction_id = %cid, memory_id = %memory.memory_id, "Contradiction memory created");
+                        }
+                        Ok(None) => {}
+                        Err(e) => {
+                            error_chain.push(
+                                snapshot.total_checked as usize,
+                                crate::errors::BridgeError::GroundingFailed {
+                                    memory_id: memory.memory_id.clone(),
+                                    reason: format!("Failed to generate contradiction: {}", e),
+                                },
+                            );
+                        }
+                    }
                 }
             }
         }
@@ -153,10 +197,28 @@ impl GroundingLoopRunner {
             snapshot.avg_grounding_score = total_score / scored_count as f64;
         }
         snapshot.duration_ms = start.elapsed().as_millis() as u32;
+        snapshot.error_count = error_chain.len() as u32;
+
+        // Log accumulated errors as a batch summary
+        if error_chain.has_errors() {
+            warn!(
+                error_count = error_chain.len(),
+                "Grounding loop completed with {} non-fatal errors",
+                error_chain.len()
+            );
+            for chained in error_chain.iter() {
+                warn!(
+                    step = chained.step,
+                    error = %chained.error,
+                    "Grounding error at step {}",
+                    chained.step
+                );
+            }
+        }
 
         // Persist snapshot
-        if let Some(db) = bridge_db {
-            if let Err(e) = storage::record_grounding_snapshot(db, &snapshot) {
+        if let Some(store) = bridge_store {
+            if let Err(e) = store.insert_snapshot(&snapshot) {
                 warn!(
                     error = %e,
                     "Failed to persist grounding snapshot — dashboard data silently lost"
@@ -350,14 +412,13 @@ impl GroundingLoopRunner {
         &self,
         memory: &MemoryForGrounding,
         _drift_db: Option<&rusqlite::Connection>,
-        bridge_db: Option<&rusqlite::Connection>,
+        bridge_store: Option<&dyn IBridgeStorage>,
     ) -> BridgeResult<GroundingResult> {
         let start = Instant::now();
 
         let groundability = classify_groundability(&memory.memory_type);
         if groundability == Groundability::NotGroundable {
             return Ok(GroundingResult {
-                id: uuid::Uuid::new_v4().to_string(),
                 memory_id: memory.memory_id.clone(),
                 verdict: GroundingVerdict::NotGroundable,
                 grounding_score: 0.0,
@@ -378,7 +439,6 @@ impl GroundingLoopRunner {
 
         if evidence.is_empty() {
             return Ok(GroundingResult {
-                id: uuid::Uuid::new_v4().to_string(),
                 memory_id: memory.memory_id.clone(),
                 verdict: GroundingVerdict::InsufficientData,
                 grounding_score: 0.0,
@@ -398,8 +458,8 @@ impl GroundingLoopRunner {
         let grounding_score = self.scorer.compute_score(&evidence);
         let verdict = self.scorer.score_to_verdict(grounding_score);
 
-        let previous_score = bridge_db
-            .and_then(|db| storage::get_previous_grounding_score(db, &memory.memory_id).ok())
+        let previous_score = bridge_store
+            .and_then(|store| store.get_previous_grounding_score(&memory.memory_id).ok())
             .flatten();
         let score_delta = previous_score.map(|prev| grounding_score - prev);
 
@@ -413,7 +473,6 @@ impl GroundingLoopRunner {
             self.scorer.should_generate_contradiction(grounding_score, score_delta, &verdict);
 
         let result = GroundingResult {
-            id: uuid::Uuid::new_v4().to_string(),
             memory_id: memory.memory_id.clone(),
             verdict,
             grounding_score,
@@ -425,13 +484,40 @@ impl GroundingLoopRunner {
             duration_ms: start.elapsed().as_millis() as u32,
         };
 
-        if let Some(db) = bridge_db {
-            if let Err(e) = storage::record_grounding_result(db, &result) {
+        if let Some(store) = bridge_store {
+            if let Err(e) = store.insert_grounding_result(&result) {
                 warn!(
                     memory_id = %result.memory_id,
                     error = %e,
                     "Failed to persist single grounding result"
                 );
+            }
+
+            // Apply confidence adjustment back to bridge_memories
+            if let Some(delta) = result.confidence_adjustment.delta {
+                if delta.abs() > f64::EPSILON {
+                    if let Err(e) = store.update_memory_confidence(&memory.memory_id, delta) {
+                        warn!(
+                            memory_id = %memory.memory_id,
+                            delta = delta,
+                            error = %e,
+                            "Failed to apply confidence adjustment — memory retains old confidence"
+                        );
+                    }
+                }
+            }
+
+            // Generate and persist contradiction memory
+            if result.generates_contradiction {
+                match super::contradiction::generate_contradiction(&result, Some(store)) {
+                    Ok(Some(cid)) => {
+                        info!(contradiction_id = %cid, memory_id = %memory.memory_id, "Contradiction memory created");
+                    }
+                    Ok(None) => {}
+                    Err(e) => {
+                        warn!(memory_id = %memory.memory_id, error = %e, "Failed to generate contradiction memory");
+                    }
+                }
             }
         }
 

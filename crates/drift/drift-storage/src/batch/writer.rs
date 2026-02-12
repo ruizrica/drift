@@ -95,9 +95,22 @@ impl BatchWriter {
         })
     }
 
-    /// Flush pending writes.
+    /// Flush pending writes (fire-and-forget, does NOT wait for completion).
     pub fn flush(&self) -> Result<(), StorageError> {
         self.send(BatchCommand::Flush)
+    }
+
+    /// Flush pending writes and **block** until the batch writer thread confirms
+    /// all buffered commands have been committed to SQLite.
+    ///
+    /// Use this when downstream code needs to read data that was just written
+    /// (e.g., `drift_analyze` reading `file_metadata` after `drift_scan`).
+    pub fn flush_sync(&self) -> Result<(), StorageError> {
+        let (tx, rx) = std::sync::mpsc::sync_channel(0);
+        self.send(BatchCommand::FlushSync(tx))?;
+        rx.recv().map_err(|_| StorageError::SqliteError {
+            message: "batch writer thread did not respond to flush_sync".to_string(),
+        })
     }
 
     /// Shut down the writer thread and wait for completion.
@@ -135,6 +148,10 @@ fn writer_loop(
             }
             Ok(BatchCommand::Flush) => {
                 flush_buffer(&conn, &mut buffer, &mut stats)?;
+            }
+            Ok(BatchCommand::FlushSync(done_tx)) => {
+                flush_buffer(&conn, &mut buffer, &mut stats)?;
+                let _ = done_tx.send(());
             }
             Ok(cmd) => {
                 buffer.push(cmd);
@@ -311,7 +328,7 @@ fn flush_buffer(
                 insert_contract_mismatches(&tx, rows)?;
                 batch_stats.contract_mismatch_rows += rows.len();
             }
-            BatchCommand::Flush | BatchCommand::Shutdown => {}
+            BatchCommand::Flush | BatchCommand::FlushSync(_) | BatchCommand::Shutdown => {}
         }
     }
 

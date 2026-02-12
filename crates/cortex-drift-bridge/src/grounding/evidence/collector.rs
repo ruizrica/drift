@@ -17,7 +17,7 @@ pub struct EvidenceContext {
     pub pattern_id: Option<String>,
     /// Constraint ID linked to this memory (if any).
     pub constraint_id: Option<String>,
-    /// Module path for coupling/coverage/error queries.
+    /// Module path for coupling queries.
     pub module_path: Option<String>,
     /// Project identifier for DNA health.
     pub project: Option<String>,
@@ -25,6 +25,10 @@ pub struct EvidenceContext {
     pub decision_id: Option<String>,
     /// Boundary ID for boundary data.
     pub boundary_id: Option<String>,
+    /// Function ID for test_quality queries.
+    pub function_id: Option<String>,
+    /// File path for error_gaps and future security queries.
+    pub file_path: Option<String>,
     /// Current memory confidence (for comparison).
     pub current_confidence: f64,
 }
@@ -47,6 +51,8 @@ pub fn collect_one(
         EvidenceType::ErrorHandlingGaps => collect_error_handling_gaps(ctx, drift_conn),
         EvidenceType::DecisionEvidence => collect_decision_evidence(ctx, drift_conn),
         EvidenceType::BoundaryData => collect_boundary_data(ctx, drift_conn),
+        EvidenceType::TaintAnalysis => collect_taint_analysis(ctx, drift_conn),
+        EvidenceType::CallGraphCoverage => collect_call_graph_coverage(drift_conn),
     }
 }
 
@@ -177,11 +183,13 @@ fn collect_test_coverage(
     ctx: &EvidenceContext,
     conn: &Connection,
 ) -> BridgeResult<Option<GroundingEvidence>> {
-    let module_path = match &ctx.module_path {
-        Some(p) => p,
-        None => return Ok(None),
+    // test_quality table is keyed by function_id, fall back to module_path
+    let key = match (&ctx.function_id, &ctx.module_path) {
+        (Some(fid), _) => fid,
+        (None, Some(p)) => p,
+        _ => return Ok(None),
     };
-    match drift_queries::test_coverage(conn, module_path)? {
+    match drift_queries::test_coverage(conn, key)? {
         Some(coverage) if coverage.is_finite() => Ok(Some(GroundingEvidence::new(
             EvidenceType::TestCoverage,
             format!("Test coverage: {:.1}%", coverage * 100.0),
@@ -197,11 +205,13 @@ fn collect_error_handling_gaps(
     ctx: &EvidenceContext,
     conn: &Connection,
 ) -> BridgeResult<Option<GroundingEvidence>> {
-    let module_path = match &ctx.module_path {
-        Some(p) => p,
-        None => return Ok(None),
+    // error_gaps table uses file path prefix match; prefer file_path, fall back to module_path
+    let path = match (&ctx.file_path, &ctx.module_path) {
+        (Some(fp), _) => fp,
+        (None, Some(p)) => p,
+        _ => return Ok(None),
     };
-    match drift_queries::error_handling_gaps(conn, module_path)? {
+    match drift_queries::error_handling_gaps(conn, path)? {
         Some(gaps) => {
             let support = 1.0 - (gaps as f64 / 100.0).clamp(0.0, 1.0);
             Ok(Some(GroundingEvidence::new(
@@ -251,6 +261,45 @@ fn collect_boundary_data(
             score,
             None,
             score.clamp(0.0, 1.0),
+        ))),
+        _ => Ok(None),
+    }
+}
+
+fn collect_taint_analysis(
+    ctx: &EvidenceContext,
+    conn: &Connection,
+) -> BridgeResult<Option<GroundingEvidence>> {
+    let file_path = match &ctx.file_path {
+        Some(fp) => fp,
+        None => return Ok(None),
+    };
+    match drift_queries::taint_flow_risk(conn, file_path)? {
+        Some(risk) if risk.is_finite() => {
+            // Lower unsanitized ratio = higher support for memory correctness
+            let support = (1.0 - risk).clamp(0.0, 1.0);
+            Ok(Some(GroundingEvidence::new(
+                EvidenceType::TaintAnalysis,
+                format!("Taint flow unsanitized ratio: {:.1}%", risk * 100.0),
+                risk,
+                None,
+                support,
+            )))
+        }
+        _ => Ok(None),
+    }
+}
+
+fn collect_call_graph_coverage(
+    conn: &Connection,
+) -> BridgeResult<Option<GroundingEvidence>> {
+    match drift_queries::call_graph_coverage(conn)? {
+        Some(coverage) if coverage.is_finite() => Ok(Some(GroundingEvidence::new(
+            EvidenceType::CallGraphCoverage,
+            format!("Call graph resolution quality: {:.1}%", coverage * 100.0),
+            coverage,
+            None,
+            coverage.clamp(0.0, 1.0),
         ))),
         _ => Ok(None),
     }

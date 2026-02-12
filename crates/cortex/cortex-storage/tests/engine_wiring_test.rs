@@ -2,7 +2,6 @@
 //!
 //! Verify health data queries, read pool distribution, and WAL checkpoint.
 
-use std::sync::Arc;
 
 use chrono::{Duration, Utc};
 use cortex_core::memory::*;

@@ -134,7 +134,7 @@ fn t1_prs_04_body_and_signature_hash() {
     let r1 = manager.parse_with_language(source1, path, Language::TypeScript).unwrap();
 
     // Invalidate cache to force re-parse
-    manager.invalidate_cache(r1.content_hash);
+    manager.invalidate_cache(r1.content_hash, Language::TypeScript);
 
     // Modified body only (same signature)
     let source2 = b"function greet(name: string): string { return 'hi ' + name; }";
@@ -153,7 +153,7 @@ fn t1_prs_04_body_and_signature_hash() {
         );
     }
 
-    manager.invalidate_cache(r2.content_hash);
+    manager.invalidate_cache(r2.content_hash, Language::TypeScript);
 
     // Modified signature (different parameter)
     let source3 = b"function greet(firstName: string): string { return 'hi ' + firstName; }";
@@ -388,7 +388,7 @@ fn t1_prs_13_cache_eviction() {
             content_hash: i as u64,
             ..Default::default()
         };
-        cache.insert(i as u64, pr);
+        cache.insert(i as u64, Language::TypeScript, pr);
     }
 
     // Moka uses TinyLFU — eviction is probabilistic but bounded
@@ -408,8 +408,8 @@ fn t1_prs_13_cache_eviction() {
         content_hash: 999,
         ..Default::default()
     };
-    cache.insert(999, pr);
-    assert!(cache.get(999).is_some(), "newly inserted entry should be retrievable");
+    cache.insert(999, Language::TypeScript, pr);
+    assert!(cache.get(999, Language::TypeScript).is_some(), "newly inserted entry should be retrievable");
 }
 
 // ---- T1-PRS-14: Parse cache persistence (SQLite round-trip) ----

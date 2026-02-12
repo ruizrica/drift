@@ -34,6 +34,7 @@ pub fn drift_initialize(
         db_path: db_path.map(PathBuf::from),
         project_root: project_root.map(PathBuf::from),
         config_toml,
+        bridge_db_path: None,
     };
 
     runtime::initialize(opts)
@@ -52,7 +53,7 @@ pub fn drift_shutdown() -> napi::Result<()> {
     let rt = runtime::get()?;
 
     // Checkpoint WAL to consolidate the write-ahead log
-    rt.db.checkpoint().map_err(|e| {
+    rt.storage.checkpoint().map_err(|e| {
         napi::Error::from_reason(format!("[{}] WAL checkpoint failed: {e}", error_codes::STORAGE_ERROR))
     })?;
 
@@ -94,7 +95,7 @@ pub fn drift_gc(
         long_days: long_days.unwrap_or(365),
     };
 
-    let retention_report = rt.db.with_writer(|conn| {
+    let retention_report = rt.storage.with_writer(|conn| {
         drift_storage::retention::apply_retention(conn, &policy)
     }).map_err(|e| {
         napi::Error::from_reason(format!(
@@ -104,7 +105,7 @@ pub fn drift_gc(
     })?;
 
     // Incremental vacuum to reclaim space
-    let _ = rt.db.with_writer(|conn| -> Result<(), drift_core::errors::StorageError> {
+    let _ = rt.storage.with_writer(|conn| -> Result<(), drift_core::errors::StorageError> {
         conn.execute_batch("PRAGMA incremental_vacuum")
             .map_err(|e| drift_core::errors::StorageError::SqliteError { message: e.to_string() })?;
         Ok(())

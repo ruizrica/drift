@@ -13,7 +13,6 @@
 //! 10. Data retention correctness
 
 use std::collections::HashSet;
-use std::sync::Mutex;
 
 use cortex_causal::CausalEngine;
 use cortex_drift_bridge::config::GroundingConfig;
@@ -31,67 +30,136 @@ use cortex_drift_bridge::query::cross_db;
 use cortex_drift_bridge::specification::corrections::{CorrectionRootCause, SpecCorrection, SpecSection};
 use cortex_drift_bridge::specification::events;
 use cortex_drift_bridge::specification::weight_provider::BridgeWeightProvider;
-use cortex_drift_bridge::storage;
 use cortex_drift_bridge::storage::retention;
 
 use drift_core::events::handler::DriftEventHandler;
 use drift_core::events::types::*;
 use drift_core::traits::weight_provider::{AdaptiveWeightTable, MigrationPath, WeightProvider};
+use cortex_drift_bridge::traits::IBridgeStorage;
 
 // ============================================================================
 // HELPERS
 // ============================================================================
 
-fn setup_bridge_db() -> rusqlite::Connection {
-    let conn = rusqlite::Connection::open_in_memory().unwrap();
-    storage::configure_connection(&conn).unwrap();
-    storage::create_bridge_tables(&conn).unwrap();
-    conn
+fn setup_bridge_db() -> cortex_drift_bridge::storage::engine::BridgeStorageEngine {
+    cortex_drift_bridge::storage::engine::BridgeStorageEngine::open_in_memory().unwrap()
 }
 
 fn setup_mock_drift_db() -> rusqlite::Connection {
     let conn = rusqlite::Connection::open_in_memory().unwrap();
     conn.execute_batch(
-        "CREATE TABLE drift_patterns (
-            id TEXT PRIMARY KEY,
-            confidence REAL NOT NULL,
-            occurrence_rate REAL NOT NULL
-        );
-        CREATE TABLE drift_violation_feedback (
+        "CREATE TABLE pattern_confidence (
             pattern_id TEXT PRIMARY KEY,
-            fp_rate REAL NOT NULL
+            alpha REAL NOT NULL DEFAULT 1.0,
+            beta REAL NOT NULL DEFAULT 1.0,
+            posterior_mean REAL NOT NULL,
+            credible_interval_low REAL NOT NULL DEFAULT 0.0,
+            credible_interval_high REAL NOT NULL DEFAULT 1.0,
+            tier TEXT NOT NULL DEFAULT 'Medium',
+            momentum TEXT NOT NULL DEFAULT 'Stable',
+            last_updated INTEGER NOT NULL DEFAULT 0
         );
-        CREATE TABLE drift_constraints (
-            id TEXT PRIMARY KEY,
-            verified INTEGER NOT NULL
+        CREATE TABLE detections (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            file TEXT NOT NULL,
+            line INTEGER NOT NULL DEFAULT 0,
+            column_num INTEGER NOT NULL DEFAULT 0,
+            pattern_id TEXT NOT NULL,
+            category TEXT NOT NULL DEFAULT 'general',
+            confidence REAL NOT NULL DEFAULT 0.8,
+            detection_method TEXT NOT NULL DEFAULT 'regex',
+            created_at INTEGER NOT NULL DEFAULT 0
         );
-        CREATE TABLE drift_coupling (
+        CREATE TABLE feedback (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            violation_id TEXT NOT NULL DEFAULT '',
+            pattern_id TEXT NOT NULL,
+            detector_id TEXT NOT NULL DEFAULT '',
+            action TEXT NOT NULL,
+            created_at INTEGER NOT NULL DEFAULT 0
+        );
+        CREATE TABLE constraint_verifications (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            constraint_id TEXT NOT NULL,
+            passed INTEGER NOT NULL,
+            violations TEXT NOT NULL DEFAULT '[]',
+            verified_at INTEGER NOT NULL DEFAULT 0
+        );
+        CREATE TABLE coupling_metrics (
             module TEXT PRIMARY KEY,
-            instability REAL NOT NULL
+            ce INTEGER NOT NULL DEFAULT 0,
+            ca INTEGER NOT NULL DEFAULT 0,
+            instability REAL NOT NULL,
+            abstractness REAL NOT NULL DEFAULT 0.0,
+            distance REAL NOT NULL DEFAULT 0.0,
+            zone TEXT NOT NULL DEFAULT 'stable',
+            updated_at INTEGER NOT NULL DEFAULT 0
         );
-        CREATE TABLE drift_dna (
-            project TEXT PRIMARY KEY,
-            health_score REAL NOT NULL
+        CREATE TABLE dna_genes (
+            gene_id TEXT PRIMARY KEY,
+            name TEXT NOT NULL DEFAULT '',
+            description TEXT NOT NULL DEFAULT '',
+            alleles TEXT NOT NULL DEFAULT '[]',
+            confidence REAL NOT NULL,
+            consistency REAL NOT NULL,
+            exemplars TEXT NOT NULL DEFAULT '[]',
+            updated_at INTEGER NOT NULL DEFAULT 0
         );
-        CREATE TABLE drift_test_topology (
-            module TEXT PRIMARY KEY,
-            coverage REAL NOT NULL
+        CREATE TABLE test_quality (
+            function_id TEXT PRIMARY KEY,
+            overall_score REAL NOT NULL,
+            updated_at INTEGER NOT NULL DEFAULT 0
         );
-        CREATE TABLE drift_error_handling (
-            module TEXT PRIMARY KEY,
-            gap_count INTEGER NOT NULL
+        CREATE TABLE error_gaps (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            file TEXT NOT NULL,
+            function_id TEXT NOT NULL DEFAULT '',
+            gap_type TEXT NOT NULL DEFAULT 'uncaught',
+            severity TEXT NOT NULL DEFAULT 'medium',
+            created_at INTEGER NOT NULL DEFAULT 0
         );
-        CREATE TABLE drift_decisions (
-            id TEXT PRIMARY KEY,
-            evidence_score REAL NOT NULL
+        CREATE TABLE decisions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            category TEXT NOT NULL DEFAULT '',
+            description TEXT NOT NULL DEFAULT '',
+            confidence REAL NOT NULL,
+            created_at INTEGER NOT NULL DEFAULT 0
         );
-        CREATE TABLE drift_boundaries (
-            id TEXT PRIMARY KEY,
-            boundary_score REAL NOT NULL
+        CREATE TABLE boundaries (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            file TEXT NOT NULL DEFAULT '',
+            framework TEXT NOT NULL DEFAULT '',
+            model_name TEXT NOT NULL DEFAULT '',
+            confidence REAL NOT NULL,
+            created_at INTEGER NOT NULL DEFAULT 0
         );
-        CREATE TABLE drift_scans (
-            id INTEGER PRIMARY KEY,
-            created_at INTEGER NOT NULL
+        CREATE TABLE taint_flows (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            source_file TEXT NOT NULL,
+            source_line INTEGER NOT NULL DEFAULT 0,
+            source_type TEXT NOT NULL DEFAULT '',
+            sink_file TEXT NOT NULL DEFAULT '',
+            sink_line INTEGER NOT NULL DEFAULT 0,
+            sink_type TEXT NOT NULL DEFAULT '',
+            cwe_id INTEGER NOT NULL DEFAULT 0,
+            is_sanitized INTEGER NOT NULL DEFAULT 0,
+            path TEXT NOT NULL DEFAULT '',
+            confidence REAL NOT NULL DEFAULT 0.5,
+            created_at INTEGER NOT NULL DEFAULT 0
+        );
+        CREATE TABLE call_edges (
+            caller_id INTEGER NOT NULL,
+            callee_id INTEGER NOT NULL,
+            resolution TEXT NOT NULL,
+            confidence REAL NOT NULL DEFAULT 0.5,
+            call_site_line INTEGER NOT NULL DEFAULT 0,
+            PRIMARY KEY (caller_id, callee_id, call_site_line)
+        );
+        CREATE TABLE scan_history (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            started_at INTEGER NOT NULL DEFAULT 0,
+            root_path TEXT NOT NULL DEFAULT '',
+            status TEXT NOT NULL DEFAULT 'running'
         );",
     )
     .unwrap();
@@ -106,7 +174,7 @@ fn setup_mock_drift_db() -> rusqlite::Connection {
 #[test]
 fn event_e2e_pattern_approved_creates_memory() {
     let db = setup_bridge_db();
-    let handler = BridgeEventHandler::new(Some(Mutex::new(db)), LicenseTier::Enterprise);
+    let handler = BridgeEventHandler::new(Some(std::sync::Arc::new(db) as std::sync::Arc<dyn cortex_drift_bridge::traits::IBridgeStorage>), LicenseTier::Enterprise);
     handler.on_pattern_approved(&PatternApprovedEvent {
         pattern_id: "p1".to_string(),
     });
@@ -116,7 +184,7 @@ fn event_e2e_pattern_approved_creates_memory() {
 #[test]
 fn event_e2e_pattern_discovered_creates_memory() {
     let db = setup_bridge_db();
-    let handler = BridgeEventHandler::new(Some(Mutex::new(db)), LicenseTier::Enterprise);
+    let handler = BridgeEventHandler::new(Some(std::sync::Arc::new(db) as std::sync::Arc<dyn cortex_drift_bridge::traits::IBridgeStorage>), LicenseTier::Enterprise);
     handler.on_pattern_discovered(&PatternDiscoveredEvent {
         pattern_id: "p2".to_string(),
         category: "naming".to_string(),
@@ -128,7 +196,7 @@ fn event_e2e_pattern_discovered_creates_memory() {
 #[test]
 fn event_e2e_pattern_ignored_creates_memory() {
     let db = setup_bridge_db();
-    let handler = BridgeEventHandler::new(Some(Mutex::new(db)), LicenseTier::Enterprise);
+    let handler = BridgeEventHandler::new(Some(std::sync::Arc::new(db) as std::sync::Arc<dyn cortex_drift_bridge::traits::IBridgeStorage>), LicenseTier::Enterprise);
     handler.on_pattern_ignored(&PatternIgnoredEvent {
         pattern_id: "p3".to_string(),
         reason: "Not relevant".to_string(),
@@ -139,7 +207,7 @@ fn event_e2e_pattern_ignored_creates_memory() {
 #[test]
 fn event_e2e_pattern_merged_creates_memory() {
     let db = setup_bridge_db();
-    let handler = BridgeEventHandler::new(Some(Mutex::new(db)), LicenseTier::Enterprise);
+    let handler = BridgeEventHandler::new(Some(std::sync::Arc::new(db) as std::sync::Arc<dyn cortex_drift_bridge::traits::IBridgeStorage>), LicenseTier::Enterprise);
     handler.on_pattern_merged(&PatternMergedEvent {
         kept_id: "k1".to_string(),
         merged_id: "m1".to_string(),
@@ -150,7 +218,7 @@ fn event_e2e_pattern_merged_creates_memory() {
 #[test]
 fn event_e2e_scan_complete_no_memory_no_error() {
     let db = setup_bridge_db();
-    let handler = BridgeEventHandler::new(Some(Mutex::new(db)), LicenseTier::Enterprise);
+    let handler = BridgeEventHandler::new(Some(std::sync::Arc::new(db) as std::sync::Arc<dyn cortex_drift_bridge::traits::IBridgeStorage>), LicenseTier::Enterprise);
     handler.on_scan_complete(&ScanCompleteEvent {
         added: 10,
         modified: 5,
@@ -164,7 +232,7 @@ fn event_e2e_scan_complete_no_memory_no_error() {
 #[test]
 fn event_e2e_regression_detected_creates_memory() {
     let db = setup_bridge_db();
-    let handler = BridgeEventHandler::new(Some(Mutex::new(db)), LicenseTier::Enterprise);
+    let handler = BridgeEventHandler::new(Some(std::sync::Arc::new(db) as std::sync::Arc<dyn cortex_drift_bridge::traits::IBridgeStorage>), LicenseTier::Enterprise);
     handler.on_regression_detected(&RegressionDetectedEvent {
         pattern_id: "p4".to_string(),
         previous_score: 0.95,
@@ -176,7 +244,7 @@ fn event_e2e_regression_detected_creates_memory() {
 #[test]
 fn event_e2e_violation_detected_no_memory() {
     let db = setup_bridge_db();
-    let handler = BridgeEventHandler::new(Some(Mutex::new(db)), LicenseTier::Enterprise);
+    let handler = BridgeEventHandler::new(Some(std::sync::Arc::new(db) as std::sync::Arc<dyn cortex_drift_bridge::traits::IBridgeStorage>), LicenseTier::Enterprise);
     handler.on_violation_detected(&ViolationDetectedEvent {
         violation_id: "v1".to_string(),
         pattern_id: "p1".to_string(),
@@ -190,7 +258,7 @@ fn event_e2e_violation_detected_no_memory() {
 #[test]
 fn event_e2e_violation_dismissed_creates_memory() {
     let db = setup_bridge_db();
-    let handler = BridgeEventHandler::new(Some(Mutex::new(db)), LicenseTier::Enterprise);
+    let handler = BridgeEventHandler::new(Some(std::sync::Arc::new(db) as std::sync::Arc<dyn cortex_drift_bridge::traits::IBridgeStorage>), LicenseTier::Enterprise);
     handler.on_violation_dismissed(&ViolationDismissedEvent {
         violation_id: "v2".to_string(),
         reason: "False positive".to_string(),
@@ -201,7 +269,7 @@ fn event_e2e_violation_dismissed_creates_memory() {
 #[test]
 fn event_e2e_violation_fixed_creates_memory() {
     let db = setup_bridge_db();
-    let handler = BridgeEventHandler::new(Some(Mutex::new(db)), LicenseTier::Enterprise);
+    let handler = BridgeEventHandler::new(Some(std::sync::Arc::new(db) as std::sync::Arc<dyn cortex_drift_bridge::traits::IBridgeStorage>), LicenseTier::Enterprise);
     handler.on_violation_fixed(&ViolationFixedEvent {
         violation_id: "v3".to_string(),
     });
@@ -211,7 +279,7 @@ fn event_e2e_violation_fixed_creates_memory() {
 #[test]
 fn event_e2e_gate_evaluated_creates_memory() {
     let db = setup_bridge_db();
-    let handler = BridgeEventHandler::new(Some(Mutex::new(db)), LicenseTier::Enterprise);
+    let handler = BridgeEventHandler::new(Some(std::sync::Arc::new(db) as std::sync::Arc<dyn cortex_drift_bridge::traits::IBridgeStorage>), LicenseTier::Enterprise);
     handler.on_gate_evaluated(&GateEvaluatedEvent {
         gate_name: "complexity".to_string(),
         passed: true,
@@ -224,7 +292,7 @@ fn event_e2e_gate_evaluated_creates_memory() {
 #[test]
 fn event_e2e_detector_alert_creates_memory() {
     let db = setup_bridge_db();
-    let handler = BridgeEventHandler::new(Some(Mutex::new(db)), LicenseTier::Enterprise);
+    let handler = BridgeEventHandler::new(Some(std::sync::Arc::new(db) as std::sync::Arc<dyn cortex_drift_bridge::traits::IBridgeStorage>), LicenseTier::Enterprise);
     handler.on_detector_alert(&DetectorAlertEvent {
         detector_id: "d1".to_string(),
         false_positive_rate: 0.15,
@@ -235,7 +303,7 @@ fn event_e2e_detector_alert_creates_memory() {
 #[test]
 fn event_e2e_detector_disabled_creates_memory() {
     let db = setup_bridge_db();
-    let handler = BridgeEventHandler::new(Some(Mutex::new(db)), LicenseTier::Enterprise);
+    let handler = BridgeEventHandler::new(Some(std::sync::Arc::new(db) as std::sync::Arc<dyn cortex_drift_bridge::traits::IBridgeStorage>), LicenseTier::Enterprise);
     handler.on_detector_disabled(&DetectorDisabledEvent {
         detector_id: "d2".to_string(),
         reason: "FP > 20%".to_string(),
@@ -246,7 +314,7 @@ fn event_e2e_detector_disabled_creates_memory() {
 #[test]
 fn event_e2e_constraint_approved_creates_memory() {
     let db = setup_bridge_db();
-    let handler = BridgeEventHandler::new(Some(Mutex::new(db)), LicenseTier::Enterprise);
+    let handler = BridgeEventHandler::new(Some(std::sync::Arc::new(db) as std::sync::Arc<dyn cortex_drift_bridge::traits::IBridgeStorage>), LicenseTier::Enterprise);
     handler.on_constraint_approved(&ConstraintApprovedEvent {
         constraint_id: "c1".to_string(),
     });
@@ -256,7 +324,7 @@ fn event_e2e_constraint_approved_creates_memory() {
 #[test]
 fn event_e2e_constraint_violated_creates_memory() {
     let db = setup_bridge_db();
-    let handler = BridgeEventHandler::new(Some(Mutex::new(db)), LicenseTier::Enterprise);
+    let handler = BridgeEventHandler::new(Some(std::sync::Arc::new(db) as std::sync::Arc<dyn cortex_drift_bridge::traits::IBridgeStorage>), LicenseTier::Enterprise);
     handler.on_constraint_violated(&ConstraintViolatedEvent {
         constraint_id: "c2".to_string(),
         message: "Circular dependency detected".to_string(),
@@ -267,7 +335,7 @@ fn event_e2e_constraint_violated_creates_memory() {
 #[test]
 fn event_e2e_decision_mined_creates_memory() {
     let db = setup_bridge_db();
-    let handler = BridgeEventHandler::new(Some(Mutex::new(db)), LicenseTier::Enterprise);
+    let handler = BridgeEventHandler::new(Some(std::sync::Arc::new(db) as std::sync::Arc<dyn cortex_drift_bridge::traits::IBridgeStorage>), LicenseTier::Enterprise);
     handler.on_decision_mined(&DecisionMinedEvent {
         decision_id: "dm1".to_string(),
         category: "architecture".to_string(),
@@ -278,7 +346,7 @@ fn event_e2e_decision_mined_creates_memory() {
 #[test]
 fn event_e2e_decision_reversed_creates_memory() {
     let db = setup_bridge_db();
-    let handler = BridgeEventHandler::new(Some(Mutex::new(db)), LicenseTier::Enterprise);
+    let handler = BridgeEventHandler::new(Some(std::sync::Arc::new(db) as std::sync::Arc<dyn cortex_drift_bridge::traits::IBridgeStorage>), LicenseTier::Enterprise);
     handler.on_decision_reversed(&DecisionReversedEvent {
         decision_id: "dr1".to_string(),
         reason: "Performance issues".to_string(),
@@ -289,7 +357,7 @@ fn event_e2e_decision_reversed_creates_memory() {
 #[test]
 fn event_e2e_adr_detected_creates_memory() {
     let db = setup_bridge_db();
-    let handler = BridgeEventHandler::new(Some(Mutex::new(db)), LicenseTier::Enterprise);
+    let handler = BridgeEventHandler::new(Some(std::sync::Arc::new(db) as std::sync::Arc<dyn cortex_drift_bridge::traits::IBridgeStorage>), LicenseTier::Enterprise);
     handler.on_adr_detected(&AdrDetectedEvent {
         adr_id: "adr-001".to_string(),
         title: "Use microservices".to_string(),
@@ -300,7 +368,7 @@ fn event_e2e_adr_detected_creates_memory() {
 #[test]
 fn event_e2e_boundary_discovered_creates_memory() {
     let db = setup_bridge_db();
-    let handler = BridgeEventHandler::new(Some(Mutex::new(db)), LicenseTier::Enterprise);
+    let handler = BridgeEventHandler::new(Some(std::sync::Arc::new(db) as std::sync::Arc<dyn cortex_drift_bridge::traits::IBridgeStorage>), LicenseTier::Enterprise);
     handler.on_boundary_discovered(&BoundaryDiscoveredEvent {
         boundary_id: "b1".to_string(),
         model: "User".to_string(),
@@ -312,7 +380,7 @@ fn event_e2e_boundary_discovered_creates_memory() {
 #[test]
 fn event_e2e_enforcement_changed_creates_memory() {
     let db = setup_bridge_db();
-    let handler = BridgeEventHandler::new(Some(Mutex::new(db)), LicenseTier::Enterprise);
+    let handler = BridgeEventHandler::new(Some(std::sync::Arc::new(db) as std::sync::Arc<dyn cortex_drift_bridge::traits::IBridgeStorage>), LicenseTier::Enterprise);
     handler.on_enforcement_changed(&EnforcementChangedEvent {
         gate_name: "complexity".to_string(),
         old_level: "warn".to_string(),
@@ -324,7 +392,7 @@ fn event_e2e_enforcement_changed_creates_memory() {
 #[test]
 fn event_e2e_feedback_abuse_detected_creates_memory() {
     let db = setup_bridge_db();
-    let handler = BridgeEventHandler::new(Some(Mutex::new(db)), LicenseTier::Enterprise);
+    let handler = BridgeEventHandler::new(Some(std::sync::Arc::new(db) as std::sync::Arc<dyn cortex_drift_bridge::traits::IBridgeStorage>), LicenseTier::Enterprise);
     handler.on_feedback_abuse_detected(&FeedbackAbuseDetectedEvent {
         user_id: "u1".to_string(),
         pattern: "dismiss-all".to_string(),
@@ -335,7 +403,7 @@ fn event_e2e_feedback_abuse_detected_creates_memory() {
 #[test]
 fn event_e2e_error_no_memory_no_error() {
     let db = setup_bridge_db();
-    let handler = BridgeEventHandler::new(Some(Mutex::new(db)), LicenseTier::Enterprise);
+    let handler = BridgeEventHandler::new(Some(std::sync::Arc::new(db) as std::sync::Arc<dyn cortex_drift_bridge::traits::IBridgeStorage>), LicenseTier::Enterprise);
     handler.on_error(&ErrorEvent {
         message: "Something broke".to_string(),
         error_code: "E001".to_string(),
@@ -346,7 +414,7 @@ fn event_e2e_error_no_memory_no_error() {
 #[test]
 fn event_all_18_memory_creating_events_produce_zero_errors() {
     let db = setup_bridge_db();
-    let handler = BridgeEventHandler::new(Some(Mutex::new(db)), LicenseTier::Enterprise);
+    let handler = BridgeEventHandler::new(Some(std::sync::Arc::new(db) as std::sync::Arc<dyn cortex_drift_bridge::traits::IBridgeStorage>), LicenseTier::Enterprise);
 
     handler.on_pattern_approved(&PatternApprovedEvent { pattern_id: "p1".into() });
     handler.on_pattern_discovered(&PatternDiscoveredEvent { pattern_id: "p2".into(), category: "naming".into(), confidence: 0.5 });
@@ -379,7 +447,7 @@ fn evidence_collect_pattern_confidence_from_drift_db() {
     let drift_db = setup_mock_drift_db();
     drift_db
         .execute(
-            "INSERT INTO drift_patterns (id, confidence, occurrence_rate) VALUES ('p1', 0.85, 0.6)",
+            "INSERT INTO pattern_confidence (pattern_id, posterior_mean) VALUES ('p1', 0.85)",
             [],
         )
         .unwrap();
@@ -399,12 +467,10 @@ fn evidence_collect_pattern_confidence_from_drift_db() {
 #[test]
 fn evidence_collect_pattern_occurrence_from_drift_db() {
     let drift_db = setup_mock_drift_db();
-    drift_db
-        .execute(
-            "INSERT INTO drift_patterns (id, confidence, occurrence_rate) VALUES ('p1', 0.85, 0.6)",
-            [],
-        )
-        .unwrap();
+    // Insert 2 detections for p1 in file_a, and 1 detection for p2 in file_b (3 total files: a, b)
+    drift_db.execute("INSERT INTO detections (file, pattern_id) VALUES ('file_a.rs', 'p1')", []).unwrap();
+    drift_db.execute("INSERT INTO detections (file, pattern_id) VALUES ('file_b.rs', 'p1')", []).unwrap();
+    drift_db.execute("INSERT INTO detections (file, pattern_id) VALUES ('file_c.rs', 'p2')", []).unwrap();
 
     let ctx = EvidenceContext {
         pattern_id: Some("p1".to_string()),
@@ -413,18 +479,18 @@ fn evidence_collect_pattern_occurrence_from_drift_db() {
 
     let evidence = collect_one(EvidenceType::PatternOccurrence, &ctx, &drift_db).unwrap();
     assert!(evidence.is_some());
-    assert!((evidence.unwrap().drift_value - 0.6).abs() < 0.001);
+    // p1 appears in 2 of 3 distinct files = 0.667
+    assert!((evidence.unwrap().drift_value - 2.0/3.0).abs() < 0.01);
 }
 
 #[test]
 fn evidence_collect_false_positive_rate_from_drift_db() {
     let drift_db = setup_mock_drift_db();
-    drift_db
-        .execute(
-            "INSERT INTO drift_violation_feedback (pattern_id, fp_rate) VALUES ('p1', 0.12)",
-            [],
-        )
-        .unwrap();
+    // 10 feedback entries, 1 dismiss → fp_rate = 0.1
+    drift_db.execute("INSERT INTO feedback (pattern_id, action) VALUES ('p1', 'dismiss')", []).unwrap();
+    for _ in 0..9 {
+        drift_db.execute("INSERT INTO feedback (pattern_id, action) VALUES ('p1', 'accept')", []).unwrap();
+    }
 
     let ctx = EvidenceContext {
         pattern_id: Some("p1".to_string()),
@@ -434,16 +500,16 @@ fn evidence_collect_false_positive_rate_from_drift_db() {
     let evidence = collect_one(EvidenceType::FalsePositiveRate, &ctx, &drift_db).unwrap();
     assert!(evidence.is_some());
     let e = evidence.unwrap();
-    assert!((e.drift_value - 0.12).abs() < 0.001);
-    // Low FP rate = high support: 1.0 - 0.12 = 0.88
-    assert!((e.support_score - 0.88).abs() < 0.001);
+    assert!((e.drift_value - 0.1).abs() < 0.001);
+    // Low FP rate = high support: 1.0 - 0.1 = 0.9
+    assert!((e.support_score - 0.9).abs() < 0.001);
 }
 
 #[test]
 fn evidence_collect_constraint_verification_pass() {
     let drift_db = setup_mock_drift_db();
     drift_db
-        .execute("INSERT INTO drift_constraints (id, verified) VALUES ('c1', 1)", [])
+        .execute("INSERT INTO constraint_verifications (constraint_id, passed, verified_at) VALUES ('c1', 1, 1000)", [])
         .unwrap();
 
     let ctx = EvidenceContext {
@@ -460,7 +526,7 @@ fn evidence_collect_constraint_verification_pass() {
 fn evidence_collect_constraint_verification_fail() {
     let drift_db = setup_mock_drift_db();
     drift_db
-        .execute("INSERT INTO drift_constraints (id, verified) VALUES ('c2', 0)", [])
+        .execute("INSERT INTO constraint_verifications (constraint_id, passed, verified_at) VALUES ('c2', 0, 1000)", [])
         .unwrap();
 
     let ctx = EvidenceContext {
@@ -477,25 +543,31 @@ fn evidence_collect_constraint_verification_fail() {
 fn evidence_collect_all_10_types_from_populated_drift_db() {
     let drift_db = setup_mock_drift_db();
 
-    // Populate all tables
-    drift_db.execute("INSERT INTO drift_patterns (id, confidence, occurrence_rate) VALUES ('p1', 0.85, 0.6)", []).unwrap();
-    drift_db.execute("INSERT INTO drift_violation_feedback (pattern_id, fp_rate) VALUES ('p1', 0.05)", []).unwrap();
-    drift_db.execute("INSERT INTO drift_constraints (id, verified) VALUES ('c1', 1)", []).unwrap();
-    drift_db.execute("INSERT INTO drift_coupling (module, instability) VALUES ('src/main.rs', 0.3)", []).unwrap();
-    drift_db.execute("INSERT INTO drift_dna (project, health_score) VALUES ('myproject', 0.9)", []).unwrap();
-    drift_db.execute("INSERT INTO drift_test_topology (module, coverage) VALUES ('src/main.rs', 0.8)", []).unwrap();
-    drift_db.execute("INSERT INTO drift_error_handling (module, gap_count) VALUES ('src/main.rs', 3)", []).unwrap();
-    drift_db.execute("INSERT INTO drift_decisions (id, evidence_score) VALUES ('d1', 0.7)", []).unwrap();
-    drift_db.execute("INSERT INTO drift_boundaries (id, boundary_score) VALUES ('b1', 0.6)", []).unwrap();
+    // Populate all tables with real schema
+    drift_db.execute("INSERT INTO pattern_confidence (pattern_id, posterior_mean) VALUES ('p1', 0.85)", []).unwrap();
+    drift_db.execute("INSERT INTO detections (file, pattern_id) VALUES ('src/main.rs', 'p1')", []).unwrap();
+    drift_db.execute("INSERT INTO feedback (pattern_id, action) VALUES ('p1', 'accept')", []).unwrap();
+    drift_db.execute("INSERT INTO constraint_verifications (constraint_id, passed, verified_at) VALUES ('c1', 1, 1000)", []).unwrap();
+    drift_db.execute("INSERT INTO coupling_metrics (module, instability) VALUES ('src/main.rs', 0.3)", []).unwrap();
+    drift_db.execute("INSERT INTO dna_genes (gene_id, confidence, consistency) VALUES ('g1', 0.9, 1.0)", []).unwrap();
+    drift_db.execute("INSERT INTO test_quality (function_id, overall_score) VALUES ('src/main.rs', 0.8)", []).unwrap();
+    drift_db.execute("INSERT INTO error_gaps (file, function_id) VALUES ('src/main.rs', 'fn_a')", []).unwrap();
+    drift_db.execute("INSERT INTO decisions (category, description, confidence) VALUES ('refactor', 'split module', 0.7)", []).unwrap();
+    drift_db.execute("INSERT INTO boundaries (file, framework, model_name, confidence) VALUES ('src/main.rs', 'orm', 'User', 0.6)", []).unwrap();
+    drift_db.execute("INSERT INTO taint_flows (source_file, source_line, source_type, sink_file, sink_line, sink_type, cwe_id, is_sanitized) VALUES ('src/main.rs', 10, 'user_input', 'src/db.rs', 20, 'sql_query', 89, 0)", []).unwrap();
+    drift_db.execute("INSERT INTO call_edges (caller_id, callee_id, resolution, confidence, call_site_line) VALUES (1, 2, 'import', 0.9, 10)", []).unwrap();
+    drift_db.execute("INSERT INTO call_edges (caller_id, callee_id, resolution, confidence, call_site_line) VALUES (2, 3, 'fuzzy', 0.4, 20)", []).unwrap();
 
     let ctx = EvidenceContext {
         pattern_id: Some("p1".to_string()),
         constraint_id: Some("c1".to_string()),
         module_path: Some("src/main.rs".to_string()),
         project: Some("myproject".to_string()),
-        decision_id: Some("d1".to_string()),
-        boundary_id: Some("b1".to_string()),
+        decision_id: Some("1".to_string()),
+        boundary_id: Some("1".to_string()),
+        file_path: Some("src/main.rs".to_string()),
         current_confidence: 0.7,
+        ..Default::default()
     };
 
     let mut found_types = HashSet::new();
@@ -506,7 +578,7 @@ fn evidence_collect_all_10_types_from_populated_drift_db() {
                 "Support score must be in [0,1] for {:?}", et);
         }
     }
-    assert_eq!(found_types.len(), 10, "All 10 evidence types should have data, got {}: {:?}", found_types.len(), found_types);
+    assert_eq!(found_types.len(), 12, "All 12 evidence types should have data, got {}: {:?}", found_types.len(), found_types);
 }
 
 #[test]
@@ -531,6 +603,7 @@ fn evidence_missing_row_returns_none() {
         decision_id: Some("nonexistent".to_string()),
         boundary_id: Some("nonexistent".to_string()),
         current_confidence: 0.5,
+        ..Default::default()
     };
 
     for et in EvidenceType::ALL {
@@ -613,9 +686,9 @@ fn cortex_query_store_and_get_by_id() {
         upstream_modules: vec![],
         data_sources: vec![],
     };
-    let memory_id = events::on_spec_corrected(&correction, &engine, Some(&db)).unwrap();
+    let memory_id = events::on_spec_corrected(&correction, &engine, Some(&db as &dyn cortex_drift_bridge::traits::IBridgeStorage)).unwrap();
 
-    let row = cortex_queries::get_memory_by_id(&db, &memory_id).unwrap();
+    let row = db.with_reader(|conn| cortex_queries::get_memory_by_id(conn, &memory_id)).unwrap();
     assert!(row.is_some(), "Stored memory should be retrievable by ID");
     let row = row.unwrap();
     assert_eq!(row.id, memory_id);
@@ -638,10 +711,10 @@ fn cortex_query_get_by_type() {
             upstream_modules: vec![],
             data_sources: vec![],
         };
-        events::on_spec_corrected(&correction, &engine, Some(&db)).unwrap();
+        events::on_spec_corrected(&correction, &engine, Some(&db as &dyn cortex_drift_bridge::traits::IBridgeStorage)).unwrap();
     }
 
-    let rows = cortex_queries::get_memories_by_type(&db, "Feedback", 10).unwrap();
+    let rows = db.with_reader(|conn| cortex_queries::get_memories_by_type(conn, "Feedback", 10)).unwrap();
     assert_eq!(rows.len(), 2, "Should find 2 Feedback memories");
 }
 
@@ -658,16 +731,16 @@ fn cortex_query_get_by_tag() {
         upstream_modules: vec![],
         data_sources: vec![],
     };
-    events::on_spec_corrected(&correction, &engine, Some(&db)).unwrap();
+    events::on_spec_corrected(&correction, &engine, Some(&db as &dyn cortex_drift_bridge::traits::IBridgeStorage)).unwrap();
 
-    let rows = cortex_queries::get_memories_by_tag(&db, "module:auth_module", 10).unwrap();
+    let rows = db.with_reader(|conn| cortex_queries::get_memories_by_tag(conn, "module:auth_module", 10)).unwrap();
     assert_eq!(rows.len(), 1, "Should find memory by module tag");
 }
 
 #[test]
 fn cortex_query_count_memories() {
     let db = setup_bridge_db();
-    assert_eq!(cortex_queries::count_memories(&db).unwrap(), 0);
+    assert_eq!(db.with_reader(cortex_queries::count_memories).unwrap(), 0);
 
     let engine = CausalEngine::new();
     let correction = SpecCorrection {
@@ -678,15 +751,15 @@ fn cortex_query_count_memories() {
         upstream_modules: vec![],
         data_sources: vec![],
     };
-    events::on_spec_corrected(&correction, &engine, Some(&db)).unwrap();
+    events::on_spec_corrected(&correction, &engine, Some(&db as &dyn cortex_drift_bridge::traits::IBridgeStorage)).unwrap();
 
-    assert_eq!(cortex_queries::count_memories(&db).unwrap(), 1);
+    assert_eq!(db.with_reader(cortex_queries::count_memories).unwrap(), 1);
 }
 
 #[test]
 fn cortex_query_nonexistent_id_returns_none() {
     let db = setup_bridge_db();
-    let row = cortex_queries::get_memory_by_id(&db, "does-not-exist").unwrap();
+    let row = db.with_reader(|conn| cortex_queries::get_memory_by_id(conn, "does-not-exist")).unwrap();
     assert!(row.is_none());
 }
 
@@ -716,10 +789,10 @@ fn grounding_history_ordering_newest_first() {
             decision_evidence: None,
             boundary_data: None,
         evidence_context: None,        };
-        runner.ground_single(&memory, None, Some(&db)).unwrap();
+        runner.ground_single(&memory, None, Some(&db as &dyn cortex_drift_bridge::traits::IBridgeStorage)).unwrap();
     }
 
-    let history = storage::tables::get_grounding_history(&db, "mem1", 10).unwrap();
+    let history = db.get_grounding_history("mem1", 10).unwrap();
     assert_eq!(history.len(), 3, "All 3 grounding records should be retrievable");
 }
 
@@ -744,12 +817,12 @@ fn grounding_delta_chain_computed_correctly() {
         decision_evidence: None,
         boundary_data: None,
         evidence_context: None,    };
-    let result1 = runner.ground_single(&memory, None, Some(&db)).unwrap();
+    let result1 = runner.ground_single(&memory, None, Some(&db as &dyn cortex_drift_bridge::traits::IBridgeStorage)).unwrap();
     assert!(result1.previous_score.is_none(), "First grounding should have no previous score");
     assert!(result1.score_delta.is_none(), "First grounding should have no delta");
 
     // Second grounding — should have previous score
-    let result2 = runner.ground_single(&memory, None, Some(&db)).unwrap();
+    let result2 = runner.ground_single(&memory, None, Some(&db as &dyn cortex_drift_bridge::traits::IBridgeStorage)).unwrap();
     assert!(result2.previous_score.is_some(), "Second grounding should have previous score");
     assert!(result2.score_delta.is_some(), "Second grounding should have delta");
     let delta = result2.score_delta.unwrap();
@@ -777,11 +850,11 @@ fn spec_correction_creates_memory_and_causal_edge() {
         data_sources: vec![],
     };
 
-    let memory_id = events::on_spec_corrected(&correction, &engine, Some(&db)).unwrap();
+    let memory_id = events::on_spec_corrected(&correction, &engine, Some(&db as &dyn cortex_drift_bridge::traits::IBridgeStorage)).unwrap();
     assert!(!memory_id.is_empty());
 
     // Memory should be persisted
-    let row = cortex_queries::get_memory_by_id(&db, &memory_id).unwrap();
+    let row = db.with_reader(|conn| cortex_queries::get_memory_by_id(conn, &memory_id)).unwrap();
     assert!(row.is_some());
     let row = row.unwrap();
     assert!(row.tags.contains("spec_correction"));
@@ -816,7 +889,7 @@ fn contract_verified_pass_creates_memory() {
     )
     .unwrap();
 
-    let row = cortex_queries::get_memory_by_id(&db, &memory_id).unwrap().unwrap();
+    let row = db.with_reader(|conn| cortex_queries::get_memory_by_id(conn, &memory_id)).unwrap().unwrap();
     assert!(row.tags.contains("result:pass"));
     assert_eq!(row.importance, "Normal");
 }
@@ -834,7 +907,7 @@ fn contract_verified_fail_creates_memory_with_higher_importance() {
     )
     .unwrap();
 
-    let row = cortex_queries::get_memory_by_id(&db, &memory_id).unwrap().unwrap();
+    let row = db.with_reader(|conn| cortex_queries::get_memory_by_id(conn, &memory_id)).unwrap().unwrap();
     assert!(row.tags.contains("result:fail"));
     assert_eq!(row.importance, "High");
 }
@@ -863,7 +936,7 @@ fn decomposition_adjusted_creates_memory_with_dna_tag() {
     )
     .unwrap();
 
-    let row = cortex_queries::get_memory_by_id(&db, &memory_id).unwrap().unwrap();
+    let row = db.with_reader(|conn| cortex_queries::get_memory_by_id(conn, &memory_id)).unwrap().unwrap();
     assert!(row.tags.contains("dna:abc123def"));
     assert!(row.tags.contains("module:user_service"));
     assert_eq!(row.memory_type, "DecisionContext");
@@ -1041,9 +1114,9 @@ fn retention_deletes_old_event_log_entries() {
     )
     .unwrap();
     // Insert a recent event
-    storage::log_event(&db, "recent_event", None, None, None).unwrap();
+    db.insert_event("recent_event", None, None, None).unwrap();
 
-    retention::apply_retention(&db, true).unwrap();
+    db.with_writer(|conn| retention::apply_retention(conn, true)).unwrap();
 
     let count: i64 = db
         .query_row("SELECT COUNT(*) FROM bridge_event_log", [], |row| row.get(0))
@@ -1063,7 +1136,7 @@ fn retention_preserves_schema_version_metric() {
     )
     .unwrap();
 
-    retention::apply_retention(&db, true).unwrap();
+    db.with_writer(|conn| retention::apply_retention(conn, true)).unwrap();
 
     let count: i64 = db
         .query_row(
@@ -1095,7 +1168,7 @@ fn retention_community_deletes_old_grounding_results() {
     )
     .unwrap();
 
-    retention::apply_retention(&db, true).unwrap();
+    db.with_writer(|conn| retention::apply_retention(conn, true)).unwrap();
 
     let count: i64 = db
         .query_row("SELECT COUNT(*) FROM bridge_grounding_results", [], |row| row.get(0))
@@ -1115,7 +1188,7 @@ fn retention_enterprise_preserves_old_grounding_results() {
     )
     .unwrap();
 
-    retention::apply_retention(&db, false).unwrap(); // Enterprise = false
+    db.with_writer(|conn| retention::apply_retention(conn, false)).unwrap(); // Enterprise = false
 
     let count: i64 = db
         .query_row("SELECT COUNT(*) FROM bridge_grounding_results", [], |row| row.get(0))
@@ -1189,7 +1262,7 @@ fn napi_bridge_ground_all_returns_snapshot_shape() {
 #[test]
 fn napi_bridge_grounding_history_returns_shape() {
     let db = setup_bridge_db();
-    let result = functions::bridge_grounding_history("nonexistent", 10, &db).unwrap();
+    let result = functions::bridge_grounding_history("nonexistent", 10, &db as &dyn cortex_drift_bridge::traits::IBridgeStorage).unwrap();
     assert!(result["memory_id"].is_string());
     assert!(result["history"].is_array());
     assert_eq!(result["history"].as_array().unwrap().len(), 0);
@@ -1281,11 +1354,11 @@ fn napi_bridge_explain_spec_shape() {
 }
 
 // ============================================================================
-// SECTION 11: GROUNDING WITH ALL 10 EVIDENCE TYPES
+// SECTION 11: GROUNDING WITH ALL 10 PRE-POPULATED EVIDENCE TYPES
 // ============================================================================
 
 #[test]
-fn grounding_loop_with_all_10_evidence_types_populated() {
+fn grounding_loop_with_all_10_prepopulated_evidence_types() {
     let db = setup_bridge_db();
     let runner = GroundingLoopRunner::default();
 
@@ -1305,8 +1378,9 @@ fn grounding_loop_with_all_10_evidence_types_populated() {
         boundary_data: Some(0.6),
         evidence_context: None,    };
 
-    let result = runner.ground_single(&memory, None, Some(&db)).unwrap();
-    assert_eq!(result.evidence.len(), 10, "All 10 evidence types should be present");
+    let result = runner.ground_single(&memory, None, Some(&db as &dyn cortex_drift_bridge::traits::IBridgeStorage)).unwrap();
+    // Pre-populated MemoryForGrounding has 10 fields (no taint/call_graph pre-populated)
+    assert_eq!(result.evidence.len(), 10, "All 10 pre-populated evidence types should be present");
     assert!(result.grounding_score > 0.0);
     // With all high-quality evidence, should be Validated
     assert_eq!(
@@ -1357,8 +1431,7 @@ fn concurrent_event_handlers_no_panic() {
     use std::thread;
 
     let db = setup_bridge_db();
-    let handler = Arc::new(BridgeEventHandler::new(
-        Some(Mutex::new(db)),
+    let handler = Arc::new(BridgeEventHandler::new(Some(std::sync::Arc::new(db) as std::sync::Arc<dyn cortex_drift_bridge::traits::IBridgeStorage>),
         LicenseTier::Enterprise,
     ));
 

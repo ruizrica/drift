@@ -119,7 +119,7 @@ fn test_taint_sanitized_path_not_vulnerability() {
     let sanitized: Vec<_> = flows.iter().filter(|f| f.is_sanitized).collect();
     // At least some flows should be sanitized
     if !flows.is_empty() {
-        assert!(sanitized.len() > 0 || flows.iter().all(|f| f.confidence < 0.5),
+        assert!(!sanitized.is_empty() || flows.iter().all(|f| f.confidence < 0.5),
             "Expected sanitized flows or low-confidence flows");
     }
 }

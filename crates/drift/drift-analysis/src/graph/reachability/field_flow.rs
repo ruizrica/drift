@@ -3,7 +3,7 @@
 //! Tracks how specific fields (e.g., `user.email`) flow through the call graph,
 //! preserving field identity at each hop.
 
-use drift_core::types::collections::{FxHashMap, FxHashSet};
+use drift_core::types::collections::FxHashSet;
 use petgraph::graph::NodeIndex;
 use serde::{Deserialize, Serialize};
 

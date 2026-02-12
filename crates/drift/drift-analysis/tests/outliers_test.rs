@@ -1,3 +1,4 @@
+#![allow(unused_imports, unused_variables)]
 //! Phase 3 Outlier Tests — T3-OUT-01 through T3-OUT-11.
 
 use drift_analysis::patterns::outliers::types::{

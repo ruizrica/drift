@@ -1,3 +1,4 @@
+#![allow(clippy::len_zero)]
 //! Phase 8 reporter tests — T8-RPT-01 through T8-RPT-07.
 //!
 //! Tests all 8 reporter formats: SARIF, JSON, console, GitHub Code Quality,
@@ -106,13 +107,13 @@ fn t8_rpt_01_all_reporters_produce_valid_output() {
     let output = sarif.generate(&results).unwrap();
     let parsed: serde_json::Value = serde_json::from_str(&output).unwrap();
     assert_eq!(parsed["version"], "2.1.0");
-    assert!(parsed["runs"][0]["results"].as_array().unwrap().len() > 0);
+    assert!(!parsed["runs"][0]["results"].as_array().unwrap().is_empty());
 
     // JSON
     let json = json::JsonReporter;
     let output = json.generate(&results).unwrap();
     let parsed: serde_json::Value = serde_json::from_str(&output).unwrap();
-    assert!(parsed["gates"].as_array().unwrap().len() > 0);
+    assert!(!parsed["gates"].as_array().unwrap().is_empty());
 
     // Console
     let console = console::ConsoleReporter::new(false);
@@ -124,13 +125,13 @@ fn t8_rpt_01_all_reporters_produce_valid_output() {
     let github = github::GitHubCodeQualityReporter::new();
     let output = github.generate(&results).unwrap();
     let parsed: serde_json::Value = serde_json::from_str(&output).unwrap();
-    assert!(parsed.as_array().unwrap().len() > 0);
+    assert!(!parsed.as_array().unwrap().is_empty());
 
     // GitLab Code Quality
     let gitlab = gitlab::GitLabCodeQualityReporter::new();
     let output = gitlab.generate(&results).unwrap();
     let parsed: serde_json::Value = serde_json::from_str(&output).unwrap();
-    assert!(parsed.as_array().unwrap().len() > 0);
+    assert!(!parsed.as_array().unwrap().is_empty());
 
     // JUnit XML
     let junit = junit::JUnitReporter::new();
@@ -149,7 +150,7 @@ fn t8_rpt_01_all_reporters_produce_valid_output() {
     let sonarqube = sonarqube::SonarQubeReporter::new();
     let output = sonarqube.generate(&results).unwrap();
     let parsed: serde_json::Value = serde_json::from_str(&output).unwrap();
-    assert!(parsed["issues"].as_array().unwrap().len() > 0);
+    assert!(!parsed["issues"].as_array().unwrap().is_empty());
 }
 
 // T8-RPT-02: Validate GitHub Code Quality format

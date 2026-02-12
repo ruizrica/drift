@@ -1,3 +1,4 @@
+#![allow(dead_code, unused_imports, clippy::field_reassign_with_default)]
 //! Engine tests — T2-UAE-01 through T2-UAE-15.
 //!
 //! Tests for the Unified Analysis Engine: 4-phase pipeline, GAST normalization,
@@ -169,7 +170,7 @@ class UserService {
 
     // Verify all 4 phases ran
     assert!(
-        result.phase_times_us.iter().all(|&t| t >= 0),
+        !result.phase_times_us.is_empty(),
         "all 4 phase times should be recorded"
     );
     assert!(
@@ -645,7 +646,8 @@ fn t2_uae_10_registry_50_visitors() {
     // Should complete without error — all 50 handlers fire
     let matches = engine.run(&tree, &bytes, &ctx);
     // No matches expected from counting handlers, but no panic either
-    assert!(matches.is_empty() || matches.len() >= 0);
+    // Validates engine completes without panic
+    let _ = matches;
 }
 
 // ---- T2-UAE-11: String extraction handles template literals ----

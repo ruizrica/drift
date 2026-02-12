@@ -11,6 +11,7 @@ use cortex_core::memory::types::FeedbackContent;
 
 use super::{GroundingResult, GroundingVerdict};
 use crate::errors::BridgeResult;
+use crate::traits::IBridgeStorage;
 
 /// Generate a contradiction memory from a grounding result.
 ///
@@ -18,7 +19,7 @@ use crate::errors::BridgeResult;
 /// if the grounding result does not warrant a contradiction.
 pub fn generate_contradiction(
     grounding_result: &GroundingResult,
-    bridge_db: Option<&rusqlite::Connection>,
+    bridge_store: Option<&dyn IBridgeStorage>,
 ) -> BridgeResult<Option<String>> {
     if !grounding_result.generates_contradiction {
         return Ok(None);
@@ -89,8 +90,8 @@ pub fn generate_contradiction(
         source_agent: Default::default(),
     };
 
-    if let Some(db) = bridge_db {
-        crate::storage::store_memory(db, &memory)?;
+    if let Some(store) = bridge_store {
+        store.insert_memory(&memory)?;
     }
 
     tracing::info!(

@@ -1,3 +1,4 @@
+#![allow(unused_imports, clippy::useless_vec)]
 //! Boundary Detection tests — T2-BND-01 through T2-BND-06.
 //!
 //! Tests for boundary detection: ORM framework detection, sensitive field detection,

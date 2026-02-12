@@ -1,3 +1,4 @@
+#![allow(clippy::field_reassign_with_default, unused_imports)]
 //! Phase 5 coupling analysis tests (T5-CPL-01 through T5-CPL-07).
 
 use drift_analysis::structural::coupling::types::*;

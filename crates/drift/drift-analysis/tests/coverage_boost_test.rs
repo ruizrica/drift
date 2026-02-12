@@ -1,3 +1,4 @@
+#![allow(clippy::len_zero)]
 //! Coverage boost tests — exercise GAST normalizers for all 9 languages,
 //! incremental analyzer, N+1 detection, and other low-coverage modules.
 //! These tests exist to push tarpaulin coverage above the 80% threshold.

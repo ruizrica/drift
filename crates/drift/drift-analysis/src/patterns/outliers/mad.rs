@@ -115,8 +115,8 @@ mod tests {
     fn test_mad_robust_to_many_outliers() {
         // 60% normal, 40% outliers — MAD should still work
         let mut values: Vec<f64> = vec![10.0; 30];
-        for i in 0..12 {
-            values[i] = 100.0;
+        for v in values.iter_mut().take(12) {
+            *v = 100.0;
         }
         let results = detect(&values, 3.5);
         // MAD uses median, so the 60% majority defines "normal"

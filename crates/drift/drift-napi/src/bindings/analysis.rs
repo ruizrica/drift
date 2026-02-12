@@ -3,6 +3,8 @@
 use napi_derive::napi;
 use serde::{Deserialize, Serialize};
 
+use rayon::prelude::*;
+
 use crate::conversions::error_codes;
 use crate::runtime;
 
@@ -79,18 +81,23 @@ fn storage_err(e: impl std::fmt::Display) -> napi::Error {
     napi::Error::from_reason(format!("[{}] {e}", error_codes::STORAGE_ERROR))
 }
 
-/// Run the full analysis pipeline on the project.
+/// Run the analysis pipeline on the project.
 ///
-/// Orchestrates: read tracked files → parse → detect → persist detections →
-/// run pattern intelligence (with feedback store) → persist patterns.
+/// Orchestrates in phases:
+///   Phase 1: read tracked files → parse → detect → persist detections + functions
+///   Phase 2: cross-file analysis (boundaries, call graph)
+///   Phase 3: pattern intelligence + structural (coupling, wrappers, crypto, DNA, etc.)
+///   Phase 4: graph intelligence (taint, errors, impact, test topology, reachability)
+///   Phase 5: enforcement (quality gates, violations, degradation alerts)
 ///
-/// Returns analysis results for all files.
-#[napi]
-pub async fn drift_analyze() -> napi::Result<Vec<JsAnalysisResult>> {
+/// @param max_phase - Stop after this phase (1-5). Default: 5 (all phases).
+#[napi(js_name = "driftAnalyze")]
+pub async fn drift_analyze(max_phase: Option<u32>) -> napi::Result<Vec<JsAnalysisResult>> {
+    let max_phase = max_phase.unwrap_or(5).clamp(1, 5);
     let rt = runtime::get()?;
 
     // Step 1: Read tracked files from file_metadata
-    let files = rt.db.with_reader(|conn| {
+    let files = rt.storage.with_reader(|conn| {
         drift_storage::queries::files::load_all_file_metadata(conn)
     }).map_err(storage_err)?;
 
@@ -107,11 +114,37 @@ pub async fn drift_analyze() -> napi::Result<Vec<JsAnalysisResult>> {
         detection_engine,
     );
 
+    // Step 2a: Load framework packs (built-in + custom from .drift/frameworks/)
+    let fw_load_timer = std::time::Instant::now();
+    let framework_registry = {
+        let custom_dir = rt.project_root.as_ref()
+            .map(|p| p.join(".drift").join("frameworks"));
+        match custom_dir {
+            Some(ref dir) if dir.is_dir() => {
+                drift_analysis::frameworks::registry::FrameworkPackRegistry::with_builtins_and_custom(dir)
+            }
+            _ => drift_analysis::frameworks::registry::FrameworkPackRegistry::with_builtins(),
+        }
+    };
+    let framework_packs = framework_registry.into_packs();
+    let framework_packs_for_learner = framework_packs.clone();
+    let mut framework_matcher = drift_analysis::frameworks::FrameworkMatcher::new(framework_packs);
+    let mut framework_learner = drift_analysis::frameworks::FrameworkLearner::new(framework_packs_for_learner);
+    eprintln!(
+        "[drift-analyze] framework packs loaded: {} packs, {} patterns",
+        framework_matcher.pack_count(),
+        framework_matcher.pattern_count(),
+    );
+    eprintln!("[drift-analyze] 2a (framework load): {:?}", fw_load_timer.elapsed());
+
     let mut all_results: Vec<JsAnalysisResult> = Vec::new();
     let mut all_matches: Vec<drift_analysis::engine::types::PatternMatch> = Vec::new();
     let mut detection_rows: Vec<drift_storage::batch::commands::DetectionRow> = Vec::new();
     let mut function_rows: Vec<drift_storage::batch::commands::FunctionRow> = Vec::new();
     let mut all_parse_results: Vec<drift_analysis::parsers::ParseResult> = Vec::new();
+    // File content cache — read once in Phase 1, reused in Phase 3+ sub-steps.
+    // Eliminates ~15,000 redundant disk reads (9 sub-steps × 1700 files).
+    let mut file_contents: std::collections::HashMap<String, String> = std::collections::HashMap::new();
 
     let project_root = rt.project_root.as_deref();
 
@@ -137,7 +170,15 @@ pub async fn drift_analyze() -> napi::Result<Vec<JsAnalysisResult>> {
         // Read file from disk
         let source = match std::fs::read(&file_path) {
             Ok(s) => s,
-            Err(_) => continue, // File may have been deleted since scan
+            Err(e) => {
+                eprintln!(
+                    "[drift-analyze] warning: cannot read {}: {} (project_root={:?})",
+                    file_path.display(),
+                    e,
+                    project_root,
+                );
+                continue;
+            }
         };
 
         // Single parse: get both ParseResult and tree-sitter Tree
@@ -154,6 +195,22 @@ pub async fn drift_analyze() -> napi::Result<Vec<JsAnalysisResult>> {
             &tree,
             &mut resolution_index,
         );
+
+        // Run framework pattern matcher + learner on this file's ParseResult
+        {
+            use drift_analysis::engine::visitor::{FileDetectorHandler, LearningDetectorHandler};
+            let ctx = drift_analysis::engine::visitor::DetectionContext::from_parse_result(
+                &parse_result, &source,
+            );
+            framework_matcher.analyze_file(&ctx);
+            framework_learner.learn(&ctx);
+        }
+
+        // Cache file content for reuse in learning detect pass and Phase 3+ structural sub-steps
+        // (eliminates ~15,000 redundant disk reads: 9 sub-steps × N files)
+        if let Ok(s) = String::from_utf8(source.clone()) {
+            file_contents.insert(parse_result.file.clone(), s);
+        }
 
         // Collect parse results for cross-file analyses (boundaries, call graph)
         all_parse_results.push(parse_result.clone());
@@ -199,8 +256,8 @@ pub async fn drift_analyze() -> napi::Result<Vec<JsAnalysisResult>> {
             });
         }
 
-        // Build JS result
-        let js_matches: Vec<JsPatternMatch> = result
+        // Build JS result — include both AST visitor matches AND framework matches for this file
+        let mut js_matches: Vec<JsPatternMatch> = result
             .matches
             .iter()
             .map(|m| JsPatternMatch {
@@ -217,6 +274,22 @@ pub async fn drift_analyze() -> napi::Result<Vec<JsAnalysisResult>> {
             })
             .collect();
 
+        // FW-JSRES-02: Include framework matches for this file in JsAnalysisResult
+        for m in framework_matcher.last_file_results() {
+            js_matches.push(JsPatternMatch {
+                file: m.file.clone(),
+                line: m.line,
+                column: m.column,
+                pattern_id: m.pattern_id.clone(),
+                confidence: m.confidence as f64,
+                category: format!("{:?}", m.category),
+                detection_method: format!("{:?}", m.detection_method),
+                matched_text: m.matched_text.clone(),
+                cwe_ids: m.cwe_ids.to_vec(),
+                owasp: m.owasp.clone(),
+            });
+        }
+
         all_results.push(JsAnalysisResult {
             file: file_meta.path.clone(),
             language: lang.name().to_string(),
@@ -225,16 +298,94 @@ pub async fn drift_analyze() -> napi::Result<Vec<JsAnalysisResult>> {
         });
     }
 
+    // Step 2c: Framework learning — detect convention deviations
+    let fw_learn_timer = std::time::Instant::now();
+    {
+        use drift_analysis::engine::visitor::LearningDetectorHandler;
+        for pr in &all_parse_results {
+            if let Some(content) = file_contents.get(&pr.file) {
+                let source = content.as_bytes();
+                let ctx = drift_analysis::engine::visitor::DetectionContext::from_parse_result(pr, source);
+                framework_learner.detect(&ctx);
+            }
+        }
+        let learning_matches = framework_learner.results();
+        if !learning_matches.is_empty() {
+            eprintln!("[drift-analyze] framework learning deviations: {} hits", learning_matches.len());
+            for m in &learning_matches {
+                detection_rows.push(drift_storage::batch::commands::DetectionRow {
+                    file: m.file.clone(),
+                    line: m.line as i64,
+                    column_num: m.column as i64,
+                    pattern_id: m.pattern_id.clone(),
+                    category: format!("{:?}", m.category),
+                    confidence: m.confidence as f64,
+                    detection_method: format!("{:?}", m.detection_method),
+                    cwe_ids: if m.cwe_ids.is_empty() {
+                        None
+                    } else {
+                        Some(m.cwe_ids.iter().map(|c| c.to_string()).collect::<Vec<_>>().join(","))
+                    },
+                    owasp: m.owasp.clone(),
+                    matched_text: Some(m.matched_text.clone()),
+                });
+            }
+            all_matches.extend(learning_matches);
+        }
+    }
+    eprintln!("[drift-analyze] 2c (framework learn): {:?}", fw_learn_timer.elapsed());
+
+    // Step 2b: Collect framework matcher results and merge into all_matches
+    let fw_match_timer = std::time::Instant::now();
+    {
+        use drift_analysis::engine::visitor::FileDetectorHandler;
+        let framework_matches = framework_matcher.results();
+        if !framework_matches.is_empty() {
+            eprintln!(
+                "[drift-analyze] framework patterns matched: {} hits",
+                framework_matches.len(),
+            );
+            for m in &framework_matches {
+                detection_rows.push(drift_storage::batch::commands::DetectionRow {
+                    file: m.file.clone(),
+                    line: m.line as i64,
+                    column_num: m.column as i64,
+                    pattern_id: m.pattern_id.clone(),
+                    category: format!("{:?}", m.category),
+                    confidence: m.confidence as f64,
+                    detection_method: format!("{:?}", m.detection_method),
+                    cwe_ids: if m.cwe_ids.is_empty() {
+                        None
+                    } else {
+                        Some(m.cwe_ids.iter().map(|c| c.to_string()).collect::<Vec<_>>().join(","))
+                    },
+                    owasp: m.owasp.clone(),
+                    matched_text: Some(m.matched_text.clone()),
+                });
+            }
+            all_matches.extend(framework_matches);
+        }
+    }
+    eprintln!("[drift-analyze] 2b (framework match): {:?}", fw_match_timer.elapsed());
+
     // Step 3: Persist detections and functions via BatchWriter
     if !detection_rows.is_empty() {
-        rt.batch_writer.send(
+        rt.storage.send_batch(
             drift_storage::batch::commands::BatchCommand::InsertDetections(detection_rows),
         ).map_err(storage_err)?;
     }
     if !function_rows.is_empty() {
-        rt.batch_writer.send(
+        rt.storage.send_batch(
             drift_storage::batch::commands::BatchCommand::InsertFunctions(function_rows),
         ).map_err(storage_err)?;
+    }
+
+    // Flush phase 1 results before continuing
+    rt.storage.flush_batch_sync().map_err(storage_err)?;
+
+    // ── Phase 1 complete: parse + detect ──
+    if max_phase < 2 {
+        return Ok(all_results);
     }
 
     // Step 3b: Run cross-file analyses (boundary detection, call graph)
@@ -270,9 +421,26 @@ pub async fn drift_analyze() -> napi::Result<Vec<JsAnalysisResult>> {
             }
 
             if !boundary_rows.is_empty() {
-                rt.batch_writer.send(
+                rt.storage.send_batch(
                     drift_storage::batch::commands::BatchCommand::InsertBoundaries(boundary_rows),
                 ).map_err(storage_err)?;
+            }
+
+            // BW-EVT-04: Fire on_boundary_discovered for each detected boundary model
+            {
+                use drift_core::events::types::BoundaryDiscoveredEvent;
+                if let Ok(mut dedup) = rt.bridge_deduplicator.lock() {
+                    for model in &boundary_result.models {
+                        let entity_id = format!("{}:{}", model.file, model.name);
+                        if !dedup.is_duplicate("on_boundary_discovered", &entity_id, "") {
+                            rt.dispatcher.emit_boundary_discovered(&BoundaryDiscoveredEvent {
+                                boundary_id: entity_id,
+                                orm: format!("{:?}", model.framework),
+                                model: model.name.clone(),
+                            });
+                        }
+                    }
+                }
             }
         }
 
@@ -296,13 +464,20 @@ pub async fn drift_analyze() -> napi::Result<Vec<JsAnalysisResult>> {
                 .collect();
 
             if !call_edge_rows.is_empty() {
-                rt.batch_writer.send(
+                rt.storage.send_batch(
                     drift_storage::batch::commands::BatchCommand::InsertCallEdges(call_edge_rows),
                 ).map_err(storage_err)?;
             }
         }
     }
 
+    // ── Phase 2 complete: cross-file analysis ──
+    if max_phase < 3 {
+        rt.storage.flush_batch_sync().map_err(storage_err)?;
+        return Ok(all_results);
+    }
+
+    let phase_timer = std::time::Instant::now();
     // Step 4: Run pattern intelligence pipeline (with feedback store for closed-loop)
     if !all_matches.is_empty() {
         let feedback_store = crate::feedback_store::DbFeedbackStore::new(rt.clone());
@@ -334,7 +509,7 @@ pub async fn drift_analyze() -> napi::Result<Vec<JsAnalysisResult>> {
             .collect();
 
         if !confidence_rows.is_empty() {
-            rt.batch_writer.send(
+            rt.storage.send_batch(
                 drift_storage::batch::commands::BatchCommand::InsertPatternConfidence(confidence_rows),
             ).map_err(storage_err)?;
         }
@@ -366,7 +541,7 @@ pub async fn drift_analyze() -> napi::Result<Vec<JsAnalysisResult>> {
             }
         }
         if !outlier_rows.is_empty() {
-            rt.batch_writer.send(
+            rt.storage.send_batch(
                 drift_storage::batch::commands::BatchCommand::InsertOutliers(outlier_rows),
             ).map_err(storage_err)?;
         }
@@ -388,11 +563,33 @@ pub async fn drift_analyze() -> napi::Result<Vec<JsAnalysisResult>> {
             .collect();
 
         if !convention_rows.is_empty() {
-            rt.batch_writer.send(
+            rt.storage.send_batch(
                 drift_storage::batch::commands::BatchCommand::InsertConventions(convention_rows),
             ).map_err(storage_err)?;
         }
     }
+
+    // BW-EVT-03: Fire on_pattern_discovered for each unique pattern
+    {
+        use drift_core::events::types::PatternDiscoveredEvent;
+        let mut seen_patterns = std::collections::HashSet::new();
+        if let Ok(mut dedup) = rt.bridge_deduplicator.lock() {
+            for m in &all_matches {
+                if seen_patterns.insert(m.pattern_id.clone())
+                    && !dedup.is_duplicate("on_pattern_discovered", &m.pattern_id, "")
+                {
+                    rt.dispatcher.emit_pattern_discovered(&PatternDiscoveredEvent {
+                        pattern_id: m.pattern_id.clone(),
+                        category: format!("{:?}", m.category),
+                        confidence: m.confidence as f64,
+                    });
+                }
+            }
+        }
+    }
+
+    eprintln!("[drift-analyze] step 4 (pattern intelligence): {:?}", phase_timer.elapsed());
+    let step_timer = std::time::Instant::now();
 
     // Step 5: Structural analysis — coupling, wrappers, crypto, constraints
     if !all_parse_results.is_empty() {
@@ -414,7 +611,7 @@ pub async fn drift_analyze() -> napi::Result<Vec<JsAnalysisResult>> {
             })
             .collect();
         if !coupling_rows.is_empty() {
-            rt.batch_writer.send(
+            rt.storage.send_batch(
                 drift_storage::batch::commands::BatchCommand::InsertCouplingMetrics(coupling_rows),
             ).map_err(storage_err)?;
         }
@@ -428,21 +625,24 @@ pub async fn drift_analyze() -> napi::Result<Vec<JsAnalysisResult>> {
             })
             .collect();
         if !cycle_rows.is_empty() {
-            rt.batch_writer.send(
+            rt.storage.send_batch(
                 drift_storage::batch::commands::BatchCommand::InsertCouplingCycles(cycle_rows),
             ).map_err(storage_err)?;
         }
 
-        // 5b: Wrapper detection → wrappers table
+        eprintln!("[drift-analyze] 5a (coupling): {:?}", step_timer.elapsed());
+        let step_timer = std::time::Instant::now();
+
+        // 5b: Wrapper detection → wrappers table (parallel)
         let wrapper_detector = drift_analysis::structural::wrappers::WrapperDetector::new();
-        let mut wrapper_rows: Vec<drift_storage::batch::commands::WrapperInsertRow> = Vec::new();
-        for pr in &all_parse_results {
-            if let Ok(content) = std::fs::read_to_string(&pr.file) {
-                let wrappers = wrapper_detector.detect(&content, &pr.file);
-                for w in &wrappers {
-                    let confidence = drift_analysis::structural::wrappers::confidence::compute_confidence(w, &content);
+        let wrapper_rows: Vec<drift_storage::batch::commands::WrapperInsertRow> = all_parse_results.par_iter()
+            .filter_map(|pr| file_contents.get(&pr.file).map(|c| (pr, c)))
+            .flat_map(|(pr, content)| {
+                let wrappers = wrapper_detector.detect(content, &pr.file);
+                wrappers.iter().map(|w| {
+                    let confidence = drift_analysis::structural::wrappers::confidence::compute_confidence(w, content);
                     let multi = drift_analysis::structural::wrappers::multi_primitive::analyze_multi_primitive(w);
-                    wrapper_rows.push(drift_storage::batch::commands::WrapperInsertRow {
+                    drift_storage::batch::commands::WrapperInsertRow {
                         name: w.name.clone(),
                         file: w.file.clone(),
                         line: w.line,
@@ -453,26 +653,29 @@ pub async fn drift_analyze() -> napi::Result<Vec<JsAnalysisResult>> {
                         is_multi_primitive: multi.is_composite,
                         is_exported: w.is_exported,
                         usage_count: w.usage_count,
-                    });
-                }
-            }
-        }
+                    }
+                }).collect::<Vec<_>>()
+            })
+            .collect();
         if !wrapper_rows.is_empty() {
-            rt.batch_writer.send(
+            rt.storage.send_batch(
                 drift_storage::batch::commands::BatchCommand::InsertWrappers(wrapper_rows),
             ).map_err(storage_err)?;
         }
 
-        // 5c: Crypto detection → crypto_findings table
+        eprintln!("[drift-analyze] 5b (wrappers): {:?}", step_timer.elapsed());
+        let step_timer = std::time::Instant::now();
+
+        // 5c: Crypto detection → crypto_findings table (parallel)
         let crypto_detector = drift_analysis::structural::crypto::CryptoDetector::new();
-        let mut crypto_rows: Vec<drift_storage::batch::commands::CryptoFindingInsertRow> = Vec::new();
-        for pr in &all_parse_results {
-            if let Ok(content) = std::fs::read_to_string(&pr.file) {
+        let crypto_rows: Vec<drift_storage::batch::commands::CryptoFindingInsertRow> = all_parse_results.par_iter()
+            .filter_map(|pr| file_contents.get(&pr.file).map(|c| (pr, c)))
+            .flat_map(|(pr, content)| {
                 let lang = format!("{:?}", pr.language).to_lowercase();
-                let mut findings = crypto_detector.detect(&content, &pr.file, &lang);
-                drift_analysis::structural::crypto::confidence::compute_confidence_batch(&mut findings, &content);
-                for f in &findings {
-                    crypto_rows.push(drift_storage::batch::commands::CryptoFindingInsertRow {
+                let mut findings = crypto_detector.detect(content, &pr.file, &lang);
+                drift_analysis::structural::crypto::confidence::compute_confidence_batch(&mut findings, content);
+                findings.iter().map(|f| {
+                    drift_storage::batch::commands::CryptoFindingInsertRow {
                         file: f.file.clone(),
                         line: f.line,
                         category: format!("{:?}", f.category),
@@ -483,31 +686,56 @@ pub async fn drift_analyze() -> napi::Result<Vec<JsAnalysisResult>> {
                         owasp: f.owasp.clone(),
                         remediation: f.remediation.clone(),
                         language: lang.clone(),
-                    });
-                }
-            }
-        }
+                    }
+                }).collect::<Vec<_>>()
+            })
+            .collect();
         if !crypto_rows.is_empty() {
-            rt.batch_writer.send(
+            rt.storage.send_batch(
                 drift_storage::batch::commands::BatchCommand::InsertCryptoFindings(crypto_rows),
             ).map_err(storage_err)?;
         }
 
+        eprintln!("[drift-analyze] 5c (crypto): {:?}", step_timer.elapsed());
+        let step_timer = std::time::Instant::now();
+
         // 5d: DNA profiling → dna_genes + dna_mutations tables
-        let dna_registry = drift_analysis::structural::dna::extractor::GeneExtractorRegistry::with_all_extractors();
         let mut all_gene_rows: Vec<drift_storage::batch::commands::DnaGeneInsertRow> = Vec::new();
         let mut all_mutation_rows: Vec<drift_storage::batch::commands::DnaMutationInsertRow> = Vec::new();
         let mut built_genes: Vec<drift_analysis::structural::dna::types::Gene> = Vec::new();
 
-        // Extract genes: run each extractor across all files, build gene from results
-        for extractor in dna_registry.extractors() {
-            let mut file_results = Vec::new();
-            for pr in &all_parse_results {
-                if let Ok(content) = std::fs::read_to_string(&pr.file) {
-                    let result = extractor.extract_from_file(&content, &pr.file);
-                    file_results.push(result);
-                }
+        // Language pre-filter: frontend extractors only run on JS/TS files (~324 vs 1707).
+        // Backend extractors run on all files. ~3-4x speedup for 6 of 10 extractors.
+        use drift_analysis::scanner::language_detect::Language as Lang;
+        let frontend_files: Vec<(&str, &str)> = all_parse_results.iter()
+            .filter(|pr| matches!(pr.language, Lang::TypeScript | Lang::JavaScript))
+            .filter_map(|pr| file_contents.get(&pr.file).map(|c| (c.as_str(), pr.file.as_str())))
+            .collect();
+        let all_files: Vec<(&str, &str)> = all_parse_results.iter()
+            .filter_map(|pr| file_contents.get(&pr.file).map(|c| (c.as_str(), pr.file.as_str())))
+            .collect();
+
+        // Frontend extractors (6): only on JS/TS files
+        for extractor in drift_analysis::structural::dna::extractors::create_frontend_extractors() {
+            let file_results = extractor.extract_batch(&frontend_files);
+            let gene = extractor.build_gene(&file_results);
+            if !gene.alleles.is_empty() {
+                all_gene_rows.push(drift_storage::batch::commands::DnaGeneInsertRow {
+                    gene_id: format!("{:?}", gene.id),
+                    name: gene.name.clone(),
+                    description: gene.description.clone(),
+                    dominant_allele: gene.dominant.as_ref().map(|a| a.name.clone()),
+                    alleles: serde_json::to_string(&gene.alleles).unwrap_or_default(),
+                    confidence: gene.confidence,
+                    consistency: gene.consistency,
+                    exemplars: serde_json::to_string(&gene.exemplars).unwrap_or_default(),
+                });
+                built_genes.push(gene);
             }
+        }
+        // Backend extractors (4): on all files
+        for extractor in drift_analysis::structural::dna::extractors::create_backend_extractors() {
+            let file_results = extractor.extract_batch(&all_files);
             let gene = extractor.build_gene(&file_results);
             if !gene.alleles.is_empty() {
                 all_gene_rows.push(drift_storage::batch::commands::DnaGeneInsertRow {
@@ -548,68 +776,78 @@ pub async fn drift_analyze() -> napi::Result<Vec<JsAnalysisResult>> {
         }
 
         if !all_gene_rows.is_empty() {
-            rt.batch_writer.send(
+            rt.storage.send_batch(
                 drift_storage::batch::commands::BatchCommand::InsertDnaGenes(all_gene_rows),
             ).map_err(storage_err)?;
         }
         if !all_mutation_rows.is_empty() {
-            rt.batch_writer.send(
+            rt.storage.send_batch(
                 drift_storage::batch::commands::BatchCommand::InsertDnaMutations(all_mutation_rows),
             ).map_err(storage_err)?;
         }
 
-        // 5e: Secrets detection → secrets table
-        let mut secret_rows: Vec<drift_storage::batch::commands::SecretInsertRow> = Vec::new();
-        for pr in &all_parse_results {
-            if let Ok(content) = std::fs::read_to_string(&pr.file) {
-                let secrets = drift_analysis::structural::constants::secrets::detect_secrets(&content, &pr.file);
-                for s in &secrets {
-                    secret_rows.push(drift_storage::batch::commands::SecretInsertRow {
-                        pattern_name: s.pattern_name.clone(),
-                        redacted_value: s.redacted_value.clone(),
-                        file: s.file.clone(),
+        eprintln!("[drift-analyze] 5d (dna): {:?}", step_timer.elapsed());
+        let step_timer = std::time::Instant::now();
+
+        // 5e: Secrets detection → secrets table (pre-compiled + parallel)
+        let secret_detector = drift_analysis::structural::constants::secrets::CompiledSecretDetector::new();
+        let secret_rows: Vec<drift_storage::batch::commands::SecretInsertRow> = all_parse_results.par_iter()
+            .filter_map(|pr| file_contents.get(&pr.file).map(|c| (pr, c)))
+            .flat_map(|(_pr, content)| {
+                let secrets = secret_detector.detect(content, &_pr.file);
+                secrets.into_iter().map(|s| {
+                    drift_storage::batch::commands::SecretInsertRow {
+                        pattern_name: s.pattern_name,
+                        redacted_value: s.redacted_value,
+                        file: s.file,
                         line: s.line,
                         severity: format!("{:?}", s.severity),
                         entropy: s.entropy,
                         confidence: s.confidence,
                         cwe_ids: serde_json::to_string(&s.cwe_ids).unwrap_or_default(),
-                    });
-                }
-            }
-        }
+                    }
+                }).collect::<Vec<_>>()
+            })
+            .collect();
         if !secret_rows.is_empty() {
-            rt.batch_writer.send(
+            rt.storage.send_batch(
                 drift_storage::batch::commands::BatchCommand::InsertSecrets(secret_rows),
             ).map_err(storage_err)?;
         }
 
-        // 5f: Constants & magic numbers → constants table
-        let mut constant_rows: Vec<drift_storage::batch::commands::ConstantInsertRow> = Vec::new();
-        for pr in &all_parse_results {
-            if let Ok(content) = std::fs::read_to_string(&pr.file) {
+        eprintln!("[drift-analyze] 5e (secrets): {:?}", step_timer.elapsed());
+        let step_timer = std::time::Instant::now();
+
+        // 5f: Constants & magic numbers → constants table (parallel)
+        let constant_rows: Vec<drift_storage::batch::commands::ConstantInsertRow> = all_parse_results.par_iter()
+            .filter_map(|pr| file_contents.get(&pr.file).map(|c| (pr, c)))
+            .flat_map(|(pr, content)| {
                 let lang = format!("{:?}", pr.language).to_lowercase();
-                let magic_numbers = drift_analysis::structural::constants::magic_numbers::detect_magic_numbers(&content, &pr.file, &lang);
-                for mn in &magic_numbers {
-                    constant_rows.push(drift_storage::batch::commands::ConstantInsertRow {
+                let magic_numbers = drift_analysis::structural::constants::magic_numbers::detect_magic_numbers(content, &pr.file, &lang);
+                magic_numbers.into_iter().map(move |mn| {
+                    drift_storage::batch::commands::ConstantInsertRow {
                         name: mn.suggested_name.clone().unwrap_or_else(|| mn.value.to_string()),
                         value: mn.value.to_string(),
-                        file: mn.file.clone(),
+                        file: mn.file,
                         line: mn.line as i64,
                         is_used: true,
                         language: lang.clone(),
                         is_named: mn.suggested_name.is_some(),
-                    });
-                }
-            }
-        }
+                    }
+                }).collect::<Vec<_>>()
+            })
+            .collect();
         if !constant_rows.is_empty() {
-            rt.batch_writer.send(
+            rt.storage.send_batch(
                 drift_storage::batch::commands::BatchCommand::InsertConstants(constant_rows),
             ).map_err(storage_err)?;
         }
 
+        eprintln!("[drift-analyze] 5f (constants): {:?}", step_timer.elapsed());
+        let step_timer = std::time::Instant::now();
+
         // 5g: Constraint verification → constraint_verifications table
-        let constraint_rows = rt.db.with_reader(|conn| {
+        let constraint_rows = rt.storage.with_reader(|conn| {
             drift_storage::queries::structural::get_enabled_constraints(conn)
         }).unwrap_or_default();
 
@@ -625,7 +863,7 @@ pub async fn drift_analyze() -> napi::Result<Vec<JsAnalysisResult>> {
                     }
                 }).collect();
                 let imports: Vec<String> = pr.imports.iter().map(|i| i.source.clone()).collect();
-                let line_count = std::fs::read_to_string(&pr.file)
+                let line_count = file_contents.get(&pr.file)
                     .map(|c| c.lines().count() as u32)
                     .unwrap_or(0);
                 inv_detector.add_file(&pr.file, funcs, imports, line_count);
@@ -649,9 +887,9 @@ pub async fn drift_analyze() -> napi::Result<Vec<JsAnalysisResult>> {
             let verifier = drift_analysis::structural::constraints::verifier::ConstraintVerifier::new(&store, &inv_detector);
             if let Ok(results) = verifier.verify_all() {
                 // Flush batch writer first so constraint_verifications insert sees a clean state
-                rt.batch_writer.flush().map_err(storage_err)?;
+                rt.storage.flush_batch().map_err(storage_err)?;
 
-                rt.db.with_writer(|conn| {
+                rt.storage.with_writer(|conn| {
                     for vr in &results {
                         let violations_json = serde_json::to_string(&vr.violations).unwrap_or_default();
                         let _ = drift_storage::queries::structural::insert_constraint_verification(
@@ -663,30 +901,36 @@ pub async fn drift_analyze() -> napi::Result<Vec<JsAnalysisResult>> {
             }
         }
 
-        // 5h: Environment variable extraction → env_variables table
-        let mut env_rows: Vec<drift_storage::batch::commands::EnvVariableInsertRow> = Vec::new();
-        for pr in &all_parse_results {
-            if let Ok(content) = std::fs::read_to_string(&pr.file) {
+        eprintln!("[drift-analyze] 5g (constraints): {:?}", step_timer.elapsed());
+        let step_timer = std::time::Instant::now();
+
+        // 5h: Environment variable extraction → env_variables table (parallel)
+        let env_rows: Vec<drift_storage::batch::commands::EnvVariableInsertRow> = all_parse_results.par_iter()
+            .filter_map(|pr| file_contents.get(&pr.file).map(|c| (pr, c)))
+            .flat_map(|(pr, content)| {
                 let lang = format!("{:?}", pr.language).to_lowercase();
-                let env_refs = drift_analysis::structural::constants::env_extraction::extract_env_references(&content, &pr.file, &lang);
-                for ev in &env_refs {
-                    env_rows.push(drift_storage::batch::commands::EnvVariableInsertRow {
-                        name: ev.name.clone(),
-                        file: ev.file.clone(),
+                let env_refs = drift_analysis::structural::constants::env_extraction::extract_env_references(content, &pr.file, &lang);
+                env_refs.into_iter().map(|ev| {
+                    drift_storage::batch::commands::EnvVariableInsertRow {
+                        name: ev.name,
+                        file: ev.file,
                         line: ev.line as i64,
-                        access_method: ev.access_method.clone(),
+                        access_method: ev.access_method,
                         has_default: ev.has_default,
                         defined_in_env: ev.defined_in_env,
-                        framework_prefix: ev.framework_prefix.clone(),
-                    });
-                }
-            }
-        }
+                        framework_prefix: ev.framework_prefix,
+                    }
+                }).collect::<Vec<_>>()
+            })
+            .collect();
         if !env_rows.is_empty() {
-            rt.batch_writer.send(
+            rt.storage.send_batch(
                 drift_storage::batch::commands::BatchCommand::InsertEnvVariables(env_rows),
             ).map_err(storage_err)?;
         }
+
+        eprintln!("[drift-analyze] 5h (env vars): {:?}", step_timer.elapsed());
+        let step_timer = std::time::Instant::now();
 
         // 5i: Data access tracking → data_access table (from DataAccess-category detections)
         let mut da_rows: Vec<drift_storage::batch::commands::DataAccessInsertRow> = Vec::new();
@@ -712,10 +956,13 @@ pub async fn drift_analyze() -> napi::Result<Vec<JsAnalysisResult>> {
             }
         }
         if !da_rows.is_empty() {
-            rt.batch_writer.send(
+            rt.storage.send_batch(
                 drift_storage::batch::commands::BatchCommand::InsertDataAccess(da_rows),
             ).map_err(storage_err)?;
         }
+
+        eprintln!("[drift-analyze] 5i (data access): {:?}", step_timer.elapsed());
+        let step_timer = std::time::Instant::now();
 
         // 5j: OWASP findings → owasp_findings table (enriched from detections with CWE/OWASP data)
         let mut owasp_rows: Vec<drift_storage::batch::commands::OwaspFindingInsertRow> = Vec::new();
@@ -746,17 +993,20 @@ pub async fn drift_analyze() -> napi::Result<Vec<JsAnalysisResult>> {
             }
         }
         if !owasp_rows.is_empty() {
-            rt.batch_writer.send(
+            rt.storage.send_batch(
                 drift_storage::batch::commands::BatchCommand::InsertOwaspFindings(owasp_rows),
             ).map_err(storage_err)?;
         }
+
+        eprintln!("[drift-analyze] 5j (owasp): {:?}", step_timer.elapsed());
+        let step_timer = std::time::Instant::now();
 
         // 5k: Decomposition analysis → decomposition_decisions table
         {
             // Build DecompositionInput from parse results and call graph
             let decomp_files: Vec<drift_analysis::structural::decomposition::decomposer::FileEntry> =
                 all_parse_results.iter().map(|pr| {
-                    let line_count = std::fs::read_to_string(&pr.file)
+                    let line_count = file_contents.get(&pr.file)
                         .map(|c| c.lines().count() as u64)
                         .unwrap_or(0);
                     drift_analysis::structural::decomposition::decomposer::FileEntry {
@@ -819,11 +1069,14 @@ pub async fn drift_analyze() -> napi::Result<Vec<JsAnalysisResult>> {
                 }
             }
             if !decision_rows.is_empty() {
-                rt.batch_writer.send(
+                rt.storage.send_batch(
                     drift_storage::batch::commands::BatchCommand::InsertDecompositionDecisions(decision_rows),
                 ).map_err(storage_err)?;
             }
         }
+
+        eprintln!("[drift-analyze] 5k (decomposition): {:?}", step_timer.elapsed());
+        let step_timer = std::time::Instant::now();
 
         // 5l: Contract extraction → contracts + contract_mismatches tables
         {
@@ -831,18 +1084,24 @@ pub async fn drift_analyze() -> napi::Result<Vec<JsAnalysisResult>> {
             use drift_analysis::structural::contracts::matching::match_contracts;
 
             let contract_registry = ExtractorRegistry::new();
-            let mut contract_rows: Vec<drift_storage::batch::commands::ContractInsertRow> = Vec::new();
-            let mut all_contract_endpoints: Vec<(String, drift_analysis::structural::contracts::types::Endpoint)> = Vec::new();
 
-            for pr in &all_parse_results {
-                if let Ok(content) = std::fs::read_to_string(&pr.file) {
+            // Parallel contract extraction: each file processed independently across cores.
+            #[allow(clippy::type_complexity)]
+            let per_file_results: Vec<(
+                Vec<drift_storage::batch::commands::ContractInsertRow>,
+                Vec<(String, drift_analysis::structural::contracts::types::Endpoint)>,
+            )> = all_parse_results.par_iter()
+                .filter_map(|pr| {
+                    let content = file_contents.get(&pr.file)?;
                     let results = contract_registry.extract_all_with_context(
-                        &content, &pr.file, Some(pr),
+                        content, &pr.file, Some(pr),
                     );
-                    for (framework, endpoints) in &results {
-                        if !endpoints.is_empty() {
+                    let mut rows = Vec::new();
+                    let mut endpoints = Vec::new();
+                    for (framework, eps) in &results {
+                        if !eps.is_empty() {
                             let endpoints_json = serde_json::to_string(
-                                &endpoints.iter().map(|ep| {
+                                &eps.iter().map(|ep| {
                                     serde_json::json!({
                                         "method": ep.method,
                                         "path": ep.path,
@@ -852,17 +1111,16 @@ pub async fn drift_analyze() -> napi::Result<Vec<JsAnalysisResult>> {
                                     })
                                 }).collect::<Vec<_>>()
                             ).unwrap_or_default();
-
                             let paradigm = match framework.as_str() {
                                 "trpc" => "rpc",
                                 "frontend" => "frontend",
                                 _ => "rest",
                             };
-                            let field_count: usize = endpoints.iter()
+                            let field_count: usize = eps.iter()
                                 .map(|ep| ep.request_fields.len() + ep.response_fields.len())
                                 .sum();
                             let confidence = if field_count > 0 { 0.9 } else { 0.6 };
-                            contract_rows.push(drift_storage::batch::commands::ContractInsertRow {
+                            rows.push(drift_storage::batch::commands::ContractInsertRow {
                                 id: format!("{}:{}", pr.file, framework),
                                 paradigm: paradigm.to_string(),
                                 source_file: pr.file.clone(),
@@ -871,15 +1129,24 @@ pub async fn drift_analyze() -> napi::Result<Vec<JsAnalysisResult>> {
                                 endpoints: endpoints_json,
                             });
                         }
-                        for ep in endpoints {
-                            all_contract_endpoints.push((framework.clone(), ep.clone()));
+                        for ep in eps {
+                            endpoints.push((framework.clone(), ep.clone()));
                         }
                     }
-                }
+                    Some((rows, endpoints))
+                })
+                .collect();
+
+            // Merge parallel results
+            let mut contract_rows: Vec<drift_storage::batch::commands::ContractInsertRow> = Vec::new();
+            let mut all_contract_endpoints: Vec<(String, drift_analysis::structural::contracts::types::Endpoint)> = Vec::new();
+            for (rows, endpoints) in per_file_results {
+                contract_rows.extend(rows);
+                all_contract_endpoints.extend(endpoints);
             }
 
             if !contract_rows.is_empty() {
-                rt.batch_writer.send(
+                rt.storage.send_batch(
                     drift_storage::batch::commands::BatchCommand::InsertContracts(contract_rows),
                 ).map_err(storage_err)?;
             }
@@ -910,11 +1177,18 @@ pub async fn drift_analyze() -> napi::Result<Vec<JsAnalysisResult>> {
                 .collect();
 
             if !mismatch_rows.is_empty() {
-                rt.batch_writer.send(
+                rt.storage.send_batch(
                     drift_storage::batch::commands::BatchCommand::InsertContractMismatches(mismatch_rows),
                 ).map_err(storage_err)?;
             }
         }
+        eprintln!("[drift-analyze] 5l (contracts): {:?}", step_timer.elapsed());
+    }
+
+    // ── Phase 3 complete: pattern intelligence + structural ──
+    if max_phase < 4 {
+        rt.storage.flush_batch_sync().map_err(storage_err)?;
+        return Ok(all_results);
     }
 
     // Step 6: Graph intelligence — taint, error handling, impact, test topology
@@ -956,7 +1230,7 @@ pub async fn drift_analyze() -> napi::Result<Vec<JsAnalysisResult>> {
                 })
                 .collect();
             if !taint_rows.is_empty() {
-                rt.batch_writer.send(
+                rt.storage.send_batch(
                     drift_storage::batch::commands::BatchCommand::InsertTaintFlows(taint_rows),
                 ).map_err(storage_err)?;
             }
@@ -987,7 +1261,7 @@ pub async fn drift_analyze() -> napi::Result<Vec<JsAnalysisResult>> {
                 })
                 .collect();
             if !gap_rows.is_empty() {
-                rt.batch_writer.send(
+                rt.storage.send_batch(
                     drift_storage::batch::commands::BatchCommand::InsertErrorGaps(gap_rows),
                 ).map_err(storage_err)?;
             }
@@ -1032,7 +1306,7 @@ pub async fn drift_analyze() -> napi::Result<Vec<JsAnalysisResult>> {
                 }
             }
             if !impact_rows.is_empty() {
-                rt.batch_writer.send(
+                rt.storage.send_batch(
                     drift_storage::batch::commands::BatchCommand::InsertImpactScores(impact_rows),
                 ).map_err(storage_err)?;
             }
@@ -1081,7 +1355,7 @@ pub async fn drift_analyze() -> napi::Result<Vec<JsAnalysisResult>> {
                     smells: None,
                 });
             }
-            rt.batch_writer.send(
+            rt.storage.send_batch(
                 drift_storage::batch::commands::BatchCommand::InsertTestQuality(quality_rows),
             ).map_err(storage_err)?;
 
@@ -1111,11 +1385,17 @@ pub async fn drift_analyze() -> napi::Result<Vec<JsAnalysisResult>> {
                 });
             }
             if !reach_rows.is_empty() {
-                rt.batch_writer.send(
+                rt.storage.send_batch(
                     drift_storage::batch::commands::BatchCommand::InsertReachabilityCache(reach_rows),
                 ).map_err(storage_err)?;
             }
         }
+    }
+
+    // ── Phase 4 complete: graph intelligence ──
+    if max_phase < 5 {
+        rt.storage.flush_batch_sync().map_err(storage_err)?;
+        return Ok(all_results);
     }
 
     // Step 7: Enforcement — run quality gates, persist violations + gate results
@@ -1196,21 +1476,34 @@ pub async fn drift_analyze() -> napi::Result<Vec<JsAnalysisResult>> {
             }
 
             if !violation_rows.is_empty() {
-                rt.batch_writer.send(
+                rt.storage.send_batch(
                     drift_storage::batch::commands::BatchCommand::InsertViolations(violation_rows),
                 ).map_err(storage_err)?;
             }
             if !gate_result_rows.is_empty() {
-                rt.batch_writer.send(
+                rt.storage.send_batch(
                     drift_storage::batch::commands::BatchCommand::InsertGateResults(gate_result_rows),
                 ).map_err(storage_err)?;
+            }
+
+            // BW-EVT-05: Fire on_gate_evaluated for each gate result
+            {
+                use drift_core::events::types::GateEvaluatedEvent;
+                for gr in &gate_results {
+                    rt.dispatcher.emit_gate_evaluated(&GateEvaluatedEvent {
+                        gate_name: gr.gate_id.to_string(),
+                        passed: gr.passed,
+                        score: Some(gr.score),
+                        message: gr.summary.clone(),
+                    });
+                }
             }
         }
     }
 
     // Step 8: Degradation alerts — compare current vs previous gate results
     {
-        let previous_gates = rt.db.with_reader(|conn| {
+        let previous_gates = rt.storage.with_reader(|conn| {
             drift_storage::queries::enforcement::query_gate_results(conn)
         }).unwrap_or_default();
 
@@ -1231,8 +1524,52 @@ pub async fn drift_analyze() -> napi::Result<Vec<JsAnalysisResult>> {
             }
         }
 
+        // Check framework detection count drops per pack
+        {
+            // Count current framework detections per pack (from pattern_id prefix before '/')
+            let mut current_pack_counts: std::collections::HashMap<String, usize> = std::collections::HashMap::new();
+            for m in &all_matches {
+                if let Some(pack_prefix) = m.pattern_id.split('/').next() {
+                    *current_pack_counts.entry(pack_prefix.to_string()).or_insert(0) += 1;
+                }
+            }
+
+            // Get previous detection counts per pack from DB
+            let previous_detections = rt.storage.with_reader(|conn| {
+                drift_storage::queries::detections::query_all_detections(conn, 100_000)
+            }).unwrap_or_default();
+
+            let mut previous_pack_counts: std::collections::HashMap<String, usize> = std::collections::HashMap::new();
+            for d in &previous_detections {
+                if let Some(pack_prefix) = d.pattern_id.split('/').next() {
+                    *previous_pack_counts.entry(pack_prefix.to_string()).or_insert(0) += 1;
+                }
+            }
+
+            // Compare: if current < 50% of previous for any pack, emit alert
+            for (pack, prev_count) in &previous_pack_counts {
+                if *prev_count >= 5 { // Only alert if there were meaningful previous detections
+                    let curr_count = current_pack_counts.get(pack).copied().unwrap_or(0);
+                    if (curr_count as f64) < (*prev_count as f64 * 0.5) {
+                        alert_rows.push(drift_storage::batch::commands::DegradationAlertInsertRow {
+                            alert_type: "framework_detection_drop".to_string(),
+                            severity: if curr_count == 0 { "high" } else { "medium" }.to_string(),
+                            message: format!(
+                                "Framework pack '{}' detection count dropped from {} to {} ({:.0}% decrease)",
+                                pack, prev_count, curr_count,
+                                (1.0 - curr_count as f64 / *prev_count as f64) * 100.0
+                            ),
+                            current_value: curr_count as f64,
+                            previous_value: *prev_count as f64,
+                            delta: curr_count as f64 - *prev_count as f64,
+                        });
+                    }
+                }
+            }
+        }
+
         // Check overall violation count
-        let total_violations = rt.db.with_reader(|conn| {
+        let total_violations = rt.storage.with_reader(|conn| {
             drift_storage::queries::enforcement::query_all_violations(conn)
                 .map(|v| v.len() as i64)
         }).unwrap_or(0);
@@ -1248,17 +1585,92 @@ pub async fn drift_analyze() -> napi::Result<Vec<JsAnalysisResult>> {
             });
         }
 
+        // BW-EVT-06: Fire on_regression_detected for score degradation alerts
+        {
+            use drift_core::events::types::RegressionDetectedEvent;
+            for alert in &alert_rows {
+                if alert.alert_type == "gate_score_low" {
+                    rt.dispatcher.emit_regression_detected(&RegressionDetectedEvent {
+                        pattern_id: alert.message.clone(),
+                        previous_score: alert.previous_value,
+                        current_score: alert.current_value,
+                    });
+                }
+            }
+        }
+
         if !alert_rows.is_empty() {
-            rt.batch_writer.send(
+            rt.storage.send_batch(
                 drift_storage::batch::commands::BatchCommand::InsertDegradationAlerts(alert_rows),
             ).map_err(storage_err)?;
         }
     }
 
     // Flush to ensure batch writer processes all queued commands
-    rt.batch_writer.flush().map_err(storage_err)?;
+    rt.storage.flush_batch().map_err(storage_err)?;
+
+    // BW-EVT-07: Fire on_scan_complete at end of pipeline
+    {
+        use drift_core::events::types::ScanCompleteEvent;
+        let total = all_results.len();
+        let total_matches: usize = all_results.iter().map(|r| r.matches.len()).sum();
+        rt.dispatcher.emit_scan_complete(&ScanCompleteEvent {
+            added: total_matches,
+            modified: 0,
+            removed: 0,
+            unchanged: total.saturating_sub(total_matches),
+            duration_ms: 0,
+        });
+    }
+
+    // BW-EVT-08: Auto-grounding after analysis — run grounding loop on all bridge memories
+    if rt.bridge_initialized {
+        let grounding_timer = std::time::Instant::now();
+        if let Err(e) = run_bridge_grounding_loop(&rt) {
+            tracing::warn!(error = %e, "Post-analysis grounding loop failed (non-fatal)");
+        } else {
+            eprintln!("[drift-analyze] bridge grounding: {:?}", grounding_timer.elapsed());
+        }
+    }
 
     Ok(all_results)
+}
+
+/// BW-EVT-08: Run the bridge grounding loop on all bridge memories.
+/// Called automatically after drift_analyze() completes.
+fn run_bridge_grounding_loop(
+    rt: &std::sync::Arc<crate::runtime::DriftRuntime>,
+) -> Result<(), napi::Error> {
+    let store = rt.bridge_storage().ok_or_else(|| {
+        napi::Error::from_reason("[BRIDGE_ERROR] bridge.db not available for grounding")
+    })?;
+
+    // Query all memories from bridge storage
+    use cortex_drift_bridge::traits::IBridgeStorage;
+    let memory_rows = store.query_all_memories_for_grounding()
+        .map_err(|e| napi::Error::from_reason(format!("[BRIDGE_ERROR] {e}")))?;
+    let memories = crate::bindings::bridge::memory_rows_to_grounding(&memory_rows);
+
+    if memories.is_empty() {
+        return Ok(());
+    }
+
+    // Run grounding via the NAPI function (reuses existing logic)
+    let drift_guard = rt.lock_drift_db_for_bridge();
+    let _snapshot = cortex_drift_bridge::napi::functions::bridge_ground_all(
+        &memories,
+        &rt.bridge_config.grounding,
+        drift_guard.as_deref(),
+        Some(store.as_ref()),
+    )
+    .map_err(|e| napi::Error::from_reason(format!("[BRIDGE_ERROR] {e}")))?;
+
+    eprintln!(
+        "[drift-analyze] bridge grounding complete: {} memories grounded",
+        memories.len(),
+    );
+
+    Ok(())
 }
 
 /// Build or query the call graph.
@@ -1266,15 +1678,15 @@ pub async fn drift_analyze() -> napi::Result<Vec<JsAnalysisResult>> {
 pub async fn drift_call_graph() -> napi::Result<JsCallGraphResult> {
     let rt = runtime::get()?;
 
-    let total_functions = rt.db.with_reader(|conn| {
+    let total_functions = rt.storage.with_reader(|conn| {
         drift_storage::queries::functions::count_functions(conn)
     }).map_err(storage_err)? as u32;
 
-    let total_edges = rt.db.with_reader(|conn| {
+    let total_edges = rt.storage.with_reader(|conn| {
         drift_storage::queries::call_edges::count_call_edges(conn)
     }).map_err(storage_err)? as u32;
 
-    let entry_points = rt.db.with_reader(|conn| {
+    let entry_points = rt.storage.with_reader(|conn| {
         drift_storage::queries::functions::count_entry_points(conn)
     }).unwrap_or(0) as u32;
 
@@ -1284,7 +1696,7 @@ pub async fn drift_call_graph() -> napi::Result<JsCallGraphResult> {
         entry_points,
         // PH2-09: Compute real resolution_rate from stored resolution types
         resolution_rate: if total_edges > 0 {
-            let resolved = rt.db.with_reader(|conn| {
+            let resolved = rt.storage.with_reader(|conn| {
                 drift_storage::queries::call_edges::count_resolved_edges(conn)
             }).unwrap_or(0) as f64;
             resolved / total_edges as f64
@@ -1295,16 +1707,51 @@ pub async fn drift_call_graph() -> napi::Result<JsCallGraphResult> {
     })
 }
 
+/// Validate a framework pack TOML string.
+///
+/// Returns a summary object on success, or an error message on failure.
+#[napi(object)]
+pub struct JsValidatePackResult {
+    pub valid: bool,
+    pub name: Option<String>,
+    pub version: Option<String>,
+    pub language_count: u32,
+    pub pattern_count: u32,
+    pub error: Option<String>,
+}
+
+#[napi]
+pub fn drift_validate_pack(toml_content: String) -> napi::Result<JsValidatePackResult> {
+    match drift_analysis::frameworks::registry::FrameworkPackRegistry::load_single(&toml_content) {
+        Ok(pack) => Ok(JsValidatePackResult {
+            valid: true,
+            name: Some(pack.name.clone()),
+            version: pack.version.clone(),
+            language_count: pack.languages.len() as u32,
+            pattern_count: pack.patterns.len() as u32,
+            error: None,
+        }),
+        Err(e) => Ok(JsValidatePackResult {
+            valid: false,
+            name: None,
+            version: None,
+            language_count: 0,
+            pattern_count: 0,
+            error: Some(e.to_string()),
+        }),
+    }
+}
+
 /// Run boundary detection.
 #[napi]
 pub async fn drift_boundaries() -> napi::Result<JsBoundaryResult> {
     let rt = runtime::get()?;
 
-    let boundaries = rt.db.with_reader(|conn| {
+    let boundaries = rt.storage.with_reader(|conn| {
         drift_storage::queries::boundaries::get_sensitive_boundaries(conn)
     }).map_err(storage_err)?;
 
-    let all_boundaries = rt.db.with_reader(|conn| {
+    let all_boundaries = rt.storage.with_reader(|conn| {
         conn.prepare_cached(
             "SELECT DISTINCT framework FROM boundaries"
         )

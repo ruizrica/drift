@@ -20,6 +20,12 @@ tree-sitter = { workspace = true }
 petgraph = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
+rayon = { workspace = true }
+cortex-drift-bridge = { path = "../../cortex-drift-bridge" }
+cortex-causal = { path = "../../cortex/cortex-causal" }
+cortex-core = { path = "../../cortex/cortex-core" }
+rusqlite = { workspace = true }
+tracing = { workspace = true }
 
 [build-dependencies]
 napi-build = { workspace = true }
@@ -27,4 +33,3 @@ napi-build = { workspace = true }
 [dev-dependencies]
 tempfile = "3"
 smallvec = { workspace = true }
-rusqlite = { workspace = true }

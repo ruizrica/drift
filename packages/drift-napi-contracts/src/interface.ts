@@ -5,16 +5,18 @@
  * `crates/drift/drift-napi/src/bindings/*.rs`. Function names and parameter
  * types MUST match Rust exactly. When Rust disagrees with TypeScript, Rust wins.
  *
- * 40 methods total, grouped by Rust binding module:
+ * 64 methods total, grouped by Rust binding module:
  * - Lifecycle (4): lifecycle.rs
  * - Scanner (3): scanner.rs
- * - Analysis (3): analysis.rs
+ * - Analysis (4): analysis.rs
  * - Patterns (4): patterns.rs
  * - Graph (5): graph.rs
  * - Structural (9): structural.rs
  * - Enforcement (5): enforcement.rs
  * - Feedback (3): feedback.rs
  * - Advanced (4): advanced.rs
+ * - Bridge (21): bridge.rs
+ * - Cloud (2): cloud.rs
  */
 
 import type { ScanOptions, ScanSummary } from './types/scanner.js';
@@ -23,6 +25,7 @@ import type {
   JsAnalysisResult,
   JsCallGraphResult,
   JsBoundaryResult,
+  JsValidatePackResult,
 } from './types/analysis.js';
 import type {
   PatternsResult,
@@ -57,6 +60,27 @@ import type {
   JsFeedbackResult,
   GcResult,
 } from './types/enforcement.js';
+import type {
+  BridgeStatusResult,
+  BridgeHealthResult,
+  BridgeGroundingResult,
+  BridgeGroundingSnapshot,
+  BridgeGroundingHistoryResult,
+  BridgeEntityLink,
+  BridgeEventMappingsResult,
+  BridgeGroundabilityResult,
+  BridgeLicenseResult,
+  BridgeIntentsResult,
+  BridgeAdaptiveWeightsResult,
+  BridgeSpecCorrectionResult,
+  BridgeContractVerifiedResult,
+  BridgeDecompositionAdjustedResult,
+  BridgeExplainSpecResult,
+  BridgeCounterfactualResult,
+  BridgeInterventionResult,
+  BridgeUnifiedNarrativeResult,
+  BridgePruneCausalResult,
+} from './types/bridge.js';
 
 export interface DriftNapi {
   // ─── Lifecycle (4) — lifecycle.rs ────────────────────────────────────
@@ -95,14 +119,17 @@ export interface DriftNapi {
   driftCancelScan(): void;
 
   // ─── Analysis (3) — analysis.rs ──────────────────────────────────────
-  // Rust: drift_analyze() -> Vec<JsAnalysisResult>
-  driftAnalyze(): Promise<JsAnalysisResult[]>;
+  // Rust: drift_analyze(max_phase: Option<u32>) -> Vec<JsAnalysisResult>
+  driftAnalyze(maxPhase?: number): Promise<JsAnalysisResult[]>;
 
   // Rust: drift_call_graph() -> JsCallGraphResult
   driftCallGraph(): Promise<JsCallGraphResult>;
 
   // Rust: drift_boundaries() -> JsBoundaryResult
   driftBoundaries(): Promise<JsBoundaryResult>;
+
+  // Rust: drift_validate_pack(toml_content: String) -> JsValidatePackResult
+  driftValidatePack(tomlContent: string): JsValidatePackResult;
 
   // ─── Patterns (4) — patterns.rs ──────────────────────────────────────
   // Rust: drift_patterns(category: Option<String>, after_id: Option<String>, limit: Option<u32>)
@@ -232,10 +259,86 @@ export interface DriftNapi {
     moduleJson: string,
     migrationPathJson?: string,
   ): Promise<string>;
+
+  // ─── Bridge (20) — bridge.rs ────────────────────────────────────────
+  // Rust: drift_bridge_status()
+  driftBridgeStatus(): BridgeStatusResult;
+
+  // Rust: drift_bridge_ground_memory(memory_id: String, memory_type: String)
+  driftBridgeGroundMemory(memoryId: string, memoryType: string): BridgeGroundingResult;
+
+  // Rust: drift_bridge_ground_all()
+  driftBridgeGroundAll(): BridgeGroundingSnapshot;
+
+  // Rust: drift_bridge_grounding_history(memory_id: String, limit: Option<u32>)
+  driftBridgeGroundingHistory(memoryId: string, limit?: number): BridgeGroundingHistoryResult;
+
+  // Rust: drift_bridge_translate_link(pattern_id: String, pattern_name: String, confidence: f64)
+  driftBridgeTranslateLink(patternId: string, patternName: string, confidence: number): BridgeEntityLink;
+
+  // Rust: drift_bridge_translate_constraint_link(constraint_id: String, constraint_name: String)
+  driftBridgeTranslateConstraintLink(constraintId: string, constraintName: string): BridgeEntityLink;
+
+  // Rust: drift_bridge_event_mappings()
+  driftBridgeEventMappings(): BridgeEventMappingsResult;
+
+  // Rust: drift_bridge_groundability(memory_type: String)
+  driftBridgeGroundability(memoryType: string): BridgeGroundabilityResult;
+
+  // Rust: drift_bridge_license_check(feature: String)
+  driftBridgeLicenseCheck(feature: string): BridgeLicenseResult;
+
+  // Rust: drift_bridge_intents()
+  driftBridgeIntents(): BridgeIntentsResult;
+
+  // Rust: drift_bridge_adaptive_weights(feedback_json: String)
+  driftBridgeAdaptiveWeights(feedbackJson: string): BridgeAdaptiveWeightsResult;
+
+  // Rust: drift_bridge_spec_correction(correction_json: String)
+  driftBridgeSpecCorrection(correctionJson: string): BridgeSpecCorrectionResult;
+
+  // Rust: drift_bridge_contract_verified(module_id: String, passed: bool, section: String, mismatch_type: Option<String>, severity: Option<f64>)
+  driftBridgeContractVerified(moduleId: string, passed: boolean, section: string, mismatchType?: string, severity?: number): BridgeContractVerifiedResult;
+
+  // Rust: drift_bridge_decomposition_adjusted(module_id: String, adjustment_type: String, dna_hash: String)
+  driftBridgeDecompositionAdjusted(moduleId: string, adjustmentType: string, dnaHash: string): BridgeDecompositionAdjustedResult;
+
+  // Rust: drift_bridge_explain_spec(memory_id: String)
+  driftBridgeExplainSpec(memoryId: string): BridgeExplainSpecResult;
+
+  // Rust: drift_bridge_counterfactual(memory_id: String)
+  driftBridgeCounterfactual(memoryId: string): BridgeCounterfactualResult;
+
+  // Rust: drift_bridge_intervention(memory_id: String)
+  driftBridgeIntervention(memoryId: string): BridgeInterventionResult;
+
+  // Rust: drift_bridge_health()
+  driftBridgeHealth(): BridgeHealthResult;
+
+  // Rust: drift_bridge_unified_narrative(memory_id: String)
+  driftBridgeUnifiedNarrative(memoryId: string): BridgeUnifiedNarrativeResult;
+
+  // Rust: drift_bridge_prune_causal(threshold: Option<f64>)
+  driftBridgePruneCausal(threshold?: number): BridgePruneCausalResult;
+
+  // Rust: drift_bridge_ground_after_analyze()
+  driftBridgeGroundAfterAnalyze(): BridgeGroundingSnapshot;
+
+  // ─── Cloud (2) — cloud.rs ──────────────────────────────────────
+  // Rust: drift_cloud_read_rows(table: String, db: String, after_cursor: Option<i64>, limit: Option<u32>) -> serde_json::Value
+  driftCloudReadRows(
+    table: string,
+    db: string,
+    afterCursor?: number,
+    limit?: number,
+  ): unknown[];
+
+  // Rust: drift_cloud_max_cursor(db: String) -> i64
+  driftCloudMaxCursor(db: string): number;
 }
 
 /** Total number of methods in the DriftNapi interface. */
-export const DRIFT_NAPI_METHOD_COUNT = 40;
+export const DRIFT_NAPI_METHOD_COUNT = 64;
 
 /** All method names in the DriftNapi interface, for runtime validation. */
 export const DRIFT_NAPI_METHOD_NAMES: ReadonlyArray<keyof DriftNapi> = [
@@ -248,10 +351,11 @@ export const DRIFT_NAPI_METHOD_NAMES: ReadonlyArray<keyof DriftNapi> = [
   'driftScan',
   'driftScanWithProgress',
   'driftCancelScan',
-  // Analysis (3)
+  // Analysis (4)
   'driftAnalyze',
   'driftCallGraph',
   'driftBoundaries',
+  'driftValidatePack',
   // Patterns (4)
   'driftPatterns',
   'driftConfidence',
@@ -288,4 +392,29 @@ export const DRIFT_NAPI_METHOD_NAMES: ReadonlyArray<keyof DriftNapi> = [
   'driftDecisions',
   'driftContext',
   'driftGenerateSpec',
+  // Bridge (20)
+  'driftBridgeStatus',
+  'driftBridgeGroundMemory',
+  'driftBridgeGroundAll',
+  'driftBridgeGroundingHistory',
+  'driftBridgeTranslateLink',
+  'driftBridgeTranslateConstraintLink',
+  'driftBridgeEventMappings',
+  'driftBridgeGroundability',
+  'driftBridgeLicenseCheck',
+  'driftBridgeIntents',
+  'driftBridgeAdaptiveWeights',
+  'driftBridgeSpecCorrection',
+  'driftBridgeContractVerified',
+  'driftBridgeDecompositionAdjusted',
+  'driftBridgeExplainSpec',
+  'driftBridgeCounterfactual',
+  'driftBridgeIntervention',
+  'driftBridgeHealth',
+  'driftBridgeUnifiedNarrative',
+  'driftBridgePruneCausal',
+  'driftBridgeGroundAfterAnalyze',
+  // Cloud (2)
+  'driftCloudReadRows',
+  'driftCloudMaxCursor',
 ] as const;

@@ -1,5 +1,6 @@
 //! NAPI bindings for violation feedback functions (Phase 6).
 
+#[allow(unused_imports)]
 use napi::bindgen_prelude::*;
 use napi_derive::napi;
 use serde::{Deserialize, Serialize};
@@ -47,7 +48,7 @@ pub fn drift_dismiss_violation(input: JsFeedbackInput) -> napi::Result<JsFeedbac
         created_at,
     };
 
-    rt.db.with_writer(|conn| {
+    rt.storage.with_writer(|conn| {
         drift_storage::queries::enforcement::insert_feedback(conn, &feedback)
     }).map_err(storage_err)?;
 
@@ -78,7 +79,7 @@ pub fn drift_fix_violation(violation_id: String) -> napi::Result<JsFeedbackResul
         created_at,
     };
 
-    rt.db.with_writer(|conn| {
+    rt.storage.with_writer(|conn| {
         drift_storage::queries::enforcement::insert_feedback(conn, &feedback)
     }).map_err(storage_err)?;
 
@@ -112,7 +113,7 @@ pub fn drift_suppress_violation(
         created_at,
     };
 
-    rt.db.with_writer(|conn| {
+    rt.storage.with_writer(|conn| {
         drift_storage::queries::enforcement::insert_feedback(conn, &feedback)
     }).map_err(storage_err)?;
 
@@ -125,7 +126,7 @@ pub fn drift_suppress_violation(
 /// Resolve pattern_id from the violations table for a given violation_id.
 /// Returns empty string if the violation is not found (graceful degradation).
 fn resolve_pattern_id(rt: &crate::runtime::DriftRuntime, violation_id: &str) -> String {
-    rt.db
+    rt.storage
         .with_reader(|conn| {
             drift_storage::queries::enforcement::get_violation_pattern_id(conn, violation_id)
         })
@@ -136,7 +137,7 @@ fn resolve_pattern_id(rt: &crate::runtime::DriftRuntime, violation_id: &str) -> 
 
 /// Resolve detector_id (rule_id) from the violations table for a given violation_id.
 fn resolve_detector_id(rt: &crate::runtime::DriftRuntime, violation_id: &str) -> String {
-    rt.db
+    rt.storage
         .with_reader(|conn| {
             let result = conn
                 .prepare_cached("SELECT rule_id FROM violations WHERE id = ?1")

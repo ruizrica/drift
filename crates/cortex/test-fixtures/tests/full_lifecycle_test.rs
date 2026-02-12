@@ -1,3 +1,4 @@
+#![allow(clippy::single_match)]
 //! T14-INT-01: Full lifecycle integration test.
 //!
 //! Create 50 episodic → consolidate → retrieve → decay → validate
@@ -211,7 +212,7 @@ fn t14_int_01_full_lifecycle() {
 
         let results = retrieval_engine.retrieve(&context, 2000).unwrap();
         assert!(
-            results.len() >= 1,
+            !results.is_empty(),
             "Query '{}' should return at least 1 result, got {}",
             query,
             results.len()
@@ -269,7 +270,7 @@ fn t14_int_01_full_lifecycle() {
 
     let all_memories: Vec<BaseMemory> = memories.clone();
 
-    let mut all_validated = true;
+    let all_validated = true;
     let mut all_scores_bounded = true;
 
     for m in &all_memories {
@@ -292,8 +293,7 @@ fn t14_int_01_full_lifecycle() {
             all_scores_bounded = false;
         }
 
-        // Mark as validated.
-        all_validated = all_validated && true;
+        // Mark as validated (no-op: all_validated stays true if loop completes).
     }
 
     assert!(
@@ -403,7 +403,7 @@ fn t14_int_02_concurrent_access() {
                 if let Ok(Some(mut m)) = storage.get(&id) {
                     m.summary = format!("Updated concurrent memory {}", i);
                     m.access_count += 1;
-                    if let Err(_) = storage.update(&m) {
+                    if storage.update(&m).is_err() {
                         errors.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
                     }
                 }

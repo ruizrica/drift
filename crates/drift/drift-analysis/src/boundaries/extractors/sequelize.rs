@@ -2,7 +2,7 @@
 
 use crate::parsers::types::ParseResult;
 use super::{FieldExtractor, ExtractedModel, OrmFramework};
-use crate::boundaries::types::{ExtractedField, Relationship, RelationshipKind};
+use crate::boundaries::types::ExtractedField;
 
 pub struct SequelizeExtractor;
 

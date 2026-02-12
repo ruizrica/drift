@@ -12,3 +12,5 @@ pub mod structural;
 pub mod enforcement;
 pub mod feedback;
 pub mod advanced;
+pub mod bridge;
+pub mod cloud;

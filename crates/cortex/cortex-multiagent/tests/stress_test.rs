@@ -1,3 +1,4 @@
+#![allow(clippy::needless_range_loop, clippy::nonminimal_bool)]
 //! Stress tests for cortex-multiagent (PMF-TEST-03).
 //!
 //! - 5 agents, 10K memories, full sync cycle < 30s

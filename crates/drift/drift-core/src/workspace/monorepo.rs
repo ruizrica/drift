@@ -5,7 +5,7 @@ use std::path::{Path, PathBuf};
 
 use rusqlite::Connection;
 
-use super::errors::{WorkspaceError, WorkspaceResult};
+use super::errors::WorkspaceResult;
 
 /// Workspace layout — single project or monorepo.
 #[derive(Debug, Clone)]

@@ -7,7 +7,7 @@
 //! (4) ConventionDiscoverer.discover()
 //! (5) PromotionCheck
 
-use crate::engine::types::{DetectionMethod, PatternMatch};
+use crate::engine::types::PatternMatch;
 use crate::patterns::aggregation::pipeline::{AggregationPipeline, AggregationResult};
 use crate::patterns::aggregation::types::AggregatedPattern;
 use crate::patterns::confidence::scorer::{ConfidenceScorer, FeedbackStore, ScorerConfig};
@@ -174,7 +174,7 @@ fn compute_category_totals(patterns: &[AggregatedPattern]) -> std::collections::
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::engine::types::PatternCategory;
+    use crate::engine::types::{DetectionMethod, PatternCategory};
     use crate::patterns::learning::types::InMemoryConventionStore;
     use smallvec::smallvec;
 

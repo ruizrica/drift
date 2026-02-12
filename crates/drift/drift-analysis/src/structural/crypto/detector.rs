@@ -1,7 +1,7 @@
 //! Crypto detection engine with import-check short-circuit optimization.
 
 use regex::Regex;
-use super::types::{CryptoFinding, CryptoCategory};
+use super::types::CryptoFinding;
 use super::patterns::{CRYPTO_PATTERNS, CRYPTO_IMPORT_INDICATORS};
 use super::remediation::get_remediation;
 

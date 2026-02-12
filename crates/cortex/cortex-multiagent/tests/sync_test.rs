@@ -279,7 +279,7 @@ fn tmc_prop_01_trust_bounds() {
                 };
                 let trust = TrustScorer::compute_overall_trust(&evidence);
                 assert!(
-                    trust >= 0.0 && trust <= 1.0,
+                    (0.0..=1.0).contains(&trust),
                     "trust {trust} out of bounds for v={validated} c={contradicted} u={useful} t={total}"
                 );
             }

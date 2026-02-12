@@ -86,7 +86,7 @@ impl Scanner {
         let force_full = self.config.force_full_scan.unwrap_or(false);
         let processed = AtomicUsize::new(0);
         let total = files.len();
-        let mut errors = Vec::new();
+        let errors = Vec::new();
 
         let entries: Vec<_> = files
             .par_iter()
@@ -175,7 +175,7 @@ impl Scanner {
     /// Build a partial diff when scan is cancelled mid-way.
     fn partial_diff(
         &self,
-        files: &[DiscoveredFile],
+        _files: &[DiscoveredFile],
         cached_metadata: &FxHashMap<PathBuf, CachedFileMetadata>,
         discovery_ms: u64,
     ) -> ScanDiff {

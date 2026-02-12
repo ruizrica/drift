@@ -19,7 +19,7 @@ export const DRIFT_WORKFLOW_SCHEMA = {
   properties: {
     workflow: {
       type: 'string',
-      description: 'Workflow name: pre_commit, security_audit, code_review, health_check, onboard',
+      description: 'Workflow name: pre_commit, security_audit, code_review, health_check, onboard, cortex_health_check, cortex_onboard, bridge_health_check',
     },
     path: {
       type: 'string',
@@ -100,6 +100,11 @@ const WORKFLOWS: Record<string, Array<{ tool: string; params: (path: string) => 
     { tool: 'cortex_memory_add', params: () => ({ memory_type: 'episodic', content: { type: 'episodic', data: { interaction: 'First Cortex session', context: 'onboarding', outcome: null } }, summary: 'Cortex onboarding session started' }) },
     { tool: 'cortex_predict', params: () => ({}) },
     { tool: 'cortex_status', params: () => ({}) },
+  ],
+  bridge_health_check: [
+    { tool: 'drift_bridge_status', params: () => ({}) },
+    { tool: 'drift_bridge_health', params: () => ({}) },
+    { tool: 'drift_bridge_ground_all', params: () => ({}) },
   ],
 };
 

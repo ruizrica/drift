@@ -1,3 +1,4 @@
+#![allow(clippy::field_reassign_with_default, clippy::redundant_closure, clippy::cloned_ref_to_slice_refs, clippy::assertions_on_constants, unused_variables)]
 //! T4-INT-01 through T4-INT-11: Graph intelligence integration tests.
 
 use drift_analysis::call_graph::types::{CallEdge, CallGraph, FunctionNode, Resolution};

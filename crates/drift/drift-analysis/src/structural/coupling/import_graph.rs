@@ -118,7 +118,7 @@ impl ImportGraphBuilder {
 
             // CG-COUP-02: Compute abstract and total type counts from classes
             let mut abstract_count = 0u32;
-            let mut total_count = pr.classes.len() as u32;
+            let total_count = pr.classes.len() as u32;
             for class in &pr.classes {
                 if class.is_abstract
                     || matches!(class.class_kind, crate::parsers::types::ClassKind::Interface)

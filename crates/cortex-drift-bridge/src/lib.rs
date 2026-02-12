@@ -34,6 +34,7 @@ pub mod query;
 pub mod specification;
 pub mod storage;
 pub mod tools;
+pub mod traits;
 pub mod types;
 
 // Re-export BridgeConfig at crate root for backward compatibility.
@@ -48,10 +49,13 @@ use tracing::{info, warn};
 /// The main bridge runtime. Manages connections to both drift.db and cortex.db.
 pub struct BridgeRuntime {
     /// Connection to drift.db (read-only via ATTACH or direct).
+    #[deprecated(note = "Use BridgeStorageEngine instead — Phase C cloud migration")]
     drift_db: Option<Mutex<rusqlite::Connection>>,
     /// Connection to cortex.db (read/write for memory creation).
+    #[deprecated(note = "Use BridgeStorageEngine instead — Phase C cloud migration")]
     cortex_db: Option<Mutex<rusqlite::Connection>>,
     /// Bridge-specific tables (stored in cortex.db or separate bridge.db).
+    #[deprecated(note = "Use BridgeStorageEngine instead — Phase C cloud migration")]
     bridge_db: Option<Mutex<rusqlite::Connection>>,
     /// Whether the bridge is available (cortex.db exists and is accessible).
     available: AtomicBool,
@@ -66,6 +70,7 @@ pub struct BridgeRuntime {
 }
 
 
+#[allow(deprecated)]
 impl BridgeRuntime {
     /// Create a new bridge runtime with the given configuration.
     pub fn new(config: BridgeConfig) -> Self {
@@ -132,6 +137,12 @@ impl BridgeRuntime {
         if let Some(ref db) = self.cortex_db {
             let conn = db.lock().map_err(|e| errors::BridgeError::Config(e.to_string()))?;
             storage::migrate(&conn)?;
+
+            // Apply retention policy to clean up old data on startup
+            let is_community = matches!(self.config.license_tier, license::LicenseTier::Community);
+            if let Err(e) = storage::apply_retention(&conn, is_community) {
+                warn!(error = %e, "Retention cleanup failed during initialization — non-fatal");
+            }
         }
 
         self.available.store(true, Ordering::SeqCst);
@@ -163,6 +174,7 @@ impl BridgeRuntime {
         let checks = vec![
             health::checks::check_cortex_db(self.cortex_db.as_ref()),
             health::checks::check_drift_db(self.drift_db.as_ref()),
+            health::checks::check_bridge_db(self.bridge_db.as_ref()),
         ];
         health::compute_health(&checks)
     }

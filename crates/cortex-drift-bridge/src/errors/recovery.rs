@@ -49,6 +49,9 @@ impl RecoveryAction {
             // Grounding: fallback (return InsufficientData)
             super::BridgeError::GroundingFailed { .. } => Self::Fallback,
 
+            // Causal engine: fallback (causal graph is best-effort)
+            super::BridgeError::Causal { .. } => Self::Fallback,
+
             // Cortex error: fallback
             super::BridgeError::Cortex(_) => Self::Fallback,
         }

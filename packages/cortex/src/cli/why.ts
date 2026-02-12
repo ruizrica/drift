@@ -24,9 +24,8 @@ export async function whyCommand(client: CortexClient, target: string): Promise<
   if (narrative.sections.length > 0) {
     for (const section of narrative.sections) {
       console.log(`\n  ${section.title}:`);
-      const entries = section.entries ?? [];
-      for (const entry of entries) {
-        console.log(`    • ${entry}`);
+      if (section.content) {
+        console.log(`    ${section.content}`);
       }
     }
   }

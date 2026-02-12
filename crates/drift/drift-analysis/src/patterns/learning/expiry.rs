@@ -46,7 +46,7 @@ pub fn process_expiry(conventions: &mut [Convention], now: u64, expiry_days: u64
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::patterns::confidence::types::{ConfidenceScore, MomentumDirection};
+    use crate::patterns::confidence::types::ConfidenceScore;
 
     fn make_convention(last_seen: u64) -> Convention {
         Convention {

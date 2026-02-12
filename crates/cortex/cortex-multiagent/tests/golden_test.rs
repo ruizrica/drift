@@ -465,7 +465,7 @@ fn pmf_gold_08_trust_scoring() {
     );
 
     // Verify bounds.
-    assert!(trust >= 0.0 && trust <= 1.0);
+    assert!((0.0..=1.0).contains(&trust));
 }
 
 // ---------------------------------------------------------------------------

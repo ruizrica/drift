@@ -11,7 +11,9 @@ export interface ScanOptions {
   forceFull?: boolean;
   /** Maximum file size in bytes. */
   maxFileSize?: number;
-  /** Additional ignore patterns. */
+  /** Include glob patterns — only matching paths are scanned (e.g., ["src/**", "lib/**"]). */
+  include?: string[];
+  /** Additional ignore/exclude patterns (e.g., ["**\/*.test.ts", "vendor/**"]). */
   extraIgnore?: string[];
   /** Follow symbolic links. */
   followSymlinks?: boolean;

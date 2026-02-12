@@ -24,6 +24,16 @@ export interface JsPatternMatch {
   owasp: string | null;
 }
 
+/** Aligned to Rust JsValidatePackResult (#[napi(object)]). */
+export interface JsValidatePackResult {
+  valid: boolean;
+  name: string | null;
+  version: string | null;
+  languageCount: number;
+  patternCount: number;
+  error: string | null;
+}
+
 /** Aligned to Rust JsCallGraphResult (#[napi(object)]). */
 export interface JsCallGraphResult {
   totalFunctions: number;

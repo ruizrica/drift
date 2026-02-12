@@ -1,3 +1,4 @@
+#![allow(unused_variables)]
 //! T4-IMP-01 through T4-IMP-05: Impact analysis tests.
 
 use drift_analysis::call_graph::types::{CallEdge, CallGraph, FunctionNode, Resolution};

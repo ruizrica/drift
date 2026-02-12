@@ -3,7 +3,7 @@
 use tree_sitter::Node;
 
 use crate::engine::gast::base_normalizer::GASTNormalizer;
-use crate::engine::gast::types::{GASTNode, Visibility};
+use crate::engine::gast::types::GASTNode;
 use crate::scanner::language_detect::Language;
 
 pub struct TypeScriptNormalizer;

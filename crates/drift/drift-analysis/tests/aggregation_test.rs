@@ -4,11 +4,10 @@ use drift_analysis::engine::types::{DetectionMethod, PatternCategory, PatternMat
 use drift_analysis::patterns::aggregation::pipeline::AggregationPipeline;
 use drift_analysis::patterns::aggregation::similarity::{jaccard_similarity, MinHashIndex};
 use drift_analysis::patterns::aggregation::types::{
-    AggregatedPattern, AggregationConfig, MergeCandidate, MergeDecision, PatternLocation,
+    AggregatedPattern, MergeDecision, PatternLocation,
 };
-use drift_analysis::patterns::aggregation::grouper::PatternGrouper;
 use drift_analysis::patterns::aggregation::reconciliation;
-use drift_core::types::collections::{FxHashMap, FxHashSet};
+use drift_core::types::collections::FxHashSet;
 use smallvec::smallvec;
 
 fn make_match(file: &str, line: u32, pattern_id: &str, confidence: f32) -> PatternMatch {
@@ -121,7 +120,7 @@ fn t3_agg_02_jaccard_similarity_thresholds() {
     for i in 100..114 {
         d.insert(format!("loc:{}", i));
     }
-    let sim_review = jaccard_similarity(&c, &d);
+    let _sim_review = jaccard_similarity(&c, &d);
     // intersection=86, union=114 → 86/114 ≈ 0.754 — need different setup
     // For 0.86: intersection / union = 0.86 → if |A|=|B|=100, intersection=x, union=200-x
     // x/(200-x) = 0.86 → x = 0.86*(200-x) → x = 172 - 0.86x → 1.86x = 172 → x ≈ 92.5
@@ -313,7 +312,7 @@ fn t3_agg_06_hierarchy_building() {
 
     if !with_children.is_empty() {
         let parent = with_children[0];
-        assert!(parent.hierarchy.as_ref().unwrap().child_ids.len() >= 1);
+        assert!(!parent.hierarchy.as_ref().unwrap().child_ids.is_empty());
         // Parent's location_count should include children
         assert!(parent.location_count >= 10, "Parent should have merged locations");
     }

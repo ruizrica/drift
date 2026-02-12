@@ -1,3 +1,4 @@
+#![allow(clippy::field_reassign_with_default, clippy::redundant_closure, clippy::cloned_ref_to_slice_refs, clippy::unnecessary_min_or_max, clippy::zero_divided_by_zero, unused_variables, unused_imports, dead_code)]
 //! Production hardening tests for the Stub & Placeholder Audit changes.
 //!
 //! Covers: Language enum (PH3), GateInput (PH2-05), SimulationInput serde (PH2-08),

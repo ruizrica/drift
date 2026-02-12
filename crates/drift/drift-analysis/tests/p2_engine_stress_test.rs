@@ -1,3 +1,4 @@
+#![allow(clippy::field_reassign_with_default, clippy::redundant_closure, clippy::manual_range_contains, unused_variables, unused_imports)]
 //! Phase 2 — Engine, Detectors, Call Graph, Boundaries Stress Tests
 //!
 //! RegexEngine timeout protection, multi-pattern matching, CallGraphBuilder

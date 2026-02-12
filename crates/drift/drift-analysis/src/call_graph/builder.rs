@@ -6,11 +6,11 @@ use drift_core::errors::CallGraphError;
 use drift_core::types::collections::FxHashMap;
 use rayon::prelude::*;
 
-use crate::parsers::types::{CallSite, FunctionInfo, ParseResult};
+use crate::parsers::types::{CallSite, ParseResult};
 
 use super::di_support;
 use super::resolution::{resolve_call, ResolutionDiagnostics};
-use super::types::{CallEdge, CallGraph, CallGraphStats, FunctionNode, Resolution};
+use super::types::{CallEdge, CallGraph, CallGraphStats, FunctionNode};
 
 /// Builder for constructing a call graph from parse results.
 pub struct CallGraphBuilder {

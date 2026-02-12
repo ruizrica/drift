@@ -1,3 +1,4 @@
+#![allow(unused_imports, unused_variables)]
 //! Phase 3 — Determinism Tests
 //!
 //! Verifies that identical inputs always produce identical outputs.

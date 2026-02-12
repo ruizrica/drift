@@ -95,7 +95,8 @@ fn degradation_consolidation_empty_input() {
     match result {
         Ok(r) => {
             // Empty result is acceptable when embedder fails.
-            assert!(r.created.is_empty() || true, "Graceful empty result");
+            // Empty result is fine; non-empty is also fine — key is no panic.
+            let _ = r.created;
         }
         Err(_) => {
             // Error is also acceptable — the key is no panic.

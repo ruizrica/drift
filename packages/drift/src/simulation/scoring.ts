@@ -2,7 +2,7 @@
  * Composite scoring logic — combines Rust scorer outputs into final ranking.
  */
 
-import type { SimulationApproach, SimulationContext } from "./approaches.js";
+import type { SimulationApproach } from "./approaches.js";
 
 /** Weights for composite scoring. */
 export interface ScorerWeights {

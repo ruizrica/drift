@@ -49,6 +49,13 @@ export async function handleDriftScan(
     0,
   );
 
+  // Step 2b: Bridge grounding — validate bridge memories against drift.db evidence
+  try {
+    napi.driftBridgeGroundAfterAnalyze();
+  } catch {
+    // Non-fatal: grounding failure doesn't affect scan results
+  }
+
   // Step 3: Query violations from DB (populated by analysis)
   const violations = napi.driftViolations('.');
 

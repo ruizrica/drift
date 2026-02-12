@@ -1,3 +1,4 @@
+#![allow(unused_imports, unused_variables, clippy::needless_range_loop)]
 //! Language Provider tests — T2-ULP-01 through T2-ULP-03.
 //!
 //! Tests for the Unified Language Provider: cross-language normalization,

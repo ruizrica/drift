@@ -284,7 +284,7 @@ fn cov_trust_compute_overall() {
         total_received: 20,
     };
     let trust = TrustScorer::compute_overall_trust(&evidence);
-    assert!(trust >= 0.0 && trust <= 1.0);
+    assert!((0.0..=1.0).contains(&trust));
 }
 
 #[test]

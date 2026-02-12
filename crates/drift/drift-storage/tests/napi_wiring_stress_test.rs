@@ -91,7 +91,7 @@ fn stress_enforcement_full_pipeline() {
         Ok(())
     }).unwrap();
 
-    let gates = db.with_reader(|conn| enforcement::query_gate_results(conn)).unwrap();
+    let gates = db.with_reader(enforcement::query_gate_results).unwrap();
     assert_eq!(gates.len(), 10);
     assert!(!gates[0].passed || gates[0].gate_id != "gate-0", "gate-0 should fail");
 
@@ -167,7 +167,7 @@ fn stress_patterns_full_pipeline() {
     }).unwrap();
 
     // Read all
-    let all = db.with_reader(|conn| patterns::query_all_confidence(conn)).unwrap();
+    let all = db.with_reader(patterns::query_all_confidence).unwrap();
     assert_eq!(all.len(), 200);
 
     // Keyset pagination by tier
@@ -237,7 +237,7 @@ fn stress_patterns_full_pipeline() {
     }).unwrap();
     assert_eq!(naming.len(), 10);
 
-    let all_conv = db.with_reader(|conn| patterns::query_all_conventions(conn)).unwrap();
+    let all_conv = db.with_reader(patterns::query_all_conventions).unwrap();
     assert_eq!(all_conv.len(), 30);
 }
 
@@ -392,7 +392,7 @@ fn stress_structural_full_pipeline() {
         Ok(())
     }).unwrap();
 
-    let metrics = db.with_reader(|conn| structural::get_all_coupling_metrics(conn)).unwrap();
+    let metrics = db.with_reader(structural::get_all_coupling_metrics).unwrap();
     assert_eq!(metrics.len(), 100);
 
     let pain = db.with_reader(|conn| {
@@ -409,7 +409,7 @@ fn stress_structural_full_pipeline() {
         )
     }).unwrap();
 
-    let cycles = db.with_reader(|conn| structural::query_coupling_cycles(conn)).unwrap();
+    let cycles = db.with_reader(structural::query_coupling_cycles).unwrap();
     assert_eq!(cycles.len(), 1);
 
     // Constraints + verifications
@@ -433,7 +433,7 @@ fn stress_structural_full_pipeline() {
         Ok(())
     }).unwrap();
 
-    let constraints = db.with_reader(|conn| structural::get_enabled_constraints(conn)).unwrap();
+    let constraints = db.with_reader(structural::get_enabled_constraints).unwrap();
     assert_eq!(constraints.len(), 1);
 
     let verifs = db.with_reader(|conn| {
@@ -529,10 +529,10 @@ fn stress_structural_full_pipeline() {
         Ok(())
     }).unwrap();
 
-    let genes = db.with_reader(|conn| structural::get_all_dna_genes(conn)).unwrap();
+    let genes = db.with_reader(structural::get_all_dna_genes).unwrap();
     assert_eq!(genes.len(), 1);
 
-    let mutations = db.with_reader(|conn| structural::get_unresolved_mutations(conn)).unwrap();
+    let mutations = db.with_reader(structural::get_unresolved_mutations).unwrap();
     assert_eq!(mutations.len(), 1);
 
     // Crypto findings
@@ -593,7 +593,7 @@ fn stress_analysis_pipeline() {
         Ok(())
     }).unwrap();
 
-    let count = db.with_reader(|conn| functions::count_functions(conn)).unwrap();
+    let count = db.with_reader(functions::count_functions).unwrap();
     assert_eq!(count, 200);
 
     let by_file = db.with_reader(|conn| {
@@ -616,7 +616,7 @@ fn stress_analysis_pipeline() {
         Ok(())
     }).unwrap();
 
-    let edge_count = db.with_reader(|conn| call_edges::count_call_edges(conn)).unwrap();
+    let edge_count = db.with_reader(call_edges::count_call_edges).unwrap();
     assert_eq!(edge_count, 100);
 
     // Boundaries
@@ -624,9 +624,9 @@ fn stress_analysis_pipeline() {
         let bounds: Vec<boundaries::BoundaryRecord> = (0..50).map(|i| {
             boundaries::BoundaryRecord {
                 id: 0,
-                file: format!("src/models/user.ts"),
+                file: "src/models/user.ts".to_string(),
                 framework: "prisma".to_string(),
-                model_name: format!("User"),
+                model_name: "User".to_string(),
                 table_name: Some("users".to_string()),
                 field_name: Some(format!("field_{i}")),
                 sensitivity: if i % 5 == 0 { Some("pii".to_string()) } else { None },
@@ -638,7 +638,7 @@ fn stress_analysis_pipeline() {
         Ok(())
     }).unwrap();
 
-    let sensitive = db.with_reader(|conn| boundaries::get_sensitive_boundaries(conn)).unwrap();
+    let sensitive = db.with_reader(boundaries::get_sensitive_boundaries).unwrap();
     assert_eq!(sensitive.len(), 10); // every 5th has sensitivity
 
     let by_fw = db.with_reader(|conn| {
@@ -672,7 +672,7 @@ fn stress_analysis_pipeline() {
         Ok(())
     }).unwrap();
 
-    let det_count = db.with_reader(|conn| detections::count_detections(conn)).unwrap();
+    let det_count = db.with_reader(detections::count_detections).unwrap();
     assert_eq!(det_count, 100);
 
     let by_cat = db.with_reader(|conn| {
@@ -714,7 +714,7 @@ fn stress_batch_writer_to_read_pool() {
     assert_eq!(stats.file_metadata_rows, 1000);
 
     // Verify data is visible through the read pool
-    let all = db.with_reader(|conn| files::load_all_file_metadata(conn)).unwrap();
+    let all = db.with_reader(files::load_all_file_metadata).unwrap();
     assert_eq!(all.len(), 1000, "all 1000 files should be visible via read pool after batch shutdown");
 
     // Verify specific file
@@ -736,7 +736,7 @@ fn stress_batch_writer_to_read_pool() {
     let stats2 = batch_writer2.shutdown().unwrap();
     assert_eq!(stats2.deleted_files, 100);
 
-    let remaining = db.with_reader(|conn| files::load_all_file_metadata(conn)).unwrap();
+    let remaining = db.with_reader(files::load_all_file_metadata).unwrap();
     assert_eq!(remaining.len(), 900, "100 files should have been deleted");
 
     // Scan history round-trip
@@ -886,24 +886,24 @@ fn stress_edge_cases() {
     assert!(v[0].message.contains("🚨"));
 
     // Empty tables return empty vecs, not errors
-    let empty_gates = db.with_reader(|conn| enforcement::query_gate_results(conn)).unwrap();
+    let empty_gates = db.with_reader(enforcement::query_gate_results).unwrap();
     assert!(empty_gates.is_empty());
 
-    let empty_conv = db.with_reader(|conn| patterns::query_all_conventions(conn)).unwrap();
+    let empty_conv = db.with_reader(patterns::query_all_conventions).unwrap();
     assert!(empty_conv.is_empty());
 
-    let empty_genes = db.with_reader(|conn| structural::get_all_dna_genes(conn)).unwrap();
+    let empty_genes = db.with_reader(structural::get_all_dna_genes).unwrap();
     assert!(empty_genes.is_empty());
 
-    let empty_mutations = db.with_reader(|conn| structural::get_unresolved_mutations(conn)).unwrap();
+    let empty_mutations = db.with_reader(structural::get_unresolved_mutations).unwrap();
     assert!(empty_mutations.is_empty());
 
     // Zero-count queries
-    let fc = db.with_reader(|conn| functions::count_functions(conn)).unwrap();
+    let fc = db.with_reader(functions::count_functions).unwrap();
     assert_eq!(fc, 0);
-    let ec = db.with_reader(|conn| call_edges::count_call_edges(conn)).unwrap();
+    let ec = db.with_reader(call_edges::count_call_edges).unwrap();
     assert_eq!(ec, 0);
-    let dc = db.with_reader(|conn| detections::count_detections(conn)).unwrap();
+    let dc = db.with_reader(detections::count_detections).unwrap();
     assert_eq!(dc, 0);
 
     // Very long strings (test SQLite handles them)
@@ -958,7 +958,7 @@ fn stress_edge_cases() {
     }).unwrap();
 
     // Table should still exist and have all 3 rows
-    let v3 = db.with_reader(|conn| enforcement::query_all_violations(conn)).unwrap();
+    let v3 = db.with_reader(enforcement::query_all_violations).unwrap();
     assert_eq!(v3.len(), 3, "SQL injection should not drop the table");
 }
 
@@ -986,13 +986,13 @@ fn stress_orphan_tables() {
         Ok(())
     }).unwrap();
 
-    let count = db.with_reader(|conn| constants::count(conn)).unwrap();
+    let count = db.with_reader(constants::count).unwrap();
     assert_eq!(count, 50);
 
-    let unused = db.with_reader(|conn| constants::query_unused(conn)).unwrap();
+    let unused = db.with_reader(constants::query_unused).unwrap();
     assert!(!unused.is_empty());
 
-    let magic = db.with_reader(|conn| constants::query_magic_numbers(conn)).unwrap();
+    let magic = db.with_reader(constants::query_magic_numbers).unwrap();
     assert!(!magic.is_empty());
 
     // Env variables
@@ -1013,7 +1013,7 @@ fn stress_orphan_tables() {
         Ok(())
     }).unwrap();
 
-    let missing = db.with_reader(|conn| env_variables::query_missing(conn)).unwrap();
+    let missing = db.with_reader(env_variables::query_missing).unwrap();
     // Missing = not defined_in_env AND no default
     assert!(!missing.is_empty());
 
@@ -1027,7 +1027,7 @@ fn stress_orphan_tables() {
         for i in 0..20 {
             data_access::insert(conn, &data_access::DataAccessRow {
                 function_id: (i + 1) as i64,
-                table_name: format!("users"),
+                table_name: "users".to_string(),
                 operation: match i % 3 { 0 => "SELECT", 1 => "INSERT", _ => "UPDATE" }.to_string(),
                 framework: Some("prisma".to_string()),
                 line: i as i64,
@@ -1037,7 +1037,7 @@ fn stress_orphan_tables() {
         Ok(())
     }).unwrap();
 
-    let da_count = db.with_reader(|conn| data_access::count(conn)).unwrap();
+    let da_count = db.with_reader(data_access::count).unwrap();
     assert_eq!(da_count, 20);
 
     let by_table = db.with_reader(|conn| data_access::query_by_table(conn, "users")).unwrap();
@@ -1081,7 +1081,7 @@ fn stress_wal_checkpoint() {
     db.checkpoint().unwrap();
 
     // Data should still be accessible after checkpoint
-    let count = db.with_reader(|conn| enforcement::query_all_violations(conn)).unwrap();
+    let count = db.with_reader(enforcement::query_all_violations).unwrap();
     assert_eq!(count.len(), 500);
 
     // Write more after checkpoint
@@ -1106,6 +1106,6 @@ fn stress_wal_checkpoint() {
         })
     }).unwrap();
 
-    let count2 = db.with_reader(|conn| enforcement::query_all_violations(conn)).unwrap();
+    let count2 = db.with_reader(enforcement::query_all_violations).unwrap();
     assert_eq!(count2.len(), 501);
 }

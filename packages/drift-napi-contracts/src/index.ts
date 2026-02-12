@@ -13,6 +13,9 @@ export { loadNapi, setNapi, resetNapi, isNapiOverridden, isNapiStub, NapiLoadErr
 // Stub
 export { createStubNapi } from './stub.js';
 
+// Project root resolution
+export { resolveProjectRoot } from './project_root.js';
+
 // Validation
 export {
   validateScanParams,
@@ -21,6 +24,8 @@ export {
   validateReachabilityParams,
   validateRootParam,
   validateFeedbackParams,
+  validateBridgeGroundParams,
+  validateBridgeCounterfactualParams,
 } from './validation.js';
 export type {
   ValidationResult,
@@ -30,4 +35,6 @@ export type {
   ReachabilityValidationInput,
   RootValidationInput,
   FeedbackValidationInput,
+  BridgeGroundValidationInput,
+  BridgeCounterfactualValidationInput,
 } from './validation.js';

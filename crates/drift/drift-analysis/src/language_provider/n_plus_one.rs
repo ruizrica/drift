@@ -5,7 +5,6 @@
 //! Hibernate, Entity Framework, Prisma, Sequelize, TypeORM.
 //! Also detects GraphQL N+1 resolver patterns.
 
-use crate::call_graph::types::CallGraph;
 use crate::parsers::types::ParseResult;
 
 use super::framework_matchers::MatcherRegistry;
@@ -60,6 +59,7 @@ const BATCH_PATTERNS: &[&str] = &[
 ];
 
 /// ORM-specific query patterns for 8 frameworks.
+#[allow(dead_code)]
 struct OrmQueryPatterns {
     framework: &'static str,
     query_methods: &'static [&'static str],
@@ -207,6 +207,7 @@ fn is_batch_query(chain: &super::types::UnifiedCallChain, pr: &ParseResult) -> b
 }
 
 #[derive(Debug, Clone, Copy)]
+#[allow(dead_code)]
 enum LoopType {
     Explicit,
     Iterator,

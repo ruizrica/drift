@@ -26,7 +26,7 @@ describe('Interface Alignment — Contract Integrity', () => {
       // scanner.rs
       'driftScan', 'driftScanWithProgress', 'driftCancelScan',
       // analysis.rs
-      'driftAnalyze', 'driftCallGraph', 'driftBoundaries',
+      'driftAnalyze', 'driftCallGraph', 'driftBoundaries', 'driftValidatePack',
       // patterns.rs
       'driftPatterns', 'driftConfidence', 'driftOutliers', 'driftConventions',
       // graph.rs
@@ -44,6 +44,19 @@ describe('Interface Alignment — Contract Integrity', () => {
       'driftDismissViolation', 'driftFixViolation', 'driftSuppressViolation',
       // advanced.rs
       'driftSimulate', 'driftDecisions', 'driftContext', 'driftGenerateSpec',
+      // bridge.rs
+      'driftBridgeStatus', 'driftBridgeGroundMemory', 'driftBridgeGroundAll',
+      'driftBridgeGroundingHistory', 'driftBridgeTranslateLink',
+      'driftBridgeTranslateConstraintLink', 'driftBridgeEventMappings',
+      'driftBridgeGroundability', 'driftBridgeLicenseCheck', 'driftBridgeIntents',
+      'driftBridgeAdaptiveWeights', 'driftBridgeSpecCorrection',
+      'driftBridgeContractVerified', 'driftBridgeDecompositionAdjusted',
+      'driftBridgeExplainSpec', 'driftBridgeCounterfactual',
+      'driftBridgeIntervention', 'driftBridgeHealth',
+      'driftBridgeUnifiedNarrative', 'driftBridgePruneCausal',
+      'driftBridgeGroundAfterAnalyze',
+      // cloud.rs
+      'driftCloudReadRows', 'driftCloudMaxCursor',
     ];
 
     // Every Rust export must be in our interface
@@ -56,14 +69,14 @@ describe('Interface Alignment — Contract Integrity', () => {
     }
   });
 
-  // TH-NAPI-03: DriftNapi has exactly 38 functions
-  it('TH-NAPI-03: DriftNapi has exactly 40 functions — prevents accidental add/remove', () => {
-    expect(DRIFT_NAPI_METHOD_COUNT).toBe(40);
-    expect(DRIFT_NAPI_METHOD_NAMES.length).toBe(40);
+  // TH-NAPI-03: DriftNapi has exactly 64 functions (41 drift + 21 bridge + 2 cloud)
+  it('TH-NAPI-03: DriftNapi has exactly 64 functions — prevents accidental add/remove', () => {
+    expect(DRIFT_NAPI_METHOD_COUNT).toBe(64);
+    expect(DRIFT_NAPI_METHOD_NAMES.length).toBe(64);
 
     // Also verify no duplicates
     const unique = new Set(DRIFT_NAPI_METHOD_NAMES);
-    expect(unique.size).toBe(40);
+    expect(unique.size).toBe(64);
   });
 
   // TH-NAPI-04: No function uses `any` type

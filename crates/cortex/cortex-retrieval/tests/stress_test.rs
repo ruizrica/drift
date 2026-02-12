@@ -213,8 +213,8 @@ fn stress_rrf_fusion_large_result_sets() {
     let overlap_ids: Vec<&str> = fused
         .iter()
         .filter(|c| {
-            let id_num: usize = c.memory.id.split('-').last().unwrap().parse().unwrap();
-            id_num >= 250 && id_num < 500
+            let id_num: usize = c.memory.id.split('-').next_back().unwrap().parse().unwrap();
+            (250..500).contains(&id_num)
         })
         .map(|c| c.memory.id.as_str())
         .collect();

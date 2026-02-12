@@ -28,6 +28,11 @@ where
 
 /// Count patterns in drift.db that match a linked pattern from a memory.
 /// Requires drift.db to be ATTACHed as "drift".
+///
+/// Chunks queries into batches of 500 to stay within SQLite's
+/// SQLITE_MAX_VARIABLE_NUMBER limit (default 999).
+const CHUNK_SIZE: usize = 500;
+
 pub fn count_matching_patterns(
     conn: &Connection,
     pattern_ids: &[String],
@@ -36,23 +41,28 @@ pub fn count_matching_patterns(
         return Ok(0);
     }
 
-    // Build parameterized IN clause
-    let placeholders: Vec<String> = (1..=pattern_ids.len())
-        .map(|i| format!("?{}", i))
-        .collect();
-    let sql = format!(
-        "SELECT COUNT(*) FROM drift.drift_patterns WHERE id IN ({})",
-        placeholders.join(", ")
-    );
+    let mut total: u64 = 0;
 
-    let mut stmt = conn.prepare(&sql)?;
-    let params: Vec<&dyn rusqlite::types::ToSql> = pattern_ids
-        .iter()
-        .map(|s| s as &dyn rusqlite::types::ToSql)
-        .collect();
+    for chunk in pattern_ids.chunks(CHUNK_SIZE) {
+        let placeholders: Vec<String> = (1..=chunk.len())
+            .map(|i| format!("?{}", i))
+            .collect();
+        let sql = format!(
+            "SELECT COUNT(*) FROM drift.pattern_confidence WHERE pattern_id IN ({})",
+            placeholders.join(", ")
+        );
 
-    let count: i64 = stmt.query_row(params.as_slice(), |row| row.get(0))?;
-    Ok(count as u64)
+        let mut stmt = conn.prepare(&sql)?;
+        let params: Vec<&dyn rusqlite::types::ToSql> = chunk
+            .iter()
+            .map(|s| s as &dyn rusqlite::types::ToSql)
+            .collect();
+
+        let count: i64 = stmt.query_row(params.as_slice(), |row| row.get(0))?;
+        total += count as u64;
+    }
+
+    Ok(total)
 }
 
 /// Get the latest scan timestamp from drift.db.

@@ -60,22 +60,50 @@ impl GeneExtractor for VariantHandlingExtractor {
     }
 }
 
+/// Pre-compiled regex patterns for an allele definition set.
+/// Compile once per extractor, reuse across all files.
+pub(crate) type CompiledDefinitions = Vec<(usize, Vec<Regex>)>;
+
+/// Compile all regex patterns in allele definitions. Call once per extractor.
+pub(crate) fn compile_definitions(definitions: &[AlleleDefinition]) -> CompiledDefinitions {
+    definitions
+        .iter()
+        .enumerate()
+        .map(|(i, def)| {
+            let regexes = def
+                .patterns
+                .iter()
+                .filter_map(|p| Regex::new(p).ok())
+                .collect();
+            (i, regexes)
+        })
+        .collect()
+}
+
 /// Shared extraction logic used by all gene extractors.
+/// Falls back to compiling regexes per call (use extract_with_precompiled for batch).
 pub(crate) fn extract_with_definitions(
     content: &str,
     file_path: &str,
     definitions: &[AlleleDefinition],
 ) -> FileExtractionResult {
+    let compiled = compile_definitions(definitions);
+    extract_with_precompiled(content, file_path, definitions, &compiled)
+}
+
+/// Fast path: uses pre-compiled regexes (no recompilation per file).
+pub(crate) fn extract_with_precompiled(
+    content: &str,
+    file_path: &str,
+    definitions: &[AlleleDefinition],
+    compiled: &CompiledDefinitions,
+) -> FileExtractionResult {
     let mut detected = Vec::new();
     let lines: Vec<&str> = content.lines().collect();
 
-    for def in definitions {
-        for pattern_str in &def.patterns {
-            let re = match Regex::new(pattern_str) {
-                Ok(r) => r,
-                Err(_) => continue,
-            };
-
+    for (def_idx, regexes) in compiled {
+        let def = &definitions[*def_idx];
+        for re in regexes {
             for (line_idx, line) in lines.iter().enumerate() {
                 if re.is_match(line) {
                     let context = extract_context(&lines, line_idx, 2);

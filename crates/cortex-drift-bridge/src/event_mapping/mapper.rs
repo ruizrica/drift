@@ -1,12 +1,10 @@
 //! BridgeEventHandler: implements DriftEventHandler, creates Cortex memories from Drift events.
 
 use std::sync::atomic::{AtomicU64, Ordering};
-use std::sync::Mutex;
+use std::sync::Arc;
 use std::time::Instant;
 
-use chrono::Utc;
-use cortex_core::memory::base::{BaseMemory, TypedContent};
-use cortex_core::memory::confidence::Confidence;
+use cortex_core::memory::base::TypedContent;
 use cortex_core::memory::importance::Importance;
 use cortex_core::memory::links::PatternLink;
 use cortex_core::memory::types::*;
@@ -14,19 +12,22 @@ use drift_core::events::handler::DriftEventHandler;
 use drift_core::events::types::*;
 use tracing::{info, warn};
 
+use crate::config::EventConfig;
 use crate::errors::BridgeResult;
 use crate::license::LicenseTier;
-use crate::storage;
+use crate::traits::IBridgeStorage;
 
 use super::memory_types::{self, EventProcessingResult};
 
 /// The bridge's implementation of DriftEventHandler.
 /// Creates Cortex memories from Drift events.
 pub struct BridgeEventHandler {
-    /// Connection to cortex.db for writing memories.
-    cortex_db: Option<Mutex<rusqlite::Connection>>,
+    /// Bridge storage for writing memories.
+    bridge_store: Option<Arc<dyn IBridgeStorage>>,
     /// License tier for event filtering.
     license_tier: LicenseTier,
+    /// Per-event enable/disable toggles.
+    event_config: EventConfig,
     /// Whether the bridge is available.
     available: bool,
     /// Count of errors that occurred during event processing.
@@ -35,12 +36,29 @@ pub struct BridgeEventHandler {
 }
 
 impl BridgeEventHandler {
-    /// Create a new handler. If cortex_db is None, all methods are no-ops.
-    pub fn new(cortex_db: Option<Mutex<rusqlite::Connection>>, license_tier: LicenseTier) -> Self {
-        let available = cortex_db.is_some();
+    /// Create a new handler. If bridge_store is None, all methods are no-ops.
+    pub fn new(bridge_store: Option<Arc<dyn IBridgeStorage>>, license_tier: LicenseTier) -> Self {
+        let available = bridge_store.is_some();
         Self {
-            cortex_db,
+            bridge_store,
             license_tier,
+            event_config: EventConfig::default(),
+            available,
+            error_count: AtomicU64::new(0),
+        }
+    }
+
+    /// Create a new handler with an explicit EventConfig.
+    pub fn with_event_config(
+        bridge_store: Option<Arc<dyn IBridgeStorage>>,
+        license_tier: LicenseTier,
+        event_config: EventConfig,
+    ) -> Self {
+        let available = bridge_store.is_some();
+        Self {
+            bridge_store,
+            license_tier,
+            event_config,
             available,
             error_count: AtomicU64::new(0),
         }
@@ -49,8 +67,9 @@ impl BridgeEventHandler {
     /// Create a no-op handler for standalone mode.
     pub fn no_op() -> Self {
         Self {
-            cortex_db: None,
+            bridge_store: None,
             license_tier: LicenseTier::Community,
+            event_config: EventConfig::default(),
             available: false,
             error_count: AtomicU64::new(0),
         }
@@ -59,6 +78,10 @@ impl BridgeEventHandler {
     /// Check if this event type is allowed by the current license tier.
     fn is_event_allowed(&self, event_type: &str) -> bool {
         if !self.available {
+            return false;
+        }
+        // Check operator-configured event toggles first
+        if !self.event_config.is_enabled(event_type) {
             return false;
         }
         match self.license_tier {
@@ -103,42 +126,22 @@ impl BridgeEventHandler {
         linked_patterns: Vec<PatternLink>,
     ) -> BridgeResult<EventProcessingResult> {
         let start = Instant::now();
-        let memory_id = uuid::Uuid::new_v4().to_string();
-        let now = Utc::now();
 
-        let content_hash = BaseMemory::compute_content_hash(&content)
-            .unwrap_or_else(|_| blake3::hash(b"fallback").to_hex().to_string());
+        let memory = super::MemoryBuilder::new(memory_type)
+            .content(content)
+            .summary(&summary)
+            .confidence(confidence)
+            .importance(importance)
+            .tags(tags)
+            .linked_patterns(linked_patterns)
+            .build()?;
 
-        let memory = BaseMemory {
-            id: memory_id.clone(),
-            memory_type,
-            content,
-            summary,
-            transaction_time: now,
-            valid_time: now,
-            valid_until: None,
-            confidence: Confidence::new(confidence),
-            importance,
-            last_accessed: now,
-            access_count: 0,
-            linked_patterns,
-            linked_constraints: vec![],
-            linked_files: vec![],
-            linked_functions: vec![],
-            tags,
-            archived: false,
-            superseded_by: None,
-            supersedes: None,
-            content_hash,
-            namespace: Default::default(),
-            source_agent: Default::default(),
-        };
+        let memory_id = memory.id.clone();
 
-        // Persist to cortex.db
-        if let Some(ref db) = self.cortex_db {
-            let conn = db.lock().map_err(|e| crate::errors::BridgeError::Config(e.to_string()))?;
-            storage::store_memory(&conn, &memory)?;
-            storage::log_event(&conn, event_type, Some(&format!("{:?}", memory_type)), Some(&memory_id), Some(confidence))?;
+        // Persist via bridge storage
+        if let Some(ref store) = self.bridge_store {
+            store.insert_memory(&memory)?;
+            store.insert_event(event_type, Some(&format!("{:?}", memory_type)), Some(&memory_id), Some(confidence))?;
         }
 
         let duration_us = start.elapsed().as_micros() as u64;
@@ -202,7 +205,7 @@ impl DriftEventHandler for BridgeEventHandler {
             format!("Pattern discovered: {} ({})", event.pattern_id, event.category),
             0.5,
             Importance::Normal,
-            vec!["drift_bridge".to_string(), "pattern_discovered".to_string()],
+            vec!["drift_bridge".to_string(), "pattern_discovered".to_string(), format!("pattern:{}", event.pattern_id)],
             vec![],
         ));
     }
@@ -220,7 +223,7 @@ impl DriftEventHandler for BridgeEventHandler {
             format!("Pattern ignored: {}", event.pattern_id),
             0.6,
             Importance::Normal,
-            vec!["drift_bridge".to_string(), "pattern_ignored".to_string()],
+            vec!["drift_bridge".to_string(), "pattern_ignored".to_string(), format!("pattern:{}", event.pattern_id)],
             vec![],
         ));
     }
@@ -242,7 +245,7 @@ impl DriftEventHandler for BridgeEventHandler {
             format!("Patterns merged: {} ← {}", event.kept_id, event.merged_id),
             0.7,
             Importance::Normal,
-            vec!["drift_bridge".to_string(), "pattern_merged".to_string()],
+            vec!["drift_bridge".to_string(), "pattern_merged".to_string(), format!("pattern:{}", event.kept_id)],
             vec![],
         ));
     }
@@ -276,7 +279,7 @@ impl DriftEventHandler for BridgeEventHandler {
             format!("Regression: {} dropped to {:.0}%", event.pattern_id, event.current_score * 100.0),
             0.9,
             Importance::Critical,
-            vec!["drift_bridge".to_string(), "regression".to_string()],
+            vec!["drift_bridge".to_string(), "regression".to_string(), format!("pattern:{}", event.pattern_id)],
             vec![PatternLink {
                 pattern_id: event.pattern_id.clone(),
                 pattern_name: event.pattern_id.clone(),

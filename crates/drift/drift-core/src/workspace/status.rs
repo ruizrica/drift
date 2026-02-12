@@ -6,7 +6,7 @@ use rusqlite::Connection;
 use serde::Serialize;
 
 use super::context::WorkspaceContext;
-use super::errors::{WorkspaceError, WorkspaceResult};
+use super::errors::WorkspaceResult;
 use super::project::{get_active_project, HealthStatus, ProjectInfo};
 
 /// Workspace status — comprehensive view of workspace state.

@@ -34,7 +34,7 @@ fn d07_l2_cache_survives_restart() {
         let cache = L2SqliteCache::open(&db_path);
         // The cache key is blake3 hash of the enriched query.
         // We just verify the cache is non-empty after embedding.
-        assert!(cache.len() > 0, "L2 cache should have entries after embedding");
+        assert!(!cache.is_empty(), "L2 cache should have entries after embedding");
     }
 }
 

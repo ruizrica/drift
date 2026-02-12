@@ -141,7 +141,7 @@ fn string_node_kinds(language: Language) -> Vec<&'static str> {
 }
 
 /// Remove quotes and escape sequences from a string literal.
-fn clean_string_literal(text: &str, kind: &str) -> String {
+fn clean_string_literal(text: &str, _kind: &str) -> String {
     let trimmed = text.trim();
     // Remove surrounding quotes
     if ((trimmed.starts_with('"') && trimmed.ends_with('"'))

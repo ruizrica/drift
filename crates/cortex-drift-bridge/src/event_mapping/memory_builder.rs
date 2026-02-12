@@ -10,6 +10,8 @@ use cortex_core::memory::importance::Importance;
 use cortex_core::memory::links::{ConstraintLink, FileLink, FunctionLink, PatternLink};
 use cortex_core::MemoryType;
 
+use crate::errors::{BridgeError, BridgeResult};
+
 /// Fluent builder for `BaseMemory`.
 pub struct MemoryBuilder {
     memory_type: MemoryType,
@@ -121,18 +123,21 @@ impl MemoryBuilder {
         self
     }
 
-    /// Build the BaseMemory. Panics if content was not set.
-    pub fn build(self) -> BaseMemory {
-        let content = self
-            .content
-            .expect("MemoryBuilder: content must be set before build()");
+    /// Build the BaseMemory. Returns an error if content was not set.
+    pub fn build(self) -> BridgeResult<BaseMemory> {
+        let content = self.content.ok_or_else(|| {
+            BridgeError::MemoryCreationFailed {
+                memory_type: format!("{:?}", self.memory_type),
+                reason: "content must be set before build()".to_string(),
+            }
+        })?;
 
         let now = Utc::now();
 
         let content_hash = BaseMemory::compute_content_hash(&content)
             .unwrap_or_else(|_| blake3::hash(b"fallback").to_hex().to_string());
 
-        BaseMemory {
+        Ok(BaseMemory {
             id: uuid::Uuid::new_v4().to_string(),
             memory_type: self.memory_type,
             content,
@@ -155,7 +160,7 @@ impl MemoryBuilder {
             content_hash,
             namespace: Default::default(),
             source_agent: Default::default(),
-        }
+        })
     }
 }
 
@@ -175,7 +180,8 @@ mod tests {
             .confidence(0.8)
             .importance(Importance::High)
             .tag("test_tag")
-            .build();
+            .build()
+            .expect("build should succeed");
 
         assert_eq!(memory.memory_type, MemoryType::Insight);
         assert!((memory.confidence.value() - 0.8).abs() < 0.01);
@@ -208,7 +214,8 @@ mod tests {
                 file_path: "src/main.rs".to_string(),
                 signature: None,
             }])
-            .build();
+            .build()
+            .expect("build should succeed");
 
         assert_eq!(memory.linked_patterns.len(), 1);
         assert_eq!(memory.linked_patterns[0].pattern_id, "p1");
@@ -225,16 +232,21 @@ mod tests {
             }))
             .summary("Clamped")
             .confidence(1.5)
-            .build();
+            .build()
+            .expect("build should succeed");
 
         assert!((memory.confidence.value() - 1.0).abs() < 0.01);
     }
 
     #[test]
-    #[should_panic(expected = "content must be set")]
-    fn test_builder_panics_without_content() {
-        MemoryBuilder::new(MemoryType::Insight)
+    fn test_builder_returns_error_without_content() {
+        let result = MemoryBuilder::new(MemoryType::Insight)
             .summary("No content")
             .build();
+
+        assert!(result.is_err());
+        let err = result.unwrap_err();
+        let msg = err.to_string();
+        assert!(msg.contains("content must be set"), "Error: {}", msg);
     }
 }

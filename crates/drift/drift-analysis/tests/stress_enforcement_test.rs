@@ -1,3 +1,4 @@
+#![allow(clippy::field_reassign_with_default, clippy::manual_range_contains, clippy::len_zero, clippy::cloned_ref_to_slice_refs, unused_variables)]
 //! Production-readiness stress tests for Phase 6 Enforcement.
 //!
 //! These tests are DIFFERENT from the P6 functional tests. They target:

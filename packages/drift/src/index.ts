@@ -7,3 +7,4 @@
 
 export * from "./simulation/index.js";
 export * from "./decisions/index.js";
+export * from "./cloud/index.js";

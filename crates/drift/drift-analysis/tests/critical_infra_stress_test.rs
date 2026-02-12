@@ -1,3 +1,4 @@
+#![allow(unused_imports)]
 //! Critical Infrastructure Stress Tests for Phase 6 Enforcement
 //!
 //! These tests probe for SILENT FAILURES — bugs that don't panic but produce

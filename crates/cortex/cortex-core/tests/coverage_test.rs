@@ -1,3 +1,4 @@
+#![allow(clippy::float_equality_without_abs)]
 //! Targeted coverage tests for cortex-core uncovered paths.
 
 use cortex_core::intent::{weights, Intent};

@@ -101,7 +101,7 @@ impl OutlierDetector {
 
         // PI-OUT-03/04: Ensemble consensus scoring
         let mut final_results = Vec::new();
-        for (index, methods) in index_methods {
+        for (_index, methods) in index_methods {
             let method_count = methods.len();
             let non_rule_count = methods.iter()
                 .filter(|r| r.method != OutlierMethod::RuleBased)
@@ -257,10 +257,7 @@ mod tests {
     fn skewed_values(n: usize) -> Vec<f64> {
         let n_normal = (n as f64 * 0.9).ceil() as usize;
         let n_spikes = n - n_normal;
-        let mut vals: Vec<f64> = Vec::with_capacity(n);
-        for _ in 0..n_normal {
-            vals.push(1.0);
-        }
+        let mut vals: Vec<f64> = vec![1.0; n_normal];
         for i in 0..n_spikes {
             vals.push(1000.0 * (i as f64 + 1.0));
         }

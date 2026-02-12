@@ -22,6 +22,9 @@ pub enum StorageError {
 
     #[error("Connection pool exhausted: {active} active connections")]
     ConnectionPoolExhausted { active: usize },
+
+    #[error("Operation not supported: {operation} — {reason}")]
+    NotSupported { operation: String, reason: String },
 }
 
 impl DriftErrorCode for StorageError {

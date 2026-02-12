@@ -84,7 +84,7 @@ impl PropagationContext {
     }
 
     /// Check if a variable's taint has been sanitized for a specific sink type.
-    pub fn is_sanitized_for(&self, var: &str, sink_type: &SinkType) -> bool {
+    pub fn is_sanitized_for(&self, _var: &str, sink_type: &SinkType) -> bool {
         self.sanitizers.iter().any(|s| s.labels_sanitized.contains(sink_type))
     }
 

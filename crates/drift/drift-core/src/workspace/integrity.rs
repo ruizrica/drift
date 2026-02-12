@@ -6,8 +6,7 @@ use std::path::Path;
 use rusqlite::{Connection, OpenFlags};
 use serde::Serialize;
 
-use super::errors::{WorkspaceError, WorkspaceResult};
-use super::status::DiskUsage;
+use super::errors::WorkspaceResult;
 
 /// Integrity report — comprehensive workspace health check.
 #[derive(Debug, Clone, Serialize)]

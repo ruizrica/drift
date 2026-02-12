@@ -11,7 +11,6 @@ use drift_analysis::engine::types::{DetectionMethod, PatternCategory, PatternMat
 use drift_analysis::engine::visitor::DetectionContext;
 use drift_analysis::parsers::manager::ParserManager;
 use drift_analysis::parsers::types::ParseResult;
-use drift_analysis::scanner::language_detect::Language;
 use smallvec::SmallVec;
 
 // ---- Helpers ----
@@ -77,7 +76,7 @@ export class UserService {
     let matches = registry.run_all(&ctx);
 
     // Collect unique categories from matches
-    let categories: std::collections::HashSet<_> = matches.iter().map(|m| m.category).collect();
+    let _categories: std::collections::HashSet<_> = matches.iter().map(|m| m.category).collect();
 
     // The registry should produce matches — at least some detectors fire
     // The exact count depends on detector implementations, but the registry
@@ -297,7 +296,7 @@ function vulnerable(input: string) {
     let ctx = make_detection_context(&pr, &bytes);
 
     // Run with security enabled
-    let matches_with = registry.run_category(DetectorCategory::Security, &ctx);
+    let _matches_with = registry.run_category(DetectorCategory::Security, &ctx);
 
     // Disable security
     registry.disable_category(DetectorCategory::Security);

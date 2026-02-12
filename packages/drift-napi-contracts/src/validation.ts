@@ -196,3 +196,63 @@ export function validateFeedbackParams(params: FeedbackValidationInput): Validat
   }
   return VALID;
 }
+
+// ─── Bridge Ground Params ───────────────────────────────────────────
+
+const VALID_MEMORY_TYPES = [
+  'PatternRationale',
+  'ConstraintOverride',
+  'DecisionContext',
+  'CodeSmell',
+  'Core',
+  'Tribal',
+  'Semantic',
+  'Insight',
+  'Feedback',
+  'Episodic',
+  'Preference',
+  'Skill',
+] as const;
+
+export interface BridgeGroundValidationInput {
+  memoryId?: string;
+  memoryType?: string;
+}
+
+export function validateBridgeGroundParams(params: BridgeGroundValidationInput): ValidationResult {
+  if (params.memoryId === undefined || params.memoryId === null) {
+    return invalid('memoryId', 'memoryId is required');
+  }
+  if (typeof params.memoryId !== 'string' || params.memoryId.length === 0) {
+    return invalid('memoryId', 'memoryId must be a non-empty string');
+  }
+  if (params.memoryType === undefined || params.memoryType === null) {
+    return invalid('memoryType', 'memoryType is required');
+  }
+  if (typeof params.memoryType !== 'string' || params.memoryType.length === 0) {
+    return invalid('memoryType', 'memoryType must be a non-empty string');
+  }
+  if (!VALID_MEMORY_TYPES.includes(params.memoryType as typeof VALID_MEMORY_TYPES[number])) {
+    return invalid(
+      'memoryType',
+      `memoryType must be one of: ${VALID_MEMORY_TYPES.join(', ')}`,
+    );
+  }
+  return VALID;
+}
+
+// ─── Bridge Counterfactual Params ───────────────────────────────────
+
+export interface BridgeCounterfactualValidationInput {
+  memoryId?: string;
+}
+
+export function validateBridgeCounterfactualParams(params: BridgeCounterfactualValidationInput): ValidationResult {
+  if (params.memoryId === undefined || params.memoryId === null) {
+    return invalid('memoryId', 'memoryId is required');
+  }
+  if (typeof params.memoryId !== 'string' || params.memoryId.length === 0) {
+    return invalid('memoryId', 'memoryId must be a non-empty string');
+  }
+  return VALID;
+}

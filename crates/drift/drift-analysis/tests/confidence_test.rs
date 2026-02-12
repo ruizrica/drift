@@ -3,7 +3,7 @@
 use drift_analysis::engine::types::PatternCategory;
 use drift_analysis::patterns::aggregation::types::{AggregatedPattern, PatternLocation};
 use drift_analysis::patterns::confidence::beta::{self, BetaPosterior};
-use drift_analysis::patterns::confidence::factors::{self, FactorInput, FactorValues};
+use drift_analysis::patterns::confidence::factors::{self, FactorInput};
 use drift_analysis::patterns::confidence::momentum::{self, MomentumTracker};
 use drift_analysis::patterns::confidence::scorer::{ConfidenceScorer, ScorerConfig};
 use drift_analysis::patterns::confidence::types::{ConfidenceScore, ConfidenceTier, MomentumDirection};
@@ -127,7 +127,7 @@ fn t3_bay_03_temporal_decay() {
 fn t3_bay_04_alpha_near_zero() {
     let mean = BetaPosterior::posterior_mean(0.001, 1000.0);
     assert!(mean.is_finite(), "Mean should be finite");
-    assert!(mean >= 0.0 && mean <= 1.0, "Mean should be in [0,1], got {}", mean);
+    assert!((0.0..=1.0).contains(&mean), "Mean should be in [0,1], got {}", mean);
     assert!(mean < 0.01, "Mean should be near zero");
 
     let var = BetaPosterior::posterior_variance(0.001, 1000.0);
@@ -234,7 +234,7 @@ fn t3_bay_07_five_factor_independence() {
     assert!(rising_score > base_score, "Rising momentum should increase score");
 
     // Verify factors_to_alpha_beta produces different values
-    let (base_a, base_b) = factors::factors_to_alpha_beta(&base_factors, 50);
+    let (base_a, _base_b) = factors::factors_to_alpha_beta(&base_factors, 50);
     let (high_a, _) = factors::factors_to_alpha_beta(&factors::compute_factors(&high_freq), 50);
     assert!(high_a > base_a, "Higher frequency should increase alpha contribution");
 }

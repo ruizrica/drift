@@ -5,7 +5,6 @@
 
 use chrono::Utc;
 use cortex_core::config::EmbeddingConfig;
-use cortex_core::errors::CortexResult;
 use cortex_core::memory::links::{FileLink, PatternLink};
 use cortex_core::memory::*;
 use cortex_core::traits::IEmbeddingProvider;

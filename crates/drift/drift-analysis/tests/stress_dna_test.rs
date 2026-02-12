@@ -1,3 +1,4 @@
+#![allow(clippy::cloned_ref_to_slice_refs)]
 //! Production stress tests for the DNA module.
 //! Targets: health score boundaries, mutation edge cases, diversity, determinism.
 

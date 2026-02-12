@@ -16,7 +16,7 @@ use std::time::Instant;
 
 use drift_core::errors::ParseError;
 use smallvec::SmallVec;
-use tree_sitter::{Node, Parser, Query, QueryCursor};
+use tree_sitter::{Node, Parser};
 
 use super::error_tolerant::count_errors;
 use super::types::*;
@@ -61,7 +61,7 @@ pub fn parse_with_language_and_tree(
     let (error_count, error_ranges) = count_errors(root);
 
     // Extract structural elements
-    let source_str = std::str::from_utf8(source).unwrap_or("");
+    let _source_str = std::str::from_utf8(source).unwrap_or("");
     let mut result = ParseResult {
         file: file_str.clone(),
         language,
@@ -174,10 +174,6 @@ fn extract_node_recursive(
             } else if let Some(import) = extract_import(node, source, file) {
                 result.imports.push(import);
             }
-        }
-        // Python: import X (no from)
-        "import_statement" if kind == "import_statement" => {
-            // Already handled above
         }
         // Exports
         "export_statement" | "export_declaration" => {
@@ -386,10 +382,6 @@ fn extract_calls_recursive(
                             // DP-ERR-01: Check if catch body is empty
                             has_body = catch_has_body(child);
                         }
-                        "except_clause" => {
-                            caught_type = extract_catch_type(child, source);
-                            has_body = catch_has_body(child);
-                        }
                         _ => {}
                     }
                 }
@@ -470,10 +462,6 @@ fn extract_calls_recursive(
                 has_body: true,
                 function_scope: None,
             });
-        }
-        // DP-RERR-01: Rust ? operator → QuestionMark
-        "try_expression" if result.language == Language::Rust => {
-            // Already handled in try_statement/try_expression above
         }
         // Python with statement → WithStatement (context manager)
         "with_statement" => {
@@ -622,7 +610,7 @@ fn extract_arrow_function(node: Node, source: &[u8], file: &str) -> Option<Funct
     })
 }
 
-fn extract_class(node: Node, source: &[u8], file: &str, lang: Language) -> Option<ClassInfo> {
+fn extract_class(node: Node, source: &[u8], file: &str, _lang: Language) -> Option<ClassInfo> {
     let name = find_child_text(&node, source, &[
         "identifier", "type_identifier", "constant", "name",
     ])?;
@@ -691,7 +679,7 @@ fn extract_class(node: Node, source: &[u8], file: &str, lang: Language) -> Optio
     })
 }
 
-fn extract_interface(node: Node, source: &[u8], file: &str) -> Option<ClassInfo> {
+fn extract_interface(node: Node, source: &[u8], _file: &str) -> Option<ClassInfo> {
     let name = find_child_text(&node, source, &["identifier", "type_identifier", "name"])?;
     let generic_params = extract_generic_params(node, source);
     let visibility = extract_visibility(node, source);
@@ -712,7 +700,7 @@ fn extract_interface(node: Node, source: &[u8], file: &str) -> Option<ClassInfo>
     })
 }
 
-fn extract_struct(node: Node, source: &[u8], file: &str) -> Option<ClassInfo> {
+fn extract_struct(node: Node, source: &[u8], _file: &str) -> Option<ClassInfo> {
     let name = find_child_text(&node, source, &["type_identifier", "identifier"])?;
     let generic_params = extract_generic_params(node, source);
     let visibility = extract_visibility(node, source);
@@ -733,7 +721,7 @@ fn extract_struct(node: Node, source: &[u8], file: &str) -> Option<ClassInfo> {
     })
 }
 
-fn extract_enum(node: Node, source: &[u8], file: &str) -> Option<ClassInfo> {
+fn extract_enum(node: Node, source: &[u8], _file: &str) -> Option<ClassInfo> {
     let name = find_child_text(&node, source, &["type_identifier", "identifier", "name"])?;
     let visibility = extract_visibility(node, source);
     let is_exported = detect_is_exported(node, source, &name, visibility);
@@ -753,7 +741,7 @@ fn extract_enum(node: Node, source: &[u8], file: &str) -> Option<ClassInfo> {
     })
 }
 
-fn extract_trait(node: Node, source: &[u8], file: &str) -> Option<ClassInfo> {
+fn extract_trait(node: Node, source: &[u8], _file: &str) -> Option<ClassInfo> {
     let name = find_child_text(&node, source, &["type_identifier"])?;
     let generic_params = extract_generic_params(node, source);
     let visibility = extract_visibility(node, source);

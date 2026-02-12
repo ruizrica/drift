@@ -14,7 +14,6 @@
 //! 8. NAPI Functions: serialization roundtrip, missing memory types, error propagation
 
 use std::collections::HashMap;
-use std::sync::Mutex;
 use std::time::Duration;
 
 use cortex_drift_bridge::config::{BridgeConfig, EvidenceConfig, GroundingConfig};
@@ -44,7 +43,6 @@ use cortex_drift_bridge::link_translation::translator::{EntityLink, LinkTranslat
 use cortex_drift_bridge::napi::functions;
 use cortex_drift_bridge::query::cortex_queries;
 use cortex_drift_bridge::specification::corrections::{CorrectionRootCause, SpecSection};
-use cortex_drift_bridge::storage;
 use cortex_drift_bridge::storage::migrations;
 use cortex_drift_bridge::storage::retention;
 use cortex_drift_bridge::types::AdjustmentMode;
@@ -53,16 +51,14 @@ use cortex_drift_bridge::BridgeRuntime;
 use cortex_core::memory::links::{ConstraintLink, PatternLink};
 use drift_core::events::handler::DriftEventHandler;
 use drift_core::events::types::*;
+use cortex_drift_bridge::traits::IBridgeStorage;
 
 // ============================================================================
 // HELPERS
 // ============================================================================
 
-fn fresh_db() -> rusqlite::Connection {
-    let conn = rusqlite::Connection::open_in_memory().unwrap();
-    storage::configure_connection(&conn).unwrap();
-    storage::migrate(&conn).unwrap();
-    conn
+fn fresh_db() -> cortex_drift_bridge::storage::engine::BridgeStorageEngine {
+    cortex_drift_bridge::storage::engine::BridgeStorageEngine::open_in_memory().unwrap()
 }
 
 fn make_memory(id: &str, pat_conf: f64) -> MemoryForGrounding {
@@ -120,14 +116,14 @@ fn make_evidence(support: f64, weight: f64) -> GroundingEvidence {
 fn storage_schema_version_survives_retention_cleanup() {
     let conn = fresh_db();
     // Record the schema version
-    let version_before = migrations::get_schema_version(&conn).unwrap();
+    let version_before = conn.with_reader(migrations::get_schema_version).unwrap();
     assert_eq!(version_before, 1);
 
     // Run retention (community tier = strict cleanup)
-    retention::apply_retention(&conn, true).unwrap();
+    conn.with_writer(|conn| retention::apply_retention(conn, true)).unwrap();
 
     // Schema version must survive retention cleanup
-    let version_after = migrations::get_schema_version(&conn).unwrap();
+    let version_after = conn.with_reader(migrations::get_schema_version).unwrap();
     assert_eq!(version_after, 1, "schema_version must survive retention cleanup");
 }
 
@@ -141,15 +137,12 @@ fn storage_retention_preserves_schema_version_metric() {
         [],
     ).unwrap();
 
-    // schema_version should already exist from migration
-    let count_before: i64 = conn.query_row(
-        "SELECT COUNT(*) FROM bridge_metrics WHERE metric_name = 'schema_version'",
-        [],
-        |row| row.get(0),
-    ).unwrap();
-    assert!(count_before >= 1, "schema_version metric should exist after migration");
+    // schema_version now lives in dedicated bridge_schema_version table (INF-07),
+    // so it's immune to retention by design.
+    let version_before = conn.with_reader(migrations::get_schema_version).unwrap();
+    assert_eq!(version_before, 1, "schema_version should be set after migration");
 
-    retention::apply_retention(&conn, true).unwrap();
+    conn.with_writer(|conn| retention::apply_retention(conn, true)).unwrap();
 
     // Old test_metric should be gone (recorded_at = 0 is ancient)
     let test_count: i64 = conn.query_row(
@@ -159,13 +152,9 @@ fn storage_retention_preserves_schema_version_metric() {
     ).unwrap();
     assert_eq!(test_count, 0, "old metrics should be cleaned up");
 
-    // But schema_version must survive
-    let version_count: i64 = conn.query_row(
-        "SELECT COUNT(*) FROM bridge_metrics WHERE metric_name = 'schema_version'",
-        [],
-        |row| row.get(0),
-    ).unwrap();
-    assert!(version_count >= 1, "schema_version must survive retention");
+    // schema_version must survive in dedicated table (immune to retention)
+    let version_after = conn.with_reader(migrations::get_schema_version).unwrap();
+    assert_eq!(version_after, 1, "schema_version must survive retention cleanup");
 }
 
 #[test]
@@ -173,7 +162,7 @@ fn storage_sql_injection_in_memory_id() {
     let conn = fresh_db();
     // Try to inject SQL through memory_id queries
     let evil_id = "'; DROP TABLE bridge_memories; --";
-    let result = cortex_drift_bridge::query::cortex_queries::get_memory_by_id(&conn, evil_id);
+    let result = conn.with_reader(|c| cortex_queries::get_memory_by_id(c, evil_id));
     assert!(result.is_ok(), "SQL injection should not cause errors (parameterized queries)");
     assert!(result.unwrap().is_none(), "No memory should be found");
 }
@@ -182,7 +171,7 @@ fn storage_sql_injection_in_memory_id() {
 fn storage_sql_injection_in_tag_search() {
     let conn = fresh_db();
     let evil_tag = "%'; DROP TABLE bridge_memories; --";
-    let result = cortex_drift_bridge::query::cortex_queries::get_memories_by_tag(&conn, evil_tag, 10);
+    let result = conn.with_reader(|conn| cortex_queries::get_memories_by_tag(conn, evil_tag, 10));
     assert!(result.is_ok(), "SQL injection in tag search should be safe");
 }
 
@@ -190,7 +179,7 @@ fn storage_sql_injection_in_tag_search() {
 fn storage_sql_injection_in_grounding_history() {
     let conn = fresh_db();
     let evil_id = "' OR 1=1 --";
-    let result = storage::get_grounding_history(&conn, evil_id, 100);
+    let result = conn.get_grounding_history(evil_id, 100);
     assert!(result.is_ok());
     assert!(result.unwrap().is_empty());
 }
@@ -233,11 +222,15 @@ fn storage_duplicate_memory_id_fails_gracefully() {
     };
 
     // First insert should succeed
-    assert!(storage::store_memory(&conn, &memory).is_ok());
+    assert!(conn.insert_memory(&memory).is_ok());
 
-    // Second insert with same ID should fail (PRIMARY KEY constraint)
-    let result = storage::store_memory(&conn, &memory);
-    assert!(result.is_err(), "Duplicate memory ID should fail, not silently overwrite");
+    // Second insert with same summary+type is deduplicated (silently skipped)
+    let result = conn.insert_memory(&memory);
+    assert!(result.is_ok(), "Duplicate memory should be silently deduplicated");
+    let count: i64 = conn
+        .query_row("SELECT COUNT(*) FROM bridge_memories WHERE id = 'dup-id'", [], |row| row.get(0))
+        .unwrap();
+    assert_eq!(count, 1, "Should have exactly 1 memory after dedup");
 }
 
 #[test]
@@ -245,7 +238,7 @@ fn storage_migration_idempotent_after_multiple_runs() {
     let conn = fresh_db();
     // Run migration 5 more times
     for _ in 0..5 {
-        let v = migrations::migrate(&conn).unwrap();
+        let v = conn.with_writer(migrations::migrate).unwrap();
         assert_eq!(v, 1);
     }
     // Tables should still be intact
@@ -254,13 +247,13 @@ fn storage_migration_idempotent_after_multiple_runs() {
         [],
         |row| row.get(0),
     ).unwrap();
-    assert_eq!(count, 5);
+    assert_eq!(count, 6, "Expected 6 bridge tables (5 data + 1 schema_version)");
 }
 
 #[test]
 fn storage_record_metric_and_read_back() {
     let conn = fresh_db();
-    storage::record_metric(&conn, "test_latency_ms", 42.5).unwrap();
+    conn.insert_metric("test_latency_ms", 42.5).unwrap();
 
     let val: f64 = conn.query_row(
         "SELECT metric_value FROM bridge_metrics WHERE metric_name = 'test_latency_ms' ORDER BY recorded_at DESC LIMIT 1",
@@ -274,7 +267,6 @@ fn storage_record_metric_and_read_back() {
 fn storage_grounding_result_roundtrip() {
     let conn = fresh_db();
     let result = cortex_drift_bridge::types::GroundingResult {
-        id: "gr-1".to_string(),
         memory_id: "mem-1".to_string(),
         verdict: GroundingVerdict::Validated,
         grounding_score: 0.85,
@@ -290,13 +282,13 @@ fn storage_grounding_result_roundtrip() {
         duration_ms: 10,
     };
 
-    storage::record_grounding_result(&conn, &result).unwrap();
+    conn.insert_grounding_result(&result).unwrap();
 
-    let prev = storage::get_previous_grounding_score(&conn, "mem-1").unwrap();
+    let prev = conn.get_previous_grounding_score("mem-1").unwrap();
     assert!(prev.is_some());
     assert!((prev.unwrap() - 0.85).abs() < f64::EPSILON);
 
-    let history = storage::get_grounding_history(&conn, "mem-1", 10).unwrap();
+    let history = conn.get_grounding_history("mem-1", 10).unwrap();
     assert_eq!(history.len(), 1);
     assert!((history[0].0 - 0.85).abs() < f64::EPSILON);
     assert_eq!(history[0].1, "Validated");
@@ -305,7 +297,7 @@ fn storage_grounding_result_roundtrip() {
 #[test]
 fn storage_event_log_basic() {
     let conn = fresh_db();
-    storage::log_event(&conn, "test_event", Some("Insight"), Some("m1"), Some(0.5)).unwrap();
+    conn.insert_event("test_event", Some("Insight"), Some("m1"), Some(0.5)).unwrap();
 
     let count: i64 = conn.query_row(
         "SELECT COUNT(*) FROM bridge_event_log WHERE event_type = 'test_event'",
@@ -351,9 +343,9 @@ fn storage_unicode_in_memory_content() {
         namespace: Default::default(),
         source_agent: Default::default(),
     };
-    storage::store_memory(&conn, &memory).unwrap();
+    conn.insert_memory(&memory).unwrap();
 
-    let row = cortex_queries::get_memory_by_id(&conn, "unicode-test").unwrap().unwrap();
+    let row = conn.with_reader(|conn| cortex_queries::get_memory_by_id(conn, "unicode-test")).unwrap().unwrap();
     assert_eq!(row.summary, "Unicode 测试");
     assert!(row.content.contains("日本語テスト"));
 }
@@ -589,7 +581,7 @@ fn grounding_loop_snapshot_accounting_correct() {
         make_minimal_memory("not-groundable", cortex_core::MemoryType::Episodic), // not groundable
     ];
 
-    let snapshot = runner.run(&memories, None, Some(&conn), TriggerType::OnDemand).unwrap();
+    let snapshot = runner.run(&memories, None, Some(&conn as &dyn cortex_drift_bridge::traits::IBridgeStorage), TriggerType::OnDemand).unwrap();
 
     assert_eq!(snapshot.total_checked, 4);
     assert_eq!(snapshot.not_groundable, 1, "Episodic is not groundable");
@@ -605,10 +597,10 @@ fn grounding_loop_persists_results_to_db() {
     let runner = GroundingLoopRunner::default();
     let memories = vec![make_memory("persist-test", 0.85)];
 
-    runner.run(&memories, None, Some(&conn), TriggerType::OnDemand).unwrap();
+    runner.run(&memories, None, Some(&conn as &dyn cortex_drift_bridge::traits::IBridgeStorage), TriggerType::OnDemand).unwrap();
 
     // Check grounding result was persisted
-    let prev = storage::get_previous_grounding_score(&conn, "persist-test").unwrap();
+    let prev = conn.get_previous_grounding_score("persist-test").unwrap();
     assert!(prev.is_some(), "Grounding result should be persisted");
 
     // Check snapshot was persisted
@@ -655,12 +647,12 @@ fn grounding_score_delta_computed_correctly() {
 
     // First grounding — no previous score
     let memory = make_memory("delta-test", 0.8);
-    let r1 = runner.ground_single(&memory, None, Some(&conn)).unwrap();
+    let r1 = runner.ground_single(&memory, None, Some(&conn as &dyn cortex_drift_bridge::traits::IBridgeStorage)).unwrap();
     assert!(r1.previous_score.is_none());
     assert!(r1.score_delta.is_none());
 
     // Second grounding — should have previous score
-    let r2 = runner.ground_single(&memory, None, Some(&conn)).unwrap();
+    let r2 = runner.ground_single(&memory, None, Some(&conn as &dyn cortex_drift_bridge::traits::IBridgeStorage)).unwrap();
     assert!(r2.previous_score.is_some());
     assert!(r2.score_delta.is_some());
 }
@@ -887,9 +879,8 @@ fn event_handler_no_op_produces_no_errors() {
 
 #[test]
 fn event_handler_community_blocks_advanced_events() {
-    let conn = rusqlite::Connection::open_in_memory().unwrap();
-    storage::create_bridge_tables(&conn).unwrap();
-    let handler = BridgeEventHandler::new(Some(Mutex::new(conn)), LicenseTier::Community);
+    let conn = fresh_db();
+    let handler = BridgeEventHandler::new(Some(std::sync::Arc::new(conn) as std::sync::Arc<dyn cortex_drift_bridge::traits::IBridgeStorage>), LicenseTier::Community);
 
     // on_decision_mined is NOT in community events
     handler.on_decision_mined(&DecisionMinedEvent {
@@ -909,7 +900,8 @@ fn event_handler_community_blocks_advanced_events() {
 fn license_community_blocks_enterprise_features() {
     let tier = LicenseTier::Community;
     assert_eq!(tier.check("full_grounding_loop"), FeatureGate::Denied);
-    assert_eq!(tier.check("contradiction_generation"), FeatureGate::Denied);
+    // contradiction_generation is Community-tier per feature_matrix (the source of truth)
+    assert_eq!(tier.check("contradiction_generation"), FeatureGate::Allowed);
     assert_eq!(tier.check("cross_db_analytics"), FeatureGate::Denied);
 }
 
@@ -1402,7 +1394,6 @@ fn evidence_config_missing_override_uses_default() {
 #[test]
 fn contradiction_not_generated_when_flag_false() {
     let result = cortex_drift_bridge::types::GroundingResult {
-        id: "gr-1".to_string(),
         memory_id: "mem-1".to_string(),
         verdict: GroundingVerdict::Invalidated,
         grounding_score: 0.1,
@@ -1426,7 +1417,6 @@ fn contradiction_not_generated_when_flag_false() {
 fn contradiction_generated_and_persisted() {
     let conn = fresh_db();
     let result = cortex_drift_bridge::types::GroundingResult {
-        id: "gr-2".to_string(),
         memory_id: "mem-2".to_string(),
         verdict: GroundingVerdict::Invalidated,
         grounding_score: 0.05,
@@ -1454,7 +1444,7 @@ fn contradiction_generated_and_persisted() {
     assert!(contradiction_id.is_some(), "Should generate contradiction");
 
     // Verify it was persisted
-    let row = cortex_queries::get_memory_by_id(&conn, &contradiction_id.unwrap()).unwrap();
+    let row = conn.with_reader(|c| cortex_queries::get_memory_by_id(c, &contradiction_id.unwrap())).unwrap();
     assert!(row.is_some(), "Contradiction memory should be persisted");
     let row = row.unwrap();
     assert_eq!(row.memory_type, "Feedback");
@@ -1471,7 +1461,7 @@ fn stress_rapid_grounding_no_panics() {
     let conn = fresh_db();
     for i in 0..100 {
         let memory = make_memory(&format!("rapid-{}", i), (i as f64) / 100.0);
-        let _ = runner.ground_single(&memory, None, Some(&conn));
+        let _ = runner.ground_single(&memory, None, Some(&conn as &dyn cortex_drift_bridge::traits::IBridgeStorage));
     }
     // Verify all results were persisted
     let count: i64 = conn.query_row(
@@ -1535,15 +1525,15 @@ fn stress_many_memories_in_bridge_db() {
             namespace: Default::default(),
             source_agent: Default::default(),
         };
-        storage::store_memory(&conn, &memory).unwrap();
+        conn.insert_memory(&memory).unwrap();
     }
 
-    let count = cortex_queries::count_memories(&conn).unwrap();
+    let count = conn.with_reader(cortex_queries::count_memories).unwrap();
     assert_eq!(count, 500);
 
-    let by_type = cortex_queries::count_memories_by_type(&conn, "Insight").unwrap();
+    let by_type = conn.with_reader(|conn| cortex_queries::count_memories_by_type(conn, "Insight")).unwrap();
     assert_eq!(by_type, 500);
 
-    let by_tag = cortex_queries::get_memories_by_tag(&conn, "stress_test", 10).unwrap();
+    let by_tag = conn.with_reader(|conn| cortex_queries::get_memories_by_tag(conn, "stress_test", 10)).unwrap();
     assert_eq!(by_tag.len(), 10, "Should respect limit parameter");
 }

@@ -21,6 +21,8 @@ pub const BRIDGE_TABLES_V1: &str = "
         weak_count INTEGER NOT NULL,
         invalidated_count INTEGER NOT NULL,
         avg_score REAL NOT NULL DEFAULT 0.0,
+        error_count INTEGER NOT NULL DEFAULT 0,
+        trigger_type TEXT,
         created_at INTEGER NOT NULL DEFAULT (unixepoch())
     ) STRICT;
 

@@ -6,7 +6,7 @@ use tree_sitter::Node;
 
 use crate::scanner::language_detect::Language;
 
-use super::types::{GASTNode, Visibility};
+use super::types::GASTNode;
 
 /// Trait for language-specific GAST normalizers.
 pub trait GASTNormalizer: Send + Sync {
